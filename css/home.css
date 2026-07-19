@@ -1,0 +1,355 @@
+/* Specilised home page components needed that are not define in style.css */
+
+/* ---------- Hero Banner ---------- */
+/* ---------- Remove Gap Between Nav and Banner ---------- */
+body, html {
+    margin: 0;
+    padding: 0;
+}
+
+/* Reset the workspace container so its contents sit flush against the header */
+.site-main {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.hero-section {
+    /* 1. Force the section to take up the full window width, breaking out of any boxed containers */
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-top: 0 !important;
+    margin-right: -50vw;
+
+    /* 2. Load the background image correctly */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+                      url('../images/banner.png'); /* Make sure this path matching your image location is correct */
+    background-size: cover;          /* Forces the image to fill the layout edge-to-edge */
+    background-position: center;     /* Centers the graphic background focus */
+    background-repeat: no-repeat;
+    
+    min-height: 500px;               /* Banner layout height */
+    display: flex;
+    align-items: center;             /* Centers elements vertically */
+    justify-content: center;         /* Centers elements horizontally */
+    padding: 60px 20px;
+    text-align: center;              /* Centers the text layout lines natively */
+}
+
+.hero-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.hero-content {
+    max-width: 750px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.hero-title {
+    font-family: 'Arial Black', Impact, sans-serif;
+    font-size: 4rem;
+    line-height: 1.1;
+    font-weight: 900;
+    color: #ffffff;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6); /* Helps text pop beautifully off graphic backgrounds */
+}
+
+.hero-subtitle {
+    color: #f8fafc;
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 30px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- Button Modifications for Visibility ---------- */
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+.btn-primary {
+    background-color: #ffffff;
+    color: #1e293b;
+    font-family: 'Arial Black', sans-serif;
+    font-size: 0.95rem;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary {
+    border: 2px solid #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    font-family: 'Arial Black', sans-serif;
+    font-size: 0.95rem;
+    padding: 12px 28px;
+    border-radius: 50px;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #2589cc;
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background-color: #2589cc;
+    color: #ffffff;
+    border: solid #2589cc;
+}
+
+/* ---------- Layout Sections & Amenities Grid ---------- */
+.about-section {
+    background-color: #f1f5f9;
+    padding: 60px 20px;
+}
+
+.about-container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.section-main-title {
+    font-family: 'Arial Black', Impact, sans-serif;
+    font-size: 2.5rem;
+    color: #1e293b;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+}
+
+/* .card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+} repeated from style.css .grid (gap difference 10px)*/  
+
+/* Cannot be replaced as the .card has difference padding */
+.info-card {
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 36px;
+}
+
+.card-image {
+    height: 220px;
+    overflow: hidden;
+}
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-body {
+    padding: 24px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body h3 {
+    font-family: 'Arial Black', sans-serif;
+    color: #1e293b;
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+}
+
+.card-body p {
+    color: #475569;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    flex-grow: 1;
+}
+
+.card-link {
+    color: #1e293b;
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+.card-link:hover{
+    color: #2589cc;
+}
+
+/* ---------- Equipment Store Premium Banner Component ---------- */
+.store-banner-wrapper {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    background: linear-gradient(135deg, #071630 0%, #0c234b 50%, #15376d 100%);
+    padding: 40px 0;
+    overflow: hidden;
+    margin-top: 32px;
+    margin-bottom: 32px;
+}
+
+.store-banner-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    gap: 40px;
+}
+
+/* Left Column Styling */
+.store-banner-left {
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+}
+
+.store-tagline {
+    font-family: 'Arial Black', Impact, sans-serif;
+    font-size: 2.2rem;
+    color: #2589cc;       /* High-energy athletic blue text accent */
+    text-transform: uppercase;
+    line-height: 1;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+}
+
+.store-main-title {
+    font-family: 'Arial Black', Impact, sans-serif;
+    font-size: 5rem;
+    color: #ffffff;       /* Massive bold white text block */
+    text-transform: uppercase;
+    line-height: 0.95;
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+}
+
+.store-desc {
+    color: #94a3b8;       /* Smooth readable slate gray contrast text */
+    font-size: 1.05rem;
+    line-height: 1.6;
+    max-width: 480px;
+    margin-bottom: 28px;
+}
+
+/* Rounded Pill Button Interface */
+.btn-store-visit {
+    background-color: #2589cc;
+    color: #ffffff;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-weight: bold;
+    font-size: 0.95rem;
+    padding: 12px 36px;
+    border-radius: 50px;   /* Clean capsule layout shape matching the visual target */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(37, 137, 204, 0.3);
+    transition: all 0.2s ease-in-out;
+    display: inline-block;
+}
+
+.btn-store-visit:hover {
+    background-color: #1a6fa8;
+    box-shadow: 0 6px 20px rgba(37, 137, 204, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Right Column Display Frame Styling */
+.store-banner-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Recreates the rounded frame cutout wrapper */
+.store-showcase-frame {
+    width: 100%;
+    max-width: 440px;
+    height: 300px;
+    border-radius: 24px;   /* Smooth curved bounding corners */
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.store-showcase-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;     /* Forces the showcase photo to cleanly crop inside the layout frame */
+    display: block;
+}
+
+/* ---------- Responsive adjustments for smaller screens ---------- */
+@media (max-width: 968px) {
+    .hero-container {
+        flex-direction: column-reverse;
+        text-align: center;
+        padding-bottom: 40px;
+    }
+    .hero-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .hero-title {
+        font-size: 3.5rem;
+    }
+    .card-grid, .contact-wrapper {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .store-intro-box {
+        padding: 24px;
+        flex-direction: column;
+        text-align: center;
+    }
+    .store-intro-content p {
+        margin-bottom: 16px;
+    }
+}
+
+@media (max-width: 868px) {
+    .store-banner-container {
+        flex-direction: column;
+        text-align: center;
+        gap: 30px;
+    }
+    
+    .store-banner-left {
+        align-items: center;
+    }
+    
+    .store-main-title {
+        font-size: 3.8rem;
+    }
+    
+    .store-showcase-frame {
+        max-width: 100%;
+        height: 240px;
+    }
+}

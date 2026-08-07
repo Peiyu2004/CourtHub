@@ -10,13 +10,43 @@ $db_user = "root";        // change to your MySQL username
 $db_pass = "";             // change to your MySQL password
 $db_name = "courthub_db";
 
-// mysqli OOP-style connection
-$conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
+/*
+ * From PHP 8.1 onwards mysqli reports problems by throwing an exception
+ * instead of returning false. Setting the mode here on purpose means every
+ * page behaves the same way, and it is why the INSERT calls in the equipment
+ * pages are wrapped in try/catch - a duplicate review or a duplicate category
+ * name arrives as an exception, not as a false return value.
+ */
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-// If connection fails, stop the whole page instead of continuing with a broken $conn
-if ($conn->connect_error) {
-    die("Database connection failed: " . $conn->connect_error);
+try {
+    // mysqli OOP-style connection
+    $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
+} catch (mysqli_sql_exception $e) {
+    // Stop the whole page instead of continuing with a broken $conn.
+    // The real driver message is not printed to the browser because it can
+    // reveal the database name and user account to a visitor.
+    die("Database connection failed. Check that MySQL is running in WAMP and "
+        . "that the database '" . htmlspecialchars($db_name) . "' has been imported.");
 }
 
 // Make sure PHP and MySQL agree on character encoding (avoids garbled text)
 $conn->set_charset("utf8mb4");
+
+/*
+ * Schema check.
+ * The equipment store needs the categories and equipment_reviews tables. If a
+ * group member pulls the latest code but forgets to re-import database.sql,
+ * every store page would otherwise die with a raw
+ * "Table 'courthub_db.categories' doesn't exist" error, which is not obvious.
+ * One cheap SHOW TABLES query turns that into a readable instruction.
+ *
+ * This only reports the problem. It never creates or changes any table -
+ * importing database.sql stays a manual step, as documented in the README.
+ */
+$schema_check = $conn->query("SHOW TABLES LIKE 'equipment_reviews'");
+if ($schema_check->num_rows === 0) {
+    die("Database schema is out of date. Please import 'database.sql' again "
+        . "through phpMyAdmin (it recreates the database from scratch).");
+}
+$schema_check->close();

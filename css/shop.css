@@ -1,0 +1,345 @@
+/* =====================================================
+   CourtHub - Equipment Store styles
+   Loaded only by the equipment store and admin equipment
+   pages. Kept separate from style.css so the shared site
+   styles are not affected by the store module.
+   Pure CSS only (no frameworks), per assignment rules.
+   ===================================================== */
+
+/* ---------- Product listing ---------- */
+
+.product-card .product-image {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    border-radius: 6px;
+    background-color: #eef2f7;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.product-card h2 {
+    font-size: 1.12rem;
+}
+
+.product-card .product-desc {
+    color: #475467;
+    font-size: 0.92rem;
+}
+
+/* Card fades slightly while the live search filters it out and back in */
+.product-card.is-hidden {
+    display: none;
+}
+
+.result-count {
+    color: #667085;
+    font-size: 0.92rem;
+    margin-top: 10px;
+}
+
+/* ---------- Product details page ---------- */
+
+.detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.detail-image {
+    width: 100%;
+    border-radius: 8px;
+    display: block;
+    background-color: #eef2f7;
+}
+
+.detail-price {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1b2a4a;
+}
+
+.spec-list {
+    list-style: none;
+    margin: 14px 0;
+}
+
+.spec-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid #e5e8ef;
+    font-size: 0.94rem;
+}
+
+.spec-list li span:first-child {
+    color: #667085;
+}
+
+.stock-ok {
+    color: #1e7e34;
+    font-weight: 600;
+}
+
+.stock-out {
+    color: #c0392b;
+    font-weight: 600;
+}
+
+/* ---------- Star ratings ---------- */
+
+.stars {
+    color: #e8a33d;
+    letter-spacing: 2px;
+    font-size: 1.05rem;
+}
+
+.stars-small {
+    font-size: 0.92rem;
+}
+
+.rating-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 6px 0 10px;
+}
+
+.rating-score {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* Clickable star picker in the review form (driven by equipment.js) */
+.star-picker {
+    display: flex;
+    gap: 6px;
+}
+
+.star-picker button {
+    background: none;
+    border: none;
+    padding: 0 2px;
+    font-size: 1.7rem;
+    line-height: 1;
+    color: #cfd6e6;
+    cursor: pointer;
+}
+
+.star-picker button.is-active {
+    color: #e8a33d;
+}
+
+.star-picker button:focus-visible {
+    outline: 2px solid #3572d4;
+    outline-offset: 2px;
+}
+
+/* ---------- Rating breakdown bars ---------- */
+
+.breakdown-row {
+    display: grid;
+    grid-template-columns: 46px 1fr 34px;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    font-size: 0.88rem;
+    color: #667085;
+}
+
+.breakdown-track {
+    background-color: #eef2f7;
+    border-radius: 999px;
+    height: 9px;
+    overflow: hidden;
+}
+
+.breakdown-fill {
+    background-color: #e8a33d;
+    height: 100%;
+}
+
+/* ---------- Review list ---------- */
+
+.review {
+    border-top: 1px solid #e5e8ef;
+    padding: 16px 0;
+}
+
+.review:first-child {
+    border-top: none;
+}
+
+.review-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.review-author {
+    font-weight: 600;
+}
+
+.review-date {
+    color: #667085;
+    font-size: 0.86rem;
+}
+
+.review-body {
+    color: #344054;
+    white-space: pre-line;
+}
+
+.review-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.review-actions .btn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+.you-badge {
+    background-color: #eef2f7;
+    color: #334155;
+    border-radius: 999px;
+    padding: 2px 9px;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+/* ---------- Validation feedback (written by equipment.js) ---------- */
+
+.field-error {
+    color: #c0392b;
+    font-size: 0.86rem;
+    margin-top: 5px;
+}
+
+.form-group input.invalid,
+.form-group select.invalid,
+.form-group textarea.invalid {
+    border-color: #c0392b;
+    background-color: #fffafa;
+}
+
+.char-counter {
+    color: #667085;
+    font-size: 0.82rem;
+    margin-top: 5px;
+    text-align: right;
+}
+
+.char-counter.over {
+    color: #c0392b;
+    font-weight: 600;
+}
+
+/* ---------- Quantity stepper ---------- */
+
+.qty-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.qty-control button {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #cfd6e6;
+    background-color: #fff;
+    border-radius: 5px;
+    font-size: 1.15rem;
+    cursor: pointer;
+    color: #1b2a4a;
+}
+
+.qty-control button:hover:not(:disabled) {
+    background-color: #eef2f7;
+}
+
+.qty-control button:disabled {
+    color: #b6bdcc;
+    cursor: not-allowed;
+}
+
+.qty-control input {
+    width: 74px;
+    text-align: center;
+}
+
+.line-total {
+    margin-top: 12px;
+    font-size: 1.05rem;
+}
+
+.line-total strong {
+    color: #1b2a4a;
+}
+
+/* ---------- Admin extras ---------- */
+
+.admin-thumb {
+    width: 46px;
+    height: 46px;
+    object-fit: cover;
+    border-radius: 4px;
+    background-color: #eef2f7;
+    display: block;
+}
+
+.image-preview {
+    max-width: 190px;
+    border-radius: 6px;
+    margin-top: 10px;
+    display: block;
+}
+
+.status.discontinued {
+    background-color: #fdecea;
+    color: #c0392b;
+}
+
+.row-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+    .detail-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .product-card .product-image {
+        height: 150px;
+    }
+}
+
+@media (max-width: 600px) {
+    .rating-line {
+        gap: 8px;
+    }
+
+    .review-head {
+        align-items: flex-start;
+    }
+
+    .breakdown-row {
+        grid-template-columns: 42px 1fr 30px;
+    }
+
+    .detail-price {
+        font-size: 1.4rem;
+    }
+}

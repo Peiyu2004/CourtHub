@@ -1,19 +1,36 @@
 <?php
+/**
+ * search.php
+ * The booking page: pick a sport, a date and an hour range, see which courts
+ * are free for exactly that window, and tick as many of them as you want.
+ *
+ * The page only ever reads. Nothing is written until the customer has paid on
+ * booking/payment.php, so an abandoned booking never holds a court.
+ *
+ * Courts are booked in whole hours anywhere inside the 8:00 AM to 11:00 PM
+ * operating window, with one hour as the shortest booking. Both dropdowns are
+ * built from the same constants validateBookingWindow() checks against, so
+ * what the page offers and what the server accepts cannot drift apart.
+ */
+
 require_once __DIR__ . '/../config/db_connect.php';
 require_once __DIR__ . '/../config/functions.php';
+require_once __DIR__ . '/../config/booking_functions.php';
 
 requireLogin();
 
 $sports = getSportTypes($conn);
-$errors = [];
-$success = '';
 
-$sport_type_id = isset($_REQUEST['sport']) ? (int)$_REQUEST['sport'] : 1;
-$booking_date = $_REQUEST['booking_date'] ?? date('Y-m-d');
-$start_time = $_REQUEST['start_time'] ?? '08:00';
-$end_time = $_REQUEST['end_time'] ?? '09:00';
-$payment_method = $_POST['payment_method'] ?? 'tng_ewallet';
+list($default_date, $default_start, $default_end) = defaultBookingSlot();
 
+$sport_type_id = isset($_GET['sport']) ? (int)$_GET['sport'] : 0;
+$booking_date = $_GET['booking_date'] ?? $default_date;
+$start_time = $_GET['start_time'] ?? $default_start;
+$end_time = $_GET['end_time'] ?? $default_end;
+
+// An unknown sport in the query string falls back to the first one rather than
+// leaving the page with nothing to price, which is what /index.php's "Book Now"
+// links rely on when they pass ?sport=1.
 $selected_sport = null;
 foreach ($sports as $sport) {
     if ((int)$sport['sport_type_id'] === $sport_type_id) {
@@ -26,135 +43,27 @@ if (!$selected_sport && count($sports) > 0) {
     $sport_type_id = (int)$selected_sport['sport_type_id'];
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reserve') {
-    $court_ids = array_map('intval', $_POST['court_ids'] ?? []);
-    $errors = validateBookingWindow($booking_date, $start_time, $end_time);
+// The hours each dropdown offers. Nothing can start in the last hour before
+// closing, and nothing can end in the first hour after opening, because a
+// booking is at least one hour long.
+$start_options = bookingHourOptions(BOOKING_OPENS_AT, BOOKING_CLOSES_AT - BOOKING_STEP_MINUTES);
+$end_options = bookingHourOptions(BOOKING_OPENS_AT + BOOKING_STEP_MINUTES, BOOKING_CLOSES_AT);
 
-    if (empty($court_ids)) {
-        $errors[] = "Please select at least one court.";
-    }
-    if (!in_array($payment_method, ['tng_ewallet', 'credit_debit_card'], true)) {
-        $errors[] = "Please choose a valid payment method.";
-    }
+$slot_errors = validateBookingWindow($booking_date, $start_time, $end_time);
 
-    if (empty($errors)) {
-        $stmt = $conn->prepare(
-            "SELECT court_id, court_number
-             FROM courts
-             WHERE sport_type_id = ?
-               AND court_id = ?
-               AND status = 'active'"
-        );
-        $valid_courts = [];
-        foreach ($court_ids as $court_id) {
-            $stmt->bind_param("ii", $sport_type_id, $court_id);
-            $stmt->execute();
-            $row = $stmt->get_result()->fetch_assoc();
-            if ($row) {
-                $valid_courts[(int)$row['court_id']] = $row;
-            }
-        }
-        $stmt->close();
-
-        if (count($valid_courts) !== count($court_ids)) {
-            $errors[] = "One or more selected courts are no longer available.";
-        }
-    }
-
-    if (empty($errors)) {
-        $start_sql = normalizeTime($start_time);
-        $end_sql = normalizeTime($end_time);
-
-        $overlap_stmt = $conn->prepare(
-            "SELECT COUNT(*) AS total
-             FROM booking_order_items boi
-             JOIN booking_orders bo ON bo.booking_order_id = boi.booking_order_id
-             WHERE boi.court_id = ?
-               AND boi.booking_date = ?
-               AND bo.payment_status = 'paid'
-               AND boi.start_time < ?
-               AND boi.end_time > ?"
-        );
-
-        foreach ($court_ids as $court_id) {
-            $overlap_stmt->bind_param("isss", $court_id, $booking_date, $end_sql, $start_sql);
-            $overlap_stmt->execute();
-            $total = (int)$overlap_stmt->get_result()->fetch_assoc()['total'];
-            if ($total > 0) {
-                $errors[] = h($valid_courts[$court_id]['court_number']) . " has just been booked by someone else.";
-            }
-        }
-        $overlap_stmt->close();
-    }
-
-    if (empty($errors)) {
-        $duration = bookingDurationHours($start_time, $end_time);
-        $item_price = (float)$selected_sport['price_per_hour'] * $duration;
-        $total_amount = $item_price * count($court_ids);
-        $transaction_ref = makeTransactionRef($payment_method === 'tng_ewallet' ? 'TNG' : 'CARD');
-
-        $conn->begin_transaction();
-        try {
-            $user_id = (int)$_SESSION['user_id'];
-            $stmt = $conn->prepare(
-                "INSERT INTO booking_orders (user_id, total_amount, payment_method, payment_status, transaction_ref)
-                 VALUES (?, ?, ?, 'paid', ?)"
-            );
-            $stmt->bind_param("idss", $user_id, $total_amount, $payment_method, $transaction_ref);
-            $stmt->execute();
-            $booking_order_id = $stmt->insert_id;
-            $stmt->close();
-
-            $item_stmt = $conn->prepare(
-                "INSERT INTO booking_order_items
-                 (booking_order_id, court_id, booking_date, start_time, end_time, price)
-                 VALUES (?, ?, ?, ?, ?, ?)"
-            );
-            foreach ($court_ids as $court_id) {
-                $item_stmt->bind_param("iisssd", $booking_order_id, $court_id, $booking_date, $start_sql, $end_sql, $item_price);
-                $item_stmt->execute();
-            }
-            $item_stmt->close();
-
-            $conn->commit();
-            header("Location: " . app_url('/booking/history.php?booking_success=' . $booking_order_id));
-            exit();
-        } catch (Throwable $e) {
-            $conn->rollback();
-            $errors[] = "Reservation could not be completed. Please try another slot.";
-        }
-    }
-}
-
-$availability_errors = validateBookingWindow($booking_date, $start_time, $end_time);
 $available_courts = [];
-if (empty($availability_errors)) {
-    $start_sql = normalizeTime($start_time);
-    $end_sql = normalizeTime($end_time);
-    $stmt = $conn->prepare(
-        "SELECT c.court_id, c.court_number
-         FROM courts c
-         WHERE c.sport_type_id = ?
-           AND c.status = 'active'
-           AND NOT EXISTS (
-               SELECT 1
-               FROM booking_order_items boi
-               JOIN booking_orders bo ON bo.booking_order_id = boi.booking_order_id
-               WHERE boi.court_id = c.court_id
-                 AND boi.booking_date = ?
-                 AND bo.payment_status = 'paid'
-                 AND boi.start_time < ?
-                 AND boi.end_time > ?
-           )
-         ORDER BY c.court_id"
+$duration_hours = 0;
+$price_per_court = 0;
+if (empty($slot_errors) && $selected_sport) {
+    $available_courts = getAvailableCourts(
+        $conn,
+        $sport_type_id,
+        $booking_date,
+        normalizeTime($start_time),
+        normalizeTime($end_time)
     );
-    $stmt->bind_param("isss", $sport_type_id, $booking_date, $end_sql, $start_sql);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    while ($row = $result->fetch_assoc()) {
-        $available_courts[] = $row;
-    }
-    $stmt->close();
+    $duration_hours = bookingDurationHours($start_time, $end_time);
+    $price_per_court = (float)$selected_sport['price_per_hour'] * $duration_hours;
 }
 
 require_once __DIR__ . '/../includes/header.php';
@@ -162,20 +71,15 @@ require_once __DIR__ . '/../includes/header.php';
 
 <section class="card">
     <h1>Book a Court</h1>
-    <p class="muted">Choose any time between 8:00 AM and 11:00 PM. Minimum booking length is 1 hour.</p>
+    <p class="muted">
+        Open 8:00 AM to 11:00 PM. Book any hours inside that window, from 1 hour
+        upwards, and take as many courts as you need in a single payment.
+    </p>
 </section>
 
-<?php if (!empty($errors)): ?>
+<?php if (!empty($slot_errors)): ?>
     <div class="alert alert-error">
-        <?php foreach ($errors as $error): ?>
-            <p><?= h($error) ?></p>
-        <?php endforeach; ?>
-    </div>
-<?php endif; ?>
-
-<?php if (!empty($availability_errors)): ?>
-    <div class="alert alert-error">
-        <?php foreach ($availability_errors as $error): ?>
+        <?php foreach ($slot_errors as $error): ?>
             <p><?= h($error) ?></p>
         <?php endforeach; ?>
     </div>
@@ -195,15 +99,27 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
         <div class="form-group">
             <label for="booking_date">Date</label>
-            <input type="date" id="booking_date" name="booking_date" value="<?= h($booking_date) ?>" min="<?= date('Y-m-d') ?>" required>
+            <input type="date" id="booking_date" name="booking_date"
+                   value="<?= h($booking_date) ?>" min="<?= date('Y-m-d') ?>" required>
         </div>
+
+        <!-- Dropdowns rather than <input type="time"> so only whole hours can
+             be chosen at all. js/booking.js keeps the end ahead of the start. -->
         <div class="form-group">
             <label for="start_time">Start Time</label>
-            <input type="time" id="start_time" name="start_time" value="<?= h($start_time) ?>" min="08:00" max="22:00" step="1800" required>
+            <select id="start_time" name="start_time" class="js-start-time">
+                <?php foreach ($start_options as $value => $label): ?>
+                    <option value="<?= h($value) ?>" <?= $value === $start_time ? 'selected' : '' ?>><?= h($label) ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="form-group">
             <label for="end_time">End Time</label>
-            <input type="time" id="end_time" name="end_time" value="<?= h($end_time) ?>" min="09:00" max="23:00" step="1800" required>
+            <select id="end_time" name="end_time" class="js-end-time">
+                <?php foreach ($end_options as $value => $label): ?>
+                    <option value="<?= h($value) ?>" <?= $value === $end_time ? 'selected' : '' ?>><?= h($label) ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="form-actions">
             <button type="submit" class="btn">Check Availability</button>
@@ -211,20 +127,27 @@ require_once __DIR__ . '/../includes/header.php';
     </form>
 </section>
 
-<?php if (empty($availability_errors)): ?>
+<?php if (empty($slot_errors) && $selected_sport): ?>
     <section class="card">
         <h2>Available Courts</h2>
         <p class="muted">
-            <?= h($selected_sport['name']) ?> on <?= h($booking_date) ?>,
-            <?= h($start_time) ?> to <?= h($end_time) ?>.
-            Price per selected court: <?= money((float)$selected_sport['price_per_hour'] * bookingDurationHours($start_time, $end_time)) ?>.
+            <?= h($selected_sport['name']) ?> on <?= h(date('d M Y', strtotime($booking_date))) ?>,
+            <?= h(date('g:i A', strtotime($start_time))) ?> to <?= h(date('g:i A', strtotime($end_time))) ?>
+            (<?= h(bookingDurationLabel($duration_hours)) ?>).
+            <?= money($price_per_court) ?> per court.
         </p>
 
         <?php if (empty($available_courts)): ?>
-            <div class="empty-state">No courts are available for this slot. Try another time.</div>
+            <div class="empty-state">
+                Every <?= h($selected_sport['name']) ?> court is taken for this slot. Try another time or date.
+            </div>
         <?php else: ?>
-            <form method="POST" action="<?= h(app_url('/booking/search.php')) ?>">
-                <input type="hidden" name="action" value="reserve">
+            <!-- data-price-per-court lets js/booking.js keep the running total
+                 in step as courts are ticked. The figure that gets charged is
+                 worked out again in PHP on the payment page. -->
+            <form method="POST" action="<?= h(app_url('/booking/payment.php')) ?>"
+                  class="js-court-form" data-price-per-court="<?= h(number_format($price_per_court, 2, '.', '')) ?>">
+                <input type="hidden" name="action" value="start">
                 <input type="hidden" name="sport" value="<?= (int)$sport_type_id ?>">
                 <input type="hidden" name="booking_date" value="<?= h($booking_date) ?>">
                 <input type="hidden" name="start_time" value="<?= h($start_time) ?>">
@@ -233,24 +156,33 @@ require_once __DIR__ . '/../includes/header.php';
                 <div class="selection-grid">
                     <?php foreach ($available_courts as $court): ?>
                         <label class="select-card">
-                            <input type="checkbox" name="court_ids[]" value="<?= (int)$court['court_id'] ?>">
+                            <input type="checkbox" name="court_ids[]" value="<?= (int)$court['court_id'] ?>" class="js-court-check">
                             <span><?= h($court['court_number']) ?></span>
                         </label>
                     <?php endforeach; ?>
                 </div>
 
-                <div class="form-group" style="margin-top: 18px;">
-                    <label for="payment_method">Simulated Payment Method</label>
-                    <select id="payment_method" name="payment_method" required>
-                        <option value="tng_ewallet">TNG E-Wallet</option>
-                        <option value="credit_debit_card">Credit / Debit Card</option>
-                    </select>
+                <?php /* Warned here, before payment, and again on the payment
+                         page itself - which is the last screen before it
+                         becomes true. */ ?>
+                <div class="alert alert-warning">
+                    <strong>Bookings are final once paid.</strong>
+                    <p>
+                        You will not be able to change the date, time or courts
+                        after payment, so please check your selection before you
+                        continue.
+                    </p>
                 </div>
 
-                <button type="submit" class="btn">Pay and Reserve Selected Courts</button>
+                <div class="checkout-bar">
+                    <strong>Total: <span class="js-booking-total"><?= money(0) ?></span></strong>
+                    <button type="submit" class="btn">Continue to Payment</button>
+                </div>
             </form>
         <?php endif; ?>
     </section>
 <?php endif; ?>
+
+<script src="<?= h(app_url('/js/booking.js')) ?>?v=1.1"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

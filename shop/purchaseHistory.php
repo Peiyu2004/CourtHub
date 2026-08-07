@@ -24,6 +24,15 @@ $user_id = (int)$_SESSION['user_id'];
 $orders = getEquipmentPurchaseHistory($conn, $user_id);
 $summary = purchaseHistorySummary($orders);
 
+// What the customer is shown instead of equipment_order_id, so their orders
+// read 1, 2, 3 rather than jumping wherever the database ids happen to land.
+$order_numbers = orderDisplayNumbers($orders);
+
+// Set when the customer has just come back from the payment provider. Looked
+// up in the same list so the message names the same number as the card below.
+$order_success = isset($_GET['order_success']) ? (int)$_GET['order_success'] : 0;
+$success_number = $order_numbers[$order_success] ?? 0;
+
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -32,6 +41,12 @@ require_once __DIR__ . '/../includes/header.php';
     <p class="muted">Your court reservations and your equipment orders, all in one place.</p>
     <?php renderHistoryTabs('purchases'); ?>
 </section>
+
+<?php if ($success_number > 0): ?>
+    <div class="alert alert-success">
+        Order #<?= (int)$success_number ?> has been paid successfully.
+    </div>
+<?php endif; ?>
 
 <?php if (empty($orders)): ?>
     <section class="card">
@@ -58,7 +73,7 @@ require_once __DIR__ . '/../includes/header.php';
         <section class="card">
             <div class="split-row">
                 <div>
-                    <h2>Order #<?= (int)$order['equipment_order_id'] ?></h2>
+                    <h2>Order #<?= (int)$order_numbers[$order['equipment_order_id']] ?></h2>
                     <p class="muted">
                         Paid with <?= h(paymentMethodLabel($order['payment_method'])) ?>
                         on <?= h(date('d M Y, h:i A', strtotime($order['created_at']))) ?>

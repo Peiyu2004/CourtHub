@@ -381,6 +381,150 @@ function purchaserIdsFor($conn, $equipment_id) {
 }
 
 /**
+ * Everything sitting in this customer's cart, with the product details each
+ * line needs to be priced and displayed.
+ *
+ * The price comes from the equipment table rather than being remembered when
+ * the item was added, so a cart left open overnight is charged at today's
+ * price and never at a stale one.
+ */
+function getCartItems($conn, $user_id) {
+    $items = [];
+    $stmt = $conn->prepare(
+        "SELECT ci.cart_id, ci.quantity, ci.selected_options,
+                e.equipment_id, e.name, e.price, e.stock, e.status
+         FROM cart_items ci
+         JOIN equipment e ON ci.equipment_id = e.equipment_id
+         WHERE ci.user_id = ?
+         ORDER BY ci.added_at"
+    );
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $row['line_total'] = (float)$row['price'] * (int)$row['quantity'];
+        $items[] = $row;
+    }
+    $stmt->close();
+
+    return $items;
+}
+
+/**
+ * Prices the cart and collects every reason it could not be paid for.
+ *
+ * The equivalent of reviewPendingBooking() for the shop, and it runs at the
+ * same two moments: when a payment screen is drawn, and again when Pay is
+ * pressed. Stock is the thing that moves in between - somebody else can buy
+ * the last racquet while this customer is typing their card number - so the
+ * check cannot only happen once.
+ *
+ * Returns:
+ *   ['errors' => [...], 'items' => [...], 'item_count' => int, 'total_amount' => float]
+ */
+function reviewPendingEquipmentOrder($conn, $user_id) {
+    $review = ['errors' => [], 'items' => [], 'item_count' => 0, 'total_amount' => 0];
+
+    $review['items'] = getCartItems($conn, $user_id);
+
+    if (empty($review['items'])) {
+        $review['errors'][] = "Your cart is empty.";
+        return $review;
+    }
+
+    foreach ($review['items'] as $item) {
+        if ($item['status'] !== 'active') {
+            $review['errors'][] = $item['name'] . " is no longer available.";
+        } elseif ((int)$item['quantity'] > (int)$item['stock']) {
+            $review['errors'][] = $item['name'] . " only has " . (int)$item['stock']
+                . " left in stock, but your cart has " . (int)$item['quantity'] . ".";
+        }
+        $review['item_count'] += (int)$item['quantity'];
+        $review['total_amount'] += $item['line_total'];
+    }
+
+    return $review;
+}
+
+/**
+ * Takes payment for the cart: writes the order and its lines, removes the
+ * stock, and empties the cart, all in one transaction.
+ *
+ * The stock UPDATE carries its own "AND stock >= ?" and the affected-rows
+ * check is what enforces it. Reading the stock and then subtracting it would
+ * leave a gap in which two customers could both pass the check and buy the
+ * same last item; letting the database do both in one statement closes it.
+ * A row that fails throws, and the whole order rolls back.
+ *
+ * Returns ['errors' => [...], 'equipment_order_id' => int|null].
+ */
+function payForEquipmentOrder($conn, $user_id, $payment_method) {
+    $review = reviewPendingEquipmentOrder($conn, $user_id);
+    if (!empty($review['errors'])) {
+        return ['errors' => $review['errors'], 'equipment_order_id' => null];
+    }
+
+    $total_amount = $review['total_amount'];
+    $transaction_ref = makeTransactionRef($payment_method === 'tng_ewallet' ? 'TNGSHOP' : 'CARDSHOP');
+
+    $conn->begin_transaction();
+    try {
+        $stmt = $conn->prepare(
+            "INSERT INTO equipment_orders (user_id, total_amount, payment_method, payment_status, transaction_ref)
+             VALUES (?, ?, ?, 'paid', ?)"
+        );
+        $stmt->bind_param("idss", $user_id, $total_amount, $payment_method, $transaction_ref);
+        $stmt->execute();
+        $equipment_order_id = $stmt->insert_id;
+        $stmt->close();
+
+        $item_stmt = $conn->prepare(
+            "INSERT INTO equipment_order_items
+             (equipment_order_id, equipment_id, quantity, price_at_purchase, selected_options)
+             VALUES (?, ?, ?, ?, ?)"
+        );
+        $stock_stmt = $conn->prepare(
+            "UPDATE equipment
+             SET stock = stock - ?
+             WHERE equipment_id = ? AND stock >= ?"
+        );
+
+        foreach ($review['items'] as $item) {
+            $equipment_id = (int)$item['equipment_id'];
+            $quantity = (int)$item['quantity'];
+            $price = (float)$item['price'];
+            $selected_options = $item['selected_options'];
+
+            $stock_stmt->bind_param("iii", $quantity, $equipment_id, $quantity);
+            $stock_stmt->execute();
+            if ($stock_stmt->affected_rows !== 1) {
+                throw new RuntimeException("Stock changed during checkout.");
+            }
+
+            $item_stmt->bind_param("iiids", $equipment_order_id, $equipment_id, $quantity, $price, $selected_options);
+            $item_stmt->execute();
+        }
+
+        $item_stmt->close();
+        $stock_stmt->close();
+
+        $stmt = $conn->prepare("DELETE FROM cart_items WHERE user_id = ?");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $stmt->close();
+
+        $conn->commit();
+        return ['errors' => [], 'equipment_order_id' => $equipment_order_id];
+    } catch (Throwable $e) {
+        $conn->rollback();
+        return [
+            'errors' => ["Payment could not be completed because the stock changed. Please review your cart."],
+            'equipment_order_id' => null,
+        ];
+    }
+}
+
+/**
  * Every equipment order this customer has paid for, newest first, with the
  * lines that belong to each order already nested underneath it:
  *   [order_id => ['total_amount' => ..., 'items' => [line, line, ...]], ...]

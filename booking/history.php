@@ -40,6 +40,12 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 
+// What the customer is shown instead of booking_order_id. The just-paid
+// booking is looked up in the same list, so the message below names the same
+// number as the card it refers to.
+$booking_numbers = orderDisplayNumbers($orders);
+$success_number = $booking_numbers[$booking_success] ?? 0;
+
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -54,9 +60,9 @@ require_once __DIR__ . '/../includes/header.php';
     <p class="muted">Paid bookings are final and cannot be modified after payment.</p>
 </section>
 
-<?php if ($booking_success > 0): ?>
+<?php if ($success_number > 0): ?>
     <div class="alert alert-success">
-        Booking #<?= $booking_success ?> has been paid successfully.
+        Booking #<?= (int)$success_number ?> has been paid successfully.
     </div>
 <?php endif; ?>
 
@@ -70,7 +76,7 @@ require_once __DIR__ . '/../includes/header.php';
         <section class="card">
             <div class="split-row">
                 <div>
-                    <h2>Booking #<?= (int)$order['booking_order_id'] ?></h2>
+                    <h2>Booking #<?= (int)$booking_numbers[$order['booking_order_id']] ?></h2>
                     <p class="muted">
                         Paid with <?= h(paymentMethodLabel($order['payment_method'])) ?>
                         on <?= h(date('d M Y, h:i A', strtotime($order['created_at']))) ?>

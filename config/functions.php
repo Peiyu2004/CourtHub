@@ -109,6 +109,27 @@ function normalizeTime($time) {
     return $time . ':00';
 }
 
+/**
+ * The operating window, as minutes past midnight: 8:00 AM to 11:00 PM.
+ * Named constants rather than the bare numbers so the booking page, the
+ * payment page and this check all read from one place and cannot drift apart.
+ */
+const BOOKING_OPENS_AT = 480;    // 08:00
+const BOOKING_CLOSES_AT = 1380;  // 23:00
+
+/** Courts are booked in whole hours, which is also the shortest booking. */
+const BOOKING_STEP_MINUTES = 60;
+
+/**
+ * The one place that decides whether a requested slot is legal.
+ *
+ * Both the booking page and the payment page call this - the payment page
+ * calls it again at the moment Pay is pressed, because a slot that was fine
+ * when the page loaded can have drifted into the past by the time the customer
+ * finishes typing their card details.
+ *
+ * Returns an array of messages; an empty array means the slot is acceptable.
+ */
 function validateBookingWindow($booking_date, $start_time, $end_time) {
     $errors = [];
     $today = date('Y-m-d');
@@ -122,13 +143,20 @@ function validateBookingWindow($booking_date, $start_time, $end_time) {
         $errors[] = "Please choose a valid start and end time.";
         return $errors;
     }
-    if ($start_minutes < 480 || $end_minutes > 1380) {
+    // Bookings run in whole hours, so 14:00 is allowed and 14:30 is not. The
+    // dropdowns on the booking page only ever offer whole hours, but a posted
+    // form can carry anything, so the rule is enforced here as well.
+    if ($start_minutes % BOOKING_STEP_MINUTES !== 0 || $end_minutes % BOOKING_STEP_MINUTES !== 0) {
+        $errors[] = "Bookings run in 1 hour steps, so please choose times on the hour.";
+    }
+    if ($start_minutes < BOOKING_OPENS_AT || $end_minutes > BOOKING_CLOSES_AT) {
         $errors[] = "Bookings must be within operation hours, 8:00 AM to 11:00 PM.";
     }
+    // "else if" so equal times report only that the end is not after the
+    // start, instead of also complaining about the 1 hour minimum.
     if ($end_minutes <= $start_minutes) {
         $errors[] = "End time must be later than start time.";
-    }
-    if (($end_minutes - $start_minutes) < 60) {
+    } elseif (($end_minutes - $start_minutes) < BOOKING_STEP_MINUTES) {
         $errors[] = "Each booking must be at least 1 hour.";
     }
     if ($booking_date === $today && $start_minutes <= timeToMinutes(date('H:i'))) {
@@ -154,6 +182,39 @@ function paymentMethodLabel($method) {
         return 'Credit / Debit Card';
     }
     return $method;
+}
+
+/**
+ * The numbers a customer sees next to their own orders, keyed by database id.
+ *
+ * The database id is deliberately not shown to customers. Ids are handed out
+ * across every customer of the site, so one person's first two bookings can
+ * easily be #7 and #12, which reads as though ten of their bookings went
+ * missing. Counting their own list instead gives them 1, 2, 3 with no gaps.
+ *
+ * The list arrives newest first, which is how both history pages want to show
+ * it, so the count is walked from the other end: the customer's oldest order
+ * is #1 and stays #1 forever, and each new order takes the next number up.
+ * Numbering the other way round would mean today's "Booking #1" became
+ * "Booking #2" as soon as they booked again - the same confusion in a new
+ * shape.
+ *
+ * $orders must be keyed by database id, which is how both pages build their
+ * lists, so any order's number can be looked up by its id - that is what lets
+ * the "payment successful" message name the same number as the card below it.
+ */
+function orderDisplayNumbers($orders) {
+    $numbers = [];
+    $number = 0;
+
+    // array_reverse with preserve_keys walks oldest first without disturbing
+    // the caller's newest-first array.
+    foreach (array_reverse($orders, true) as $order_id => $order) {
+        $number++;
+        $numbers[$order_id] = $number;
+    }
+
+    return $numbers;
 }
 
 /**

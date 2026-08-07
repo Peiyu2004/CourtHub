@@ -210,6 +210,19 @@ a {
     border: 1px solid #c3e6cb;
 }
 
+/* Used for the "this cannot be changed after payment" notices, which are a
+   caution rather than a failure, so they must not read as an error. */
+.alert-warning {
+    background-color: #fff8e6;
+    color: #8a5a00;
+    border: 1px solid #f2d999;
+}
+
+.alert-warning p {
+    margin-top: 6px;
+    font-size: 0.94rem;
+}
+
 .grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -405,6 +418,432 @@ th {
     font-size: 1.5rem;
 }
 
+/* ---------- Payment provider shell (includes/gatewayHeader.php) ----------
+   The standalone screens that stand in for the e-wallet and the card provider.
+   No site header or footer, so the payment card is the whole page and sits in
+   the middle of it. */
+
+.gateway-body {
+    min-height: 100vh;
+    display: flex;
+    padding: 30px 16px;
+    background-color: #eef2f9;
+}
+
+/* Centred with auto margins rather than align-items, because a card taller
+   than the window would have its top cut off and become unreachable. */
+.gateway-main {
+    margin: auto;
+    width: 100%;
+    max-width: 520px;
+}
+
+.gateway-note {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 0.78rem;
+    color: #8a94a6;
+}
+
+/* ---------- Payment received receipt (booking/paymentSuccess.php) ---------- */
+
+.receipt-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 28px 28px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(13, 27, 76, 0.18);
+}
+
+/* The tick is drawn rather than being an image: two borders on a rotated box
+   make the stroke, so there is no extra file to load on a page that is only
+   on screen for five seconds. */
+.receipt-tick {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background-color: #eafaf1;
+    border: 2px solid #1e7e34;
+    position: relative;
+}
+
+.receipt-tick::after {
+    content: "";
+    position: absolute;
+    left: 24px;
+    top: 13px;
+    width: 16px;
+    height: 30px;
+    border: solid #1e7e34;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+}
+
+.receipt-title {
+    font-size: 1.5rem;
+    color: #1b2a4a;
+    margin-bottom: 4px;
+}
+
+.receipt-subtitle {
+    color: #667085;
+    font-size: 0.92rem;
+}
+
+.receipt-amount {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: #1546a0;
+    margin: 16px 0 22px;
+}
+
+/* Label on the left, value on the right, one line per fact. */
+.receipt-details {
+    text-align: left;
+    border-top: 1px solid #e5e8ef;
+    border-bottom: 1px solid #e5e8ef;
+    padding: 6px 0;
+}
+
+.receipt-details > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 9px 0;
+}
+
+.receipt-details dt {
+    color: #667085;
+    font-size: 0.86rem;
+}
+
+.receipt-details dd {
+    font-weight: 600;
+    color: #1b2a4a;
+    font-size: 0.9rem;
+    text-align: right;
+    /* References are long and have no spaces to break at. */
+    word-break: break-all;
+}
+
+.receipt-return {
+    margin-top: 18px;
+    font-size: 0.9rem;
+    color: #667085;
+}
+
+.receipt-button {
+    margin-top: 14px;
+}
+
+/* ---------- Touch 'n Go e-wallet payment page (booking/tngPayment.php) ----------
+   Blue throughout, to sit with the Touch 'n Go brand mark, and everything
+   centred on one narrow column so the page reads like the phone payment
+   screen it stands in for. Every rule here is prefixed .tng- so it applies to
+   that page only. */
+
+.tng-page {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 30px;
+}
+
+.tng-card {
+    width: 100%;
+    max-width: 460px;
+    background: #fff;
+    border-radius: 16px;
+    /* Keeps the header gradient clipped to the rounded corners. */
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(13, 27, 76, 0.18);
+    text-align: center;
+}
+
+.tng-header {
+    background: linear-gradient(135deg, #0d1b4c 0%, #1546a0 55%, #3572d4 100%);
+    color: #fff;
+    padding: 26px 24px 22px;
+}
+
+/* Rounded like an app icon, because that is what the artwork is. The white
+   ring matters: the logo carries its own dark blue background, which would
+   otherwise dissolve into the blue header behind it. */
+.tng-logo {
+    display: block;
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 14px;
+    border-radius: 20px;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 6px 16px rgba(0, 0, 0, 0.32);
+}
+
+.tng-title {
+    font-size: 1.25rem;
+    margin-bottom: 4px;
+}
+
+.tng-subtitle {
+    font-size: 0.83rem;
+    opacity: 0.82;
+}
+
+.tng-body {
+    padding: 24px 26px 28px;
+}
+
+.tng-amount-label {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #667085;
+    margin-bottom: 6px;
+}
+
+/* The one thing the customer must not misread, so it is the largest item. */
+.tng-amount {
+    display: block;
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1.15;
+    color: #1546a0;
+}
+
+.tng-summary {
+    font-size: 0.88rem;
+    color: #667085;
+    margin-top: 10px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e5e8ef;
+}
+
+.tng-alert {
+    background-color: #fdecea;
+    color: #c0392b;
+    border: 1px solid #f5c6cb;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 18px;
+    font-size: 0.89rem;
+}
+
+.tng-field {
+    margin-top: 18px;
+}
+
+.tng-label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.86rem;
+    color: #1b2a4a;
+    margin-bottom: 7px;
+}
+
+.tng-input {
+    width: 100%;
+    padding: 13px 14px;
+    text-align: center;
+    font-size: 1rem;
+    color: #1b2a4a;
+    background-color: #f7f9fd;
+    border: 1px solid #cfd8e8;
+    border-radius: 10px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.tng-input:focus {
+    outline: none;
+    background-color: #fff;
+    border-color: #3572d4;
+    box-shadow: 0 0 0 3px rgba(53, 114, 212, 0.18);
+}
+
+/* Spaced out so six characters read as a PIN rather than as a word. */
+.tng-pin {
+    font-size: 1.2rem;
+    letter-spacing: 0.6em;
+    /* letter-spacing also adds a gap after the last character, which drags
+       centred text half a space to the left. Half of it back again. */
+    text-indent: 0.3em;
+}
+
+.tng-pay {
+    width: 100%;
+    margin-top: 24px;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #1546a0 0%, #3572d4 100%);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.tng-pay:hover {
+    background: linear-gradient(135deg, #0d3480 0%, #2a62bd 100%);
+}
+
+/* Kept in the page's blue rather than the usual amber warning colours, so the
+   card stays one colour throughout. It still reads as a notice because of the
+   tinted panel and the heavier left edge. */
+.tng-note {
+    margin-top: 16px;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    color: #1546a0;
+    background-color: #eef4fd;
+    border: 1px solid #cfe0f8;
+    border-left: 3px solid #3572d4;
+    border-radius: 8px;
+}
+
+.tng-back {
+    display: inline-block;
+    margin-top: 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #3572d4;
+}
+
+.tng-back:hover {
+    text-decoration: underline;
+}
+
+/* ---------- Card payment page (booking/cardPayment.php) ---------- */
+
+/* The form sits under the card face and is held to a readable width rather
+   than stretching the whole way across a wide screen. */
+.card-payment {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Decoration that mirrors what is being typed. Proportioned roughly like a
+   real card (85.6 x 54mm) so it reads as one at a glance. */
+.card-face {
+    background: linear-gradient(135deg, #1b2a4a 0%, #3572d4 100%);
+    color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    aspect-ratio: 1.586;
+    max-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 6px 18px rgba(27, 42, 74, 0.28);
+    margin-bottom: 24px;
+}
+
+.card-face-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-face-chip {
+    display: block;
+    width: 42px;
+    height: 30px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, #f5d78e 0%, #c8a24a 100%);
+}
+
+.card-face-brand {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    opacity: 0.85;
+}
+
+/* Tabular figures keep the digits from shifting sideways as they are typed. */
+.card-face-number {
+    font-size: 1.32rem;
+    letter-spacing: 0.09em;
+    font-variant-numeric: tabular-nums;
+    word-spacing: 0.3em;
+}
+
+.card-face-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.card-face-label {
+    display: block;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 2px;
+}
+
+.card-face-value {
+    display: block;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    /* Long names are cut off rather than wrapping and pushing the expiry date
+       off the bottom edge of the card. */
+    max-width: 190px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.card-payment-form input {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+}
+
+/* Expiry and CVV are short, so they share a row instead of each taking a
+   full-width line. */
+.card-field-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.card-payment-summary {
+    border-top: 1px solid #e5e8ef;
+    padding-top: 14px;
+    margin-top: 4px;
+}
+
+.card-payment-back {
+    margin-top: 16px;
+    font-size: 0.94rem;
+}
+
+.card-payment-back a {
+    color: #3572d4;
+}
+
+/* The "I understand this is final" tick box. Laid out with the box beside the
+   text rather than above it, so the sentence reads as one statement. */
+.acknowledge-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 18px;
+    padding: 12px 14px;
+    background-color: #f7f9fc;
+    border: 1px solid #cfd6e6;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.94rem;
+}
+
+.acknowledge-row input {
+    margin-top: 3px;
+    flex-shrink: 0;
+}
+
 /* ---------- History tabs (court bookings / equipment purchases) ---------- */
 
 .history-tabs {
@@ -475,6 +914,14 @@ th {
 
     .site-main {
         padding: 0 14px;
+    }
+
+    .tng-body {
+        padding: 20px 18px 24px;
+    }
+
+    .tng-amount {
+        font-size: 2rem;
     }
 
     th,

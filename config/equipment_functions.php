@@ -224,14 +224,21 @@ function addToCart($conn, $user_id, $equipment_id, $quantity, $selected_options)
         }
     }
 
+    $stock = (int)$product['stock'];
     $already_in_cart = cartQuantityFor($conn, $user_id, $equipment_id);
+
     if ($quantity < 1) {
         $errors[] = "Quantity must be at least 1.";
-    } elseif (($already_in_cart + $quantity) > (int)$product['stock']) {
-        $remaining = (int)$product['stock'] - $already_in_cart;
+    } elseif ($stock <= 0) {
+        // Checked before the cart maths, otherwise a product with no stock at
+        // all would be reported as "you already have all of it in your cart"
+        // even when the cart is empty.
+        $errors[] = $product['name'] . " is out of stock.";
+    } elseif (($already_in_cart + $quantity) > $stock) {
+        $remaining = $stock - $already_in_cart;
         $errors[] = $remaining > 0
             ? "Only " . $remaining . " more of " . $product['name'] . " can be added; you already have " . $already_in_cart . " in your cart."
-            : "You already have all available stock of " . $product['name'] . " in your cart.";
+            : "You already have all " . $stock . " available of " . $product['name'] . " in your cart.";
     }
 
     if (!empty($errors)) {

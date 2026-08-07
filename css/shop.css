@@ -6,6 +6,229 @@
    Pure CSS only (no frameworks), per assignment rules.
    ===================================================== */
 
+/* ---------- Store layout: filter sidebar + product area ---------- */
+
+.shop-layout {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.filter-sidebar {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    padding: 18px 16px;
+    position: sticky;
+    top: 16px;
+}
+
+.filter-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #1e293b;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #e5e8ef;
+}
+
+.filter-icon {
+    color: #667085;
+    font-size: 0.9rem;
+}
+
+.filter-block {
+    margin-bottom: 20px;
+}
+
+.filter-subheading {
+    font-size: 0.9rem;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+/* ---------- Category list (radio styled as a plain list) ---------- */
+
+.category-list {
+    list-style: none;
+}
+
+.category-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 0;
+    cursor: pointer;
+    font-size: 0.92rem;
+    color: #334155;
+}
+
+/* The radio is hidden but still present, so the form works without
+   JavaScript and the keyboard can still reach it. */
+.category-row input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.category-name {
+    flex: 1;
+}
+
+.category-count {
+    color: #98a2b3;
+    font-size: 0.82rem;
+}
+
+.category-row:hover .category-name {
+    color: #3572d4;
+}
+
+.category-row input:checked ~ .category-name {
+    color: #d9480f;
+    font-weight: 700;
+}
+
+.category-row input:checked ~ .category-name::before {
+    content: "\25B8";     /* small right-pointing triangle */
+    margin-right: 5px;
+}
+
+.category-row input:focus-visible ~ .category-name {
+    outline: 2px solid #3572d4;
+    outline-offset: 2px;
+}
+
+/* ---------- Checkbox rows ---------- */
+
+.check-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 0;
+    cursor: pointer;
+    font-size: 0.92rem;
+    color: #334155;
+}
+
+.check-row input {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* ---------- Rating filter rows ---------- */
+
+.rating-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    cursor: pointer;
+    font-size: 0.88rem;
+    color: #475467;
+}
+
+.rating-row input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.rating-row .stars {
+    color: #d9d9d9;
+    font-size: 1rem;
+    letter-spacing: 1px;
+}
+
+.rating-row:hover .stars,
+.rating-row input:checked ~ .stars {
+    color: #f5a623;
+}
+
+.rating-row input:checked ~ .rating-up,
+.rating-row input:checked ~ .rating-any {
+    color: #d9480f;
+    font-weight: 700;
+}
+
+.rating-row input:focus-visible ~ .stars {
+    outline: 2px solid #3572d4;
+    outline-offset: 2px;
+}
+
+.rating-any {
+    font-size: 0.9rem;
+}
+
+/* ---------- Price range ---------- */
+
+.price-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.price-row input {
+    width: 100%;
+    min-width: 0;
+    padding: 7px 8px;
+    border: 1px solid #cfd6e6;
+    border-radius: 4px;
+    font-size: 0.88rem;
+}
+
+.price-dash {
+    color: #98a2b3;
+    flex-shrink: 0;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+/* ---------- Toolbar above the products ---------- */
+
+.shop-toolbar {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.toolbar-search {
+    flex: 2 1 240px;
+    margin-bottom: 0;
+}
+
+.toolbar-sort {
+    flex: 1 1 170px;
+    margin-bottom: 0;
+}
+
+.shop-toolbar .result-count {
+    flex: 1 1 100%;
+    margin: 0;
+}
+
+/* The product area is narrower now that a sidebar sits beside it, so the
+   cards size themselves to whatever space is left instead of being locked
+   to three columns. */
+.shop-main .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+}
+
 /* ---------- Product listing ---------- */
 
 .product-card .product-image {
@@ -324,9 +547,37 @@
     .product-card .product-image {
         height: 150px;
     }
+
+    /* The sidebar moves above the products instead of beside them, and stops
+       sticking so it does not eat the screen on a short viewport. */
+    .shop-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-sidebar {
+        position: static;
+    }
+
+    .category-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        column-gap: 14px;
+    }
 }
 
 @media (max-width: 600px) {
+    .category-list {
+        grid-template-columns: 1fr;
+    }
+
+    .shop-toolbar {
+        gap: 12px;
+    }
+
+    .shop-main .product-grid {
+        grid-template-columns: 1fr;
+    }
+
     .rating-line {
         gap: 8px;
     }

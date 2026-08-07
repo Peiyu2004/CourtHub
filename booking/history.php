@@ -44,7 +44,13 @@ require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <section class="card">
-    <h1>My Reservations</h1>
+    <h1>My History</h1>
+    <p class="muted">Your court reservations and your equipment orders, all in one place.</p>
+    <?php renderHistoryTabs('bookings'); ?>
+</section>
+
+<section class="card">
+    <h2>My Reservations</h2>
     <p class="muted">Paid reservations are final and cannot be modified after payment.</p>
 </section>
 

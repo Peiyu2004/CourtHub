@@ -381,6 +381,99 @@ function purchaserIdsFor($conn, $equipment_id) {
 }
 
 /**
+ * Every equipment order this customer has paid for, newest first, with the
+ * lines that belong to each order already nested underneath it:
+ *   [order_id => ['total_amount' => ..., 'items' => [line, line, ...]], ...]
+ *
+ * One JOINed query is used instead of "fetch the orders, then fetch the items
+ * for each order", because that second shape runs an extra query for every
+ * order on the page. The rows come back flat - the same order header repeated
+ * once per line - so they are grouped by equipment_order_id here in PHP.
+ *
+ * The join onto equipment is a LEFT JOIN on purpose. equipment_order_items
+ * stores equipment_id with ON DELETE SET NULL, so a product removed after the
+ * sale leaves its order line behind with nothing attached. An inner join would
+ * quietly drop those lines and the customer's own receipt would stop adding up
+ * to the total they were charged.
+ */
+function getEquipmentPurchaseHistory($conn, $user_id) {
+    $orders = [];
+
+    $stmt = $conn->prepare(
+        "SELECT eo.equipment_order_id, eo.total_amount, eo.payment_method,
+                eo.payment_status, eo.transaction_ref, eo.created_at,
+                oi.order_item_id, oi.equipment_id, oi.quantity,
+                oi.price_at_purchase, oi.selected_options,
+                e.name AS equipment_name, e.brand, e.category, e.status AS equipment_status,
+                st.name AS sport_name
+         FROM equipment_orders eo
+         JOIN equipment_order_items oi ON eo.equipment_order_id = oi.equipment_order_id
+         LEFT JOIN equipment e ON oi.equipment_id = e.equipment_id
+         LEFT JOIN sport_types st ON e.sport_type_id = st.sport_type_id
+         WHERE eo.user_id = ?
+         ORDER BY eo.created_at DESC, eo.equipment_order_id DESC, oi.order_item_id ASC"
+    );
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+        $order_id = (int)$row['equipment_order_id'];
+        if (!isset($orders[$order_id])) {
+            $orders[$order_id] = [
+                'equipment_order_id' => $order_id,
+                'total_amount' => $row['total_amount'],
+                'payment_method' => $row['payment_method'],
+                'payment_status' => $row['payment_status'],
+                'transaction_ref' => $row['transaction_ref'],
+                'created_at' => $row['created_at'],
+                'items' => [],
+            ];
+        }
+        $row['line_total'] = (float)$row['price_at_purchase'] * (int)$row['quantity'];
+        $orders[$order_id]['items'][] = $row;
+    }
+    $stmt->close();
+
+    return $orders;
+}
+
+/**
+ * Order count, item count and lifetime spend across a purchase history.
+ *
+ * Worked out from the rows the page already holds rather than with a second
+ * SUM()/COUNT() query. Only 'paid' orders count towards the spend, so a failed
+ * payment still appears in the list as a record but never inflates the total.
+ */
+function purchaseHistorySummary($orders) {
+    $summary = ['orders' => count($orders), 'items' => 0, 'total_spent' => 0];
+
+    foreach ($orders as $order) {
+        foreach ($order['items'] as $item) {
+            $summary['items'] += (int)$item['quantity'];
+        }
+        if ($order['payment_status'] === 'paid') {
+            $summary['total_spent'] += (float)$order['total_amount'];
+        }
+    }
+
+    return $summary;
+}
+
+/**
+ * Turns the JSON in selected_options back into the choices the customer made
+ * at the time of purchase, e.g. ['Grip Size' => 'G4'].
+ *
+ * Returns an empty array for a product that has no variants, and also for a
+ * value that will not decode, so a page can always foreach over the result
+ * without checking it first.
+ */
+function decodeSelectedOptions($selected_options) {
+    $decoded = json_decode($selected_options ?? '', true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+/**
  * Prints the confirmation popup used after a successful action.
  *
  * Shared by the store listing and the product details page so both show the

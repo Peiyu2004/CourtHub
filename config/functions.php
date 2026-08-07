@@ -156,6 +156,37 @@ function paymentMethodLabel($method) {
     return $method;
 }
 
+/**
+ * Prints the tab strip that links the two halves of a customer's history.
+ *
+ * Court bookings and equipment purchases are stored in separate tables and
+ * belong to separate modules, so they stay on separate pages. This strip is
+ * what makes them read as one "my history" area instead of two unrelated
+ * screens the user has to find on their own.
+ *
+ * It lives in functions.php rather than in either module's own helper file
+ * because both pages include this one, and neither module should have to
+ * depend on the other just to draw a link.
+ *
+ * $active is 'bookings' or 'purchases' and only decides which tab is
+ * highlighted as the current page.
+ */
+function renderHistoryTabs($active) {
+    $tabs = [
+        'bookings'  => ['label' => 'Court Bookings',      'url' => app_url('/booking/history.php')],
+        'purchases' => ['label' => 'Equipment Purchases', 'url' => app_url('/shop/purchaseHistory.php')],
+    ];
+    ?>
+    <nav class="history-tabs">
+        <?php foreach ($tabs as $key => $tab): ?>
+            <a href="<?= h($tab['url']) ?>"
+               class="history-tab<?= $key === $active ? ' is-active' : '' ?>"
+               <?= $key === $active ? 'aria-current="page"' : '' ?>><?= h($tab['label']) ?></a>
+        <?php endforeach; ?>
+    </nav>
+    <?php
+}
+
 function bindParams($stmt, $types, $params) {
     if ($types === '') {
         return;

@@ -24,7 +24,9 @@
             <a href="<?= h(app_url('/shop/equipment.php')) ?>">Equipment</a>
 
             <?php if (isLoggedIn()): ?>
-                <a href="<?= h(app_url('/booking/history.php')) ?>">Reservation</a>
+                <!-- One entry for both halves of the history; the page's own
+                     tabs switch between court bookings and equipment orders. -->
+                <a href="<?= h(app_url('/booking/history.php')) ?>">History</a>
                 <a href="<?= h(app_url('/shop/cart.php')) ?>">Cart</a>
 
                 <?php if (isAdmin()): ?>

@@ -50,19 +50,19 @@ require_once __DIR__ . '/../includes/header.php';
 </section>
 
 <section class="card">
-    <h2>My Reservations</h2>
-    <p class="muted">Paid reservations are final and cannot be modified after payment.</p>
+    <h2>My Bookings</h2>
+    <p class="muted">Paid bookings are final and cannot be modified after payment.</p>
 </section>
 
 <?php if ($booking_success > 0): ?>
     <div class="alert alert-success">
-        Reservation #<?= $booking_success ?> has been paid successfully.
+        Booking #<?= $booking_success ?> has been paid successfully.
     </div>
 <?php endif; ?>
 
 <?php if (empty($orders)): ?>
     <section class="card">
-        <div class="empty-state">You do not have any reservations yet.</div>
+        <div class="empty-state">You do not have any bookings yet.</div>
         <a href="<?= h(app_url('/booking/search.php')) ?>" class="btn">Book a Court</a>
     </section>
 <?php else: ?>
@@ -70,7 +70,7 @@ require_once __DIR__ . '/../includes/header.php';
         <section class="card">
             <div class="split-row">
                 <div>
-                    <h2>Reservation #<?= (int)$order['booking_order_id'] ?></h2>
+                    <h2>Booking #<?= (int)$order['booking_order_id'] ?></h2>
                     <p class="muted">
                         Paid with <?= h(paymentMethodLabel($order['payment_method'])) ?>
                         on <?= h(date('d M Y, h:i A', strtotime($order['created_at']))) ?>

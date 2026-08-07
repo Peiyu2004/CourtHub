@@ -6,6 +6,105 @@
    Pure CSS only (no frameworks), per assignment rules.
    ===================================================== */
 
+/* ---------- Confirmation popup ("added to cart") ----------
+   Dims the page, shows a green tick and a short message, then fades itself
+   away. The fading is done with a CSS animation rather than JavaScript, so
+   the popup still clears itself on a browser with JavaScript switched off -
+   otherwise it would sit over the page forever and block every click.
+   The animation ends on visibility: hidden, and a hidden element cannot be
+   clicked, so it stops covering the page once it has faded. */
+
+@keyframes toastFade {
+    0%   { opacity: 0; visibility: visible; }
+    8%   { opacity: 1; visibility: visible; }
+    80%  { opacity: 1; visibility: visible; }
+    100% { opacity: 0; visibility: hidden; }
+}
+
+@keyframes toastPop {
+    0%   { transform: scale(0.75); }
+    60%  { transform: scale(1.06); }
+    100% { transform: scale(1); }
+}
+
+.toast-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.55);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    /* Total time on screen. If this changes, the backstop timer in
+       js/equipment.js (setUpToast) must be raised to stay longer than it,
+       otherwise the popup is snatched away in the middle of fading out. */
+    animation: toastFade 3.5s ease forwards;
+}
+
+/* Hidden the instant the JavaScript dismisses it early. */
+.toast-overlay.is-dismissed {
+    display: none;
+}
+
+.toast-check {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background-color: #16c79a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: toastPop 0.35s ease;
+}
+
+/* The tick is drawn with two borders on an empty box turned 45 degrees,
+   so no image or icon font is needed. */
+.toast-check::after {
+    content: "";
+    display: block;
+    width: 24px;
+    height: 46px;
+    border: solid #ffffff;
+    border-width: 0 7px 7px 0;
+    transform: rotate(45deg);
+    margin-top: -8px;
+}
+
+.toast-message {
+    color: #ffffff;
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-top: 26px;
+    padding: 0 24px;
+    text-align: center;
+    max-width: 460px;
+    line-height: 1.4;
+}
+
+@media (max-width: 600px) {
+    .toast-check {
+        width: 78px;
+        height: 78px;
+    }
+
+    .toast-check::after {
+        width: 20px;
+        height: 38px;
+        border-width: 0 6px 6px 0;
+    }
+
+    .toast-message {
+        font-size: 1.05rem;
+        margin-top: 20px;
+    }
+}
+
 /* ---------- Store layout: filter sidebar + product area ---------- */
 
 .shop-layout {
@@ -253,6 +352,37 @@
 /* Card fades slightly while the live search filters it out and back in */
 .product-card.is-hidden {
     display: none;
+}
+
+/* ---------- Add to Cart on a product card ---------- */
+
+.card-cart-form {
+    margin-bottom: 8px;
+}
+
+/* Folded away by js/equipment.js. Without JavaScript the class is never
+   added, so the dropdowns stay visible and the form works in one click. */
+.card-options.is-folded {
+    display: none;
+}
+
+.card-options .form-group.compact {
+    margin-bottom: 8px;
+}
+
+.card-options label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475467;
+}
+
+.card-options select {
+    padding: 7px 8px;
+    font-size: 0.86rem;
+}
+
+.product-card .btn-block + .btn-block {
+    margin-top: 0;
 }
 
 .result-count {

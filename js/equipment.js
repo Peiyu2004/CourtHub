@@ -28,6 +28,8 @@ document.addEventListener('DOMContentLoaded', function () {
     setUpEquipmentAdminForm();
     setUpImagePreview();
     setUpCategoryForm();
+    setUpCardCartForms();
+    setUpToast();
 });
 
 
@@ -695,6 +697,97 @@ function setUpImagePreview() {
             // A path saved as images/badminton.jpg is relative to the project
             // root, and this page sits one folder down inside /admin.
             preview.src = path.indexOf('http') === 0 ? path : '../' + path;
+        });
+    }
+}
+
+
+/* ---------------------------------------------------------------------
+   11. The "added to cart" popup
+   The popup already fades itself out through a CSS animation, so this is
+   only an improvement on top: clicking it closes it straight away instead
+   of waiting, and the element is taken out of the page once it has faded so
+   nothing invisible is left lying over the content.
+   --------------------------------------------------------------------- */
+function setUpToast() {
+    var toast = document.getElementById('cartToast');
+    if (!toast) {
+        return;
+    }
+
+    function remove() {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }
+
+    function dismiss() {
+        toast.classList.add('is-dismissed');
+        remove();
+    }
+
+    toast.addEventListener('click', dismiss);
+
+    // Normal case: the CSS fade finishes and the element is taken out.
+    toast.addEventListener('animationend', remove);
+
+    /* Backstop. A browser pauses animations on a tab that is not being looked
+       at, so animationend can be delayed or, if the animation is interrupted,
+       never arrive at all. Without this the overlay could be left sitting
+       invisibly over the page and swallowing clicks. The timer is a little
+       longer than the 3.5s fade in css/shop.css so it only acts when the
+       event has not. Raise both together if the popup timing is changed. */
+    window.setTimeout(remove, 4100);
+
+    // Escape closes it too, which is what people expect from anything that
+    // covers the page.
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            dismiss();
+        }
+    });
+}
+
+
+/* ---------------------------------------------------------------------
+   10. Add to Cart straight from a product card
+   Products with variant choices render their dropdowns inside the card so
+   the page works with JavaScript switched off. When JavaScript is running
+   the dropdowns start folded away to keep the grid tidy, and the first
+   click on Add to Cart opens them instead of submitting. The second click
+   submits as normal.
+   --------------------------------------------------------------------- */
+function setUpCardCartForms() {
+    var forms = document.querySelectorAll('form.card-cart-form');
+
+    for (var i = 0; i < forms.length; i++) {
+        var options = forms[i].querySelector('.card-options');
+
+        // Products with no choices to make are left alone - one click adds them.
+        if (!options) {
+            continue;
+        }
+
+        // Folding happens here rather than in the CSS, so that a browser with
+        // JavaScript turned off shows the dropdowns straight away.
+        options.classList.add('is-folded');
+
+        forms[i].addEventListener('submit', function (event) {
+            var panel = this.querySelector('.card-options');
+            if (panel && panel.classList.contains('is-folded')) {
+                event.preventDefault();
+                panel.classList.remove('is-folded');
+
+                var button = this.querySelector('button[type="submit"]');
+                if (button) {
+                    button.textContent = 'Confirm Add to Cart';
+                }
+
+                var firstChoice = panel.querySelector('select');
+                if (firstChoice) {
+                    firstChoice.focus();
+                }
+            }
         });
     }
 }

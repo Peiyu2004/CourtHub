@@ -24,6 +24,33 @@ require_once __DIR__ . '/../config/equipment_functions.php';
 $sports     = getSportTypes($conn);
 $categories = getCategories($conn);
 
+$cart_errors = [];
+$cart_notice = '';
+
+// ---------------------------------------------------------------------
+// Add to Cart straight from a product card
+// The same addToCart() helper the details page uses, so the stock checks,
+// the variant checks and the merging behave identically on both pages.
+// ---------------------------------------------------------------------
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_to_cart') {
+    requireLogin();
+
+    $cart_equipment_id = (int)($_POST['equipment_id'] ?? 0);
+    $cart_quantity     = (int)($_POST['quantity'] ?? 1);
+
+    $cart_errors = addToCart(
+        $conn,
+        (int)$_SESSION['user_id'],
+        $cart_equipment_id,
+        $cart_quantity,
+        $_POST['options'] ?? []
+    );
+
+    if (empty($cart_errors)) {
+        $cart_notice = "Item has been added to your shopping cart";
+    }
+}
+
 // ---------------------------------------------------------------------
 // Read the filter values out of the URL
 // ---------------------------------------------------------------------
@@ -183,7 +210,19 @@ $stmt->execute();
 $equipment = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-$has_filters = $q !== '' || $category_filter > 0 || !empty($sport_filter)
+// Variant choices for every product on the page, fetched in one query rather
+// than one per card.
+$listing_ids = [];
+foreach ($equipment as $item) {
+    $listing_ids[] = (int)$item['equipment_id'];
+}
+$options_by_equipment = getOptionGroupsForMany($conn, $listing_ids);
+
+// POSTing back to the same URL keeps the current filters after adding to the
+// cart, instead of dumping the shopper back at the unfiltered list.
+$post_target = app_url('/shop/equipment.php' . (!empty($_GET) ? '?' . http_build_query($_GET) : ''));
+
+$has_filters =$q !== '' || $category_filter > 0 || !empty($sport_filter)
             || $min_price !== null || $max_price !== null || $min_rating > 0 || $sort !== 'name_asc';
 
 require_once __DIR__ . '/../includes/header.php';
@@ -195,6 +234,20 @@ require_once __DIR__ . '/../includes/header.php';
     <p class="muted">Shop equipment for badminton, pickleball, and futsal.</p>
 </section>
 
+<?php
+// Success is shown as the fading popup instead of a green bar. Errors stay as
+// a bar on purpose, because the customer needs time to read and fix those.
+renderToast($cart_notice);
+?>
+
+<?php if (!empty($cart_errors)): ?>
+    <div class="alert alert-error">
+        <?php foreach ($cart_errors as $error): ?>
+            <p><?= h($error) ?></p>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+
 <?php if (!empty($filter_errors)): ?>
     <div class="alert alert-error">
         <?php foreach ($filter_errors as $error): ?>
@@ -203,13 +256,17 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 <?php endif; ?>
 
-<!-- Everything sits inside one GET form so that with JavaScript switched off
-     the Filter button still submits every choice to the server. -->
-<form method="GET" action="<?= h(app_url('/shop/equipment.php')) ?>" id="filterForm">
 <div class="shop-layout">
 
-    <!-- ==================== SIDEBAR ==================== -->
+    <!-- ==================== SIDEBAR ====================
+         The filter form wraps only the sidebar. It cannot wrap the products
+         as well, because each product card carries its own POST form for Add
+         to Cart and a form inside another form is invalid HTML that browsers
+         silently drop. The search and sort controls sit in the toolbar over
+         on the right and join this form through their form="filterForm"
+         attribute instead. -->
     <aside class="filter-sidebar">
+    <form method="GET" action="<?= h(app_url('/shop/equipment.php')) ?>" id="filterForm">
 
         <div class="filter-block">
             <h3 class="filter-heading"><span class="filter-icon">&#9776;</span> All Categories</h3>
@@ -280,20 +337,23 @@ require_once __DIR__ . '/../includes/header.php';
              With JavaScript it resets the controls without reloading. -->
         <a href="<?= h(app_url('/shop/equipment.php')) ?>"
            class="btn btn-secondary btn-block" id="clearFilters">Clear All</a>
+    </form>
     </aside>
 
     <!-- ==================== PRODUCTS ==================== -->
     <div class="shop-main">
 
         <div class="card shop-toolbar">
+            <!-- form="filterForm" attaches these to the sidebar form even
+                 though they sit outside it in the page. -->
             <div class="form-group compact toolbar-search">
                 <label for="liveSearch">Search</label>
-                <input type="search" id="liveSearch" name="q" value="<?= h($q) ?>"
+                <input type="search" id="liveSearch" name="q" form="filterForm" value="<?= h($q) ?>"
                        placeholder="Racquet, ball, brand...">
             </div>
             <div class="form-group compact toolbar-sort">
                 <label for="liveSort">Sort</label>
-                <select id="liveSort" name="sort">
+                <select id="liveSort" name="sort" form="filterForm">
                     <option value="name_asc"    <?= $sort === 'name_asc' ? 'selected' : '' ?>>Name A-Z</option>
                     <option value="price_asc"   <?= $sort === 'price_asc' ? 'selected' : '' ?>>Price low to high</option>
                     <option value="price_desc"  <?= $sort === 'price_desc' ? 'selected' : '' ?>>Price high to low</option>
@@ -373,7 +433,51 @@ require_once __DIR__ . '/../includes/header.php';
                             <?php endif; ?>
                         </div>
 
-                        <a class="btn" href="<?= h($details_url) ?>">View Details</a>
+                        <?php
+                            $item_options = $options_by_equipment[(int)$item['equipment_id']] ?? [];
+                            $in_stock = (int)$item['stock'] > 0;
+                        ?>
+
+                        <?php if (!$in_stock): ?>
+                            <button type="button" class="btn btn-block" disabled>Out of Stock</button>
+
+                        <?php elseif (!isLoggedIn()): ?>
+                            <!-- Visitors are sent to log in first, because the cart
+                                 belongs to an account. -->
+                            <a class="btn btn-block" href="<?= h(app_url('/auth/login.php')) ?>">Add to Cart</a>
+
+                        <?php else: ?>
+                            <!-- Each card has its own POST form. Products with variant
+                                 choices show their dropdowns here; js/equipment.js
+                                 folds them away and the first click on Add to Cart
+                                 opens them, so the grid stays tidy. With JavaScript
+                                 off the dropdowns are simply already visible and the
+                                 form works in one click. -->
+                            <form method="POST" action="<?= h($post_target) ?>" class="card-cart-form">
+                                <input type="hidden" name="action" value="add_to_cart">
+                                <input type="hidden" name="equipment_id" value="<?= (int)$item['equipment_id'] ?>">
+                                <input type="hidden" name="quantity" value="1">
+
+                                <?php if (!empty($item_options)): ?>
+                                    <div class="card-options">
+                                        <?php foreach ($item_options as $option_name => $values): ?>
+                                            <div class="form-group compact">
+                                                <label><?= h($option_name) ?></label>
+                                                <select name="options[<?= h($option_name) ?>]" required>
+                                                    <?php foreach ($values as $value): ?>
+                                                        <option value="<?= h($value) ?>"><?= h($value) ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <button type="submit" class="btn btn-block">Add to Cart</button>
+                            </form>
+                        <?php endif; ?>
+
+                        <a class="btn btn-secondary btn-block" href="<?= h($details_url) ?>">View Details</a>
                     </article>
                 <?php endforeach; ?>
             </section>
@@ -381,8 +485,7 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
 </div>
-</form>
 
-<script src="<?= h(app_url('/js/equipment.js')) ?>?v=1.1"></script>
+<script src="<?= h(app_url('/js/equipment.js')) ?>?v=1.2"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

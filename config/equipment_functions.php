@@ -71,6 +71,42 @@ function getEquipmentOptionGroups($conn, $equipment_id) {
 }
 
 /**
+ * The variant choices for a whole list of products in one query.
+ *
+ * The listing page shows up to fourteen products at once, so calling
+ * getEquipmentOptionGroups() per product would mean fourteen round trips to
+ * the database. This fetches them all at once and groups the rows in PHP:
+ *   [equipment_id => ['Grip Size' => ['G4','G5'], ...], ...]
+ *
+ * One "?" is generated per id so every value stays bound.
+ */
+function getOptionGroupsForMany($conn, $equipment_ids) {
+    $groups = [];
+    if (empty($equipment_ids)) {
+        return $groups;
+    }
+
+    $placeholders = implode(',', array_fill(0, count($equipment_ids), '?'));
+    $types = str_repeat('i', count($equipment_ids));
+
+    $stmt = $conn->prepare(
+        "SELECT equipment_id, option_name, option_value
+         FROM equipment_options
+         WHERE equipment_id IN (" . $placeholders . ")
+         ORDER BY equipment_id, option_name, option_value"
+    );
+    bindParams($stmt, $types, $equipment_ids);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $groups[(int)$row['equipment_id']][$row['option_name']][] = $row['option_value'];
+    }
+    $stmt->close();
+
+    return $groups;
+}
+
+/**
  * All reviews for one product, newest first.
  * The reviews table only stores user_id, so the JOIN on users is what turns
  * the row into a name the customer can actually read.
@@ -342,6 +378,29 @@ function purchaserIdsFor($conn, $equipment_id) {
     }
     $stmt->close();
     return $ids;
+}
+
+/**
+ * Prints the confirmation popup used after a successful action.
+ *
+ * Shared by the store listing and the product details page so both show the
+ * same thing. The popup fades itself away with a CSS animation, so it does
+ * not depend on JavaScript to disappear; js/equipment.js only adds the extra
+ * touch of letting the customer click it away sooner.
+ *
+ * Nothing is printed when there is no message, so the caller can hand this
+ * an empty string safely.
+ */
+function renderToast($message) {
+    if (trim((string)$message) === '') {
+        return;
+    }
+    ?>
+    <div class="toast-overlay" id="cartToast" role="status">
+        <div class="toast-check"></div>
+        <p class="toast-message"><?= h($message) ?></p>
+    </div>
+    <?php
 }
 
 /**

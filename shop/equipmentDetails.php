@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['options'] ?? []
         );
         if (empty($errors)) {
-            $notice = "Added to your cart.";
+            $notice = "Item has been added to your shopping cart";
         }
     }
 
@@ -201,9 +201,11 @@ require_once __DIR__ . '/../includes/header.php';
     </p>
 </section>
 
-<?php if ($notice): ?>
-    <div class="alert alert-success"><?= h($notice) ?></div>
-<?php endif; ?>
+<?php
+// Success is shown as the fading popup instead of a green bar. Errors stay as
+// a bar on purpose, because the customer needs time to read and fix those.
+renderToast($notice);
+?>
 
 <?php if (!empty($errors)): ?>
     <div class="alert alert-error">

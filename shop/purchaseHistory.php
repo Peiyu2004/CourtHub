@@ -24,14 +24,21 @@ $user_id = (int)$_SESSION['user_id'];
 $orders = getEquipmentPurchaseHistory($conn, $user_id);
 $summary = purchaseHistorySummary($orders);
 
-// What the customer is shown instead of equipment_order_id, so their orders
-// read 1, 2, 3 rather than jumping wherever the database ids happen to land.
-$order_numbers = orderDisplayNumbers($orders);
+/*
+ * Equipment orders are shown by their real equipment_order_id, not by a
+ * per-customer 1, 2, 3 sequence like court bookings are.
+ *
+ * These orders are collected in person, so the number stops being a private
+ * label the moment the customer walks in and reads it out at the counter. The
+ * admin's list works from the database id, and a customer's "Order #2" that is
+ * really #37 would not find anything there.
+ */
 
-// Set when the customer has just come back from the payment provider. Looked
-// up in the same list so the message names the same number as the card below.
+// Set when the customer has just come back from the payment provider. Checked
+// against their own orders, so a number typed into the address bar cannot
+// announce a payment that is not theirs.
 $order_success = isset($_GET['order_success']) ? (int)$_GET['order_success'] : 0;
-$success_number = $order_numbers[$order_success] ?? 0;
+$paid_order = $orders[$order_success] ?? null;
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
@@ -42,9 +49,10 @@ require_once __DIR__ . '/../includes/header.php';
     <?php renderHistoryTabs('purchases'); ?>
 </section>
 
-<?php if ($success_number > 0): ?>
+<?php if ($paid_order): ?>
     <div class="alert alert-success">
-        Order #<?= (int)$success_number ?> has been paid successfully.
+        Order #<?= (int)$order_success ?> has been paid successfully.
+        Bring this order number to CourtHub Sport Center to collect your items.
     </div>
 <?php endif; ?>
 
@@ -73,7 +81,7 @@ require_once __DIR__ . '/../includes/header.php';
         <section class="card">
             <div class="split-row">
                 <div>
-                    <h2>Order #<?= (int)$order_numbers[$order['equipment_order_id']] ?></h2>
+                    <h2>Order #<?= (int)$order['equipment_order_id'] ?></h2>
                     <p class="muted">
                         Paid with <?= h(paymentMethodLabel($order['payment_method'])) ?>
                         on <?= h(date('d M Y, h:i A', strtotime($order['created_at']))) ?>
@@ -82,6 +90,26 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="amount-pill"><?= money($order['total_amount']) ?></div>
             </div>
+
+            <?php /* The order is only finished once the customer has been to
+                     the counter, so where it has got to is shown on the order
+                     itself rather than left to be guessed from the date. */ ?>
+            <p>
+                <span class="status <?= h($order['order_status']) ?>">
+                    <?= h(equipmentOrderStatusLabel($order['order_status'])) ?>
+                </span>
+                <?php if ($order['order_status'] === 'completed'): ?>
+                    <?php if ($order['collected_at']): ?>
+                        <span class="muted">
+                            Collected on <?= h(date('d M Y, h:i A', strtotime($order['collected_at']))) ?>
+                        </span>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <span class="muted">
+                        Show order #<?= (int)$order['equipment_order_id'] ?> at CourtHub Sport Center to collect these items.
+                    </span>
+                <?php endif; ?>
+            </p>
 
             <div class="table-wrap">
                 <table>

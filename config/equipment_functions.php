@@ -545,7 +545,8 @@ function getEquipmentPurchaseHistory($conn, $user_id) {
 
     $stmt = $conn->prepare(
         "SELECT eo.equipment_order_id, eo.total_amount, eo.payment_method,
-                eo.payment_status, eo.transaction_ref, eo.created_at,
+                eo.payment_status, eo.order_status, eo.collected_at,
+                eo.transaction_ref, eo.created_at,
                 oi.order_item_id, oi.equipment_id, oi.quantity,
                 oi.price_at_purchase, oi.selected_options,
                 e.name AS equipment_name, e.brand, e.category, e.status AS equipment_status,
@@ -569,6 +570,8 @@ function getEquipmentPurchaseHistory($conn, $user_id) {
                 'total_amount' => $row['total_amount'],
                 'payment_method' => $row['payment_method'],
                 'payment_status' => $row['payment_status'],
+                'order_status' => $row['order_status'],
+                'collected_at' => $row['collected_at'],
                 'transaction_ref' => $row['transaction_ref'],
                 'created_at' => $row['created_at'],
                 'items' => [],
@@ -580,6 +583,196 @@ function getEquipmentPurchaseHistory($conn, $user_id) {
     $stmt->close();
 
     return $orders;
+}
+
+/* ---------------------------------------------------------------------
+   Collection at the counter
+   ---------------------------------------------------------------------
+   Equipment is never delivered. Paying only reserves the goods; the sale
+   is not finished until the customer walks in and takes them, which is
+   what equipment_orders.order_status records and what admin/orders.php
+   is there to change.
+   --------------------------------------------------------------------- */
+
+/** What each order_status is called on screen, for customers and admin alike. */
+function equipmentOrderStatusLabel($status) {
+    $labels = [
+        'pending'   => 'Waiting for Collection',
+        'completed' => 'Collected',
+    ];
+
+    return $labels[$status] ?? $status;
+}
+
+/**
+ * Every equipment order in the shop, newest first, with its items nested
+ * underneath and the customer it belongs to - the admin's view of the same
+ * data getEquipmentPurchaseHistory() gives one customer.
+ *
+ * $status filters the list: 'pending', 'completed', or 'all'. Anything else is
+ * read as 'all', so a tampered querystring widens the list rather than
+ * breaking the page. The value never reaches the SQL as text - it only decides
+ * whether the WHERE clause is added, and it is bound when it is.
+ *
+ * Only paid orders are listed. A failed payment took no money and reserved no
+ * stock, so there is nothing at the counter to hand over.
+ */
+function getEquipmentOrdersForAdmin($conn, $status = 'all') {
+    $where = "eo.payment_status = 'paid'";
+    $types = '';
+    $params = [];
+
+    if ($status === 'pending' || $status === 'completed') {
+        $where .= " AND eo.order_status = ?";
+        $types = 's';
+        $params[] = $status;
+    }
+
+    return fetchAdminEquipmentOrders($conn, $where, $types, $params);
+}
+
+/**
+ * One order by its number, in the same shape as the list above, or an empty
+ * array when there is no paid order with that number.
+ *
+ * Deliberately not filtered by order_status: the admin searching for #12 wants
+ * that order whichever tab they happen to be looking at, and "not found" for
+ * an order that exists but has already been collected would send them looking
+ * for a mistake that is not there.
+ */
+function findEquipmentOrderForAdmin($conn, $order_id) {
+    return fetchAdminEquipmentOrders(
+        $conn,
+        "eo.payment_status = 'paid' AND eo.equipment_order_id = ?",
+        'i',
+        [$order_id]
+    );
+}
+
+/**
+ * The query behind both of the two functions above.
+ *
+ * $where is written by this file and never built from a request - the callers
+ * decide which fixed clause to use and pass every value from the outside in
+ * $params, so a search term reaches the database as a bound parameter only.
+ */
+function fetchAdminEquipmentOrders($conn, $where, $types, $params) {
+    $orders = [];
+
+    $stmt = $conn->prepare(
+        "SELECT eo.equipment_order_id, eo.total_amount, eo.payment_method,
+                eo.payment_status, eo.order_status, eo.collected_at,
+                eo.transaction_ref, eo.created_at,
+                u.full_name, u.email, u.phone,
+                oi.order_item_id, oi.equipment_id, oi.quantity,
+                oi.price_at_purchase, oi.selected_options,
+                e.name AS equipment_name, e.brand, e.category,
+                st.name AS sport_name
+         FROM equipment_orders eo
+         JOIN users u ON eo.user_id = u.user_id
+         JOIN equipment_order_items oi ON eo.equipment_order_id = oi.equipment_order_id
+         LEFT JOIN equipment e ON oi.equipment_id = e.equipment_id
+         LEFT JOIN sport_types st ON e.sport_type_id = st.sport_type_id
+         WHERE {$where}
+         ORDER BY eo.created_at DESC, eo.equipment_order_id DESC, oi.order_item_id ASC"
+    );
+
+    bindParams($stmt, $types, $params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Flat rows in, one entry per order out - the same grouping the customer's
+    // own history does, because one JOINed query beats a query per order.
+    while ($row = $result->fetch_assoc()) {
+        $order_id = (int)$row['equipment_order_id'];
+        if (!isset($orders[$order_id])) {
+            $orders[$order_id] = [
+                'equipment_order_id' => $order_id,
+                'total_amount' => $row['total_amount'],
+                'payment_method' => $row['payment_method'],
+                'order_status' => $row['order_status'],
+                'collected_at' => $row['collected_at'],
+                'transaction_ref' => $row['transaction_ref'],
+                'created_at' => $row['created_at'],
+                'full_name' => $row['full_name'],
+                'email' => $row['email'],
+                'phone' => $row['phone'],
+                'item_count' => 0,
+                'items' => [],
+            ];
+        }
+        $row['line_total'] = (float)$row['price_at_purchase'] * (int)$row['quantity'];
+        $orders[$order_id]['item_count'] += (int)$row['quantity'];
+        $orders[$order_id]['items'][] = $row;
+    }
+    $stmt->close();
+
+    return $orders;
+}
+
+/**
+ * How many paid orders are waiting for collection and how many have been
+ * collected, for the counts on the filter tabs and the dashboard tile.
+ */
+function equipmentOrderStatusCounts($conn) {
+    $counts = ['pending' => 0, 'completed' => 0, 'all' => 0];
+
+    $result = $conn->query(
+        "SELECT order_status, COUNT(*) AS total
+         FROM equipment_orders
+         WHERE payment_status = 'paid'
+         GROUP BY order_status"
+    );
+    while ($row = $result->fetch_assoc()) {
+        $counts[$row['order_status']] = (int)$row['total'];
+        $counts['all'] += (int)$row['total'];
+    }
+    $result->close();
+
+    return $counts;
+}
+
+/**
+ * Marks one paid order as collected, and stamps the time it happened.
+ *
+ * "AND order_status = 'pending'" is what makes this safe to send twice. Two
+ * admins on the counter, or one double-click, would otherwise push
+ * collected_at forward and make the record say the goods were handed over
+ * later than they were. The second update matches no row instead, and
+ * affected_rows tells the caller which of the two happened.
+ *
+ * Returns an error string, or '' when the order was marked collected.
+ */
+function markEquipmentOrderCollected($conn, $order_id) {
+    $stmt = $conn->prepare(
+        "UPDATE equipment_orders
+         SET order_status = 'completed', collected_at = NOW()
+         WHERE equipment_order_id = ? AND order_status = 'pending' AND payment_status = 'paid'"
+    );
+    $stmt->bind_param("i", $order_id);
+    $stmt->execute();
+    $changed = $stmt->affected_rows;
+    $stmt->close();
+
+    if ($changed === 1) {
+        return '';
+    }
+
+    // Nothing changed, so say which of the two reasons it was rather than
+    // reporting a failure for an order that is simply already done.
+    $stmt = $conn->prepare(
+        "SELECT order_status FROM equipment_orders WHERE equipment_order_id = ?"
+    );
+    $stmt->bind_param("i", $order_id);
+    $stmt->execute();
+    $found = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$found) {
+        return "That order could not be found.";
+    }
+
+    return "Order #" . (int)$order_id . " has already been collected.";
 }
 
 /**

@@ -209,6 +209,18 @@ CREATE TABLE cart_items (
 -- 10. EQUIPMENT_ORDERS / EQUIPMENT_ORDER_ITEMS
 -- Confirmed equipment purchases, separate from court booking orders
 -- since they're conceptually different transactions.
+--
+-- Two different statuses live on an order and they answer two different
+-- questions, so neither can stand in for the other:
+--
+--   payment_status  did the money go through?
+--   order_status    has the customer walked in and taken the goods?
+--
+-- Equipment is collected in person - the shop delivers nothing - so an
+-- order stays 'pending' from the moment it is paid for until an admin
+-- hands the items over at the counter and marks it 'completed'.
+-- collected_at records when that happened, and is NULL for as long as the
+-- order is still waiting to be picked up.
 -- ---------------------------------------------------------------------
 CREATE TABLE equipment_orders (
     equipment_order_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -216,10 +228,16 @@ CREATE TABLE equipment_orders (
     total_amount        DECIMAL(8,2) NOT NULL,
     payment_method      ENUM('tng_ewallet', 'credit_debit_card') NOT NULL,
     payment_status      ENUM('paid', 'failed') NOT NULL DEFAULT 'paid',
+    order_status        ENUM('pending', 'completed') NOT NULL DEFAULT 'pending',
     transaction_ref     VARCHAR(50),
     created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    collected_at        DATETIME NULL,           -- set when order_status becomes 'completed'
 
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+
+    -- The admin order list opens on "waiting for collection", so the
+    -- status is what it filters and sorts on most.
+    INDEX idx_equipment_order_status (order_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE equipment_order_items (

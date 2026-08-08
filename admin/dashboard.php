@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db_connect.php';
 require_once __DIR__ . '/../config/functions.php';
+require_once __DIR__ . '/../config/equipment_functions.php';
 
 requireAdmin();
 finalizePendingCourtDeletions($conn);
@@ -11,6 +12,9 @@ $stats = [
     'equipment_items' => 0,
     'current_month_revenue' => 0,
 ];
+
+// Orders paid for but not yet picked up - the work waiting at the counter.
+$order_counts = equipmentOrderStatusCounts($conn);
 
 $result = $conn->query("SELECT COUNT(*) AS total FROM courts WHERE status = 'active'");
 $stats['active_courts'] = (int)$result->fetch_assoc()['total'];
@@ -69,6 +73,10 @@ require_once __DIR__ . '/../includes/header.php';
         <span>Equipment Items</span>
         <strong><?= (int)$stats['equipment_items'] ?></strong>
     </div>
+    <div class="card stat-card">
+        <span>Orders To Collect</span>
+        <strong><?= (int)$order_counts['pending'] ?></strong>
+    </div>
 </section>
 
 <section class="grid two-col">
@@ -103,6 +111,7 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="button-list">
             <a href="<?= h(app_url('/admin/courts.php')) ?>" class="btn">Add or Delete Courts</a>
             <a href="<?= h(app_url('/admin/equipment.php')) ?>" class="btn btn-secondary">Add or Delete Equipment</a>
+            <a href="<?= h(app_url('/admin/orders.php')) ?>" class="btn btn-secondary">Equipment Orders to Collect</a>
         </div>
     </div>
 </section>

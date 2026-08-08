@@ -189,6 +189,20 @@ CREATE TABLE equipment_order_items (
     FOREIGN KEY (equipment_id)       REFERENCES equipment(equipment_id) ON DELETE SET NULL
 );
 
+-- ---------------------------------------------------------------------
+-- 10. CONTACT MESSAGES
+-- Stores customer enquiries from Contact Us page
+-- ---------------------------------------------------------------------
+
+CREATE TABLE contact_messages (
+    message_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 
 -- =====================================================================
 -- SAMPLE DATA

@@ -87,6 +87,17 @@ require_once __DIR__ . '/../includes/header.php';
         <p>The items and quantities cannot be changed once payment is made.</p>
     </div>
 
+    <?php /* Equipment is collected in person - there is no delivery anywhere in
+             the shop - so the customer is told before they pay rather than
+             after, when they can still decide against the order. */ ?>
+    <div class="alert alert-info">
+        <strong>Walk-in collection only.</strong>
+        <p>
+            Your items are not delivered. Once you have placed your order, walk in to
+            CourtHub Sport Center and show your order to collect them at the counter.
+        </p>
+    </div>
+
     <section class="card">
         <h2>Order Summary</h2>
 

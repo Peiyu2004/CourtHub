@@ -223,6 +223,19 @@ a {
     font-size: 0.94rem;
 }
 
+/* Used for notices that tell the customer how something works - the walk-in
+   collection notice on checkout - rather than warning them about anything. */
+.alert-info {
+    background-color: #eaf3fb;
+    color: #1c5480;
+    border: 1px solid #c5ddf0;
+}
+
+.alert-info p {
+    margin-top: 6px;
+    font-size: 0.94rem;
+}
+
 .grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

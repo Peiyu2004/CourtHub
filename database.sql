@@ -261,6 +261,20 @@ CREATE TABLE equipment_reviews (
     INDEX idx_review_equipment (equipment_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ---------------------------------------------------------------------
+-- 10. CONTACT MESSAGES
+-- Stores customer enquiries from Contact Us page
+-- ---------------------------------------------------------------------
+
+CREATE TABLE contact_messages (
+    message_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 
 -- =====================================================================
 -- SAMPLE DATA

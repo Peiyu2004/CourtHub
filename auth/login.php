@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['role'] = $user['role'];
 
             // Redirect based on role
+            // admin email: admin@courthub.com ps: password123
             if ($user['role'] === 'admin') {
                 header("Location: " . app_url('/admin/dashboard.php'));
             } else {
@@ -52,36 +53,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="card" style="max-width: 420px; margin: 0 auto;">
-    <h2>Login</h2>
+<link rel="stylesheet" href="<?= h(app_url('/css/auth.css')) ?>?v=1.0">
 
-    <?php if ($show_register_success): ?>
-        <div class="alert alert-success">Registration successful! Please login below.</div>
-    <?php endif; ?>
-
-    <?php if (!empty($errors)): ?>
-        <div class="alert alert-error">
-            <?php foreach ($errors as $error): ?>
-                <p><?= h($error) ?></p>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
-
-    <form method="POST" action="login.php">
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" value="<?= h($email) ?>" required>
+<div class="auth-page-wrapper">
+    <div class="auth-card-container">
+        
+        <!-- Left Column: Image set as CSS Background -->
+        <div class="auth-visual-side" style="background-image: url('<?= h(app_url('/images/login.jpg')) ?>');">
+            <div class="auth-visual-overlay">
+                <div class="auth-brand-badge">
+                    <h2>CourtHub</h2>
+                    <p>Sungai Long Sports Center</p>
+                </div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
+        <!-- Right Column: Login Form -->
+        <div class="auth-form-side">
+            <div class="auth-header">
+                <h2>Welcome to CourtHub</h2>
+                <p class="auth-subtitle">Train. Play. Grow.</p>
+            </div>
+
+            <?php if ($show_register_success): ?>
+                <div class="alert alert-success">Registration successful! Please login below.</div>
+            <?php endif; ?>
+
+            <?php if (!empty($errors)): ?>
+                <div class="alert alert-error">
+                    <?php foreach ($errors as $error): ?>
+                        <p><?= h($error) ?></p>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" action="login.php" class="auth-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="<?= h($email) ?>" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" class="btn btn-auth-submit">Login</button>
+            </form>
+
+            <p class="auth-footer-text">
+                Don't have an account? <a href="register.php">Register here</a>
+            </p>
         </div>
 
-        <button type="submit" class="btn">Login</button>
-    </form>
-
-    <p style="margin-top: 14px;">Don't have an account? <a href="register.php" style="color:#1b2a4a; font-weight:600;">Register here</a></p>
+    </div>
 </div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

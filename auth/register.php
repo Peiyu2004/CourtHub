@@ -68,49 +68,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="card" style="max-width: 480px; margin: 0 auto;">
-    <h2>Create an Account</h2>
+<link rel="stylesheet" href="<?= h(app_url('/css/auth.css')) ?>?v=1.0">
 
-    <?php if (!empty($errors)): ?>
-        <div class="alert alert-error">
-            <ul style="margin-left: 18px;">
-                <?php foreach ($errors as $error): ?>
-                    <li><?= h($error) ?></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
-    <?php endif; ?>
-
-    <form method="POST" action="register.php">
-        <div class="form-group">
-            <label for="full_name">Full Name</label>
-            <input type="text" id="full_name" name="full_name" value="<?= h($full_name) ?>" required>
+<div class="auth-page-wrapper">
+    <div class="auth-card-container">
+        
+        <!-- Left Column: Image set as CSS Background -->
+        <div class="auth-visual-side" style="background-image: url('<?= h(app_url('/images/signUp.png')) ?>');">
+            <div class="auth-visual-overlay">
+                <div class="auth-brand-badge">
+                    <h2>CourtHub</h2>
+                    <p>Sungai Long Sports Center</p>
+                </div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" value="<?= h($email) ?>" required>
+        <!-- Right Column: Register Form -->
+        <div class="auth-form-side">
+            <div class="auth-header">
+                <h2>Create an Account</h2>
+                <p class="auth-subtitle">Join us to book courts & buy gear.</p>
+            </div>
+
+            <?php if (!empty($errors)): ?>
+                <div class="alert alert-error">
+                    <?php foreach ($errors as $error): ?>
+                        <p><?= h($error) ?></p>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" action="register.php" class="auth-form">
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" value="<?= h($full_name) ?>" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="<?= h($email) ?>" placeholder="Enter your email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="text" id="phone" name="phone" value="<?= h($phone) ?>" placeholder="Enter your phone number">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Create a password (min. 6 chars)" required minlength="6">
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Re-enter your password" required minlength="6">
+                </div>
+
+                <button type="submit" class="btn btn-auth-submit">Register</button>
+            </form>
+
+            <p class="auth-footer-text">
+                Already have an account? <a href="login.php">Login here</a>
+            </p>
         </div>
 
-        <div class="form-group">
-            <label for="phone">Phone Number</label>
-            <input type="text" id="phone" name="phone" value="<?= h($phone) ?>">
-        </div>
-
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required minlength="6">
-        </div>
-
-        <div class="form-group">
-            <label for="confirm_password">Confirm Password</label>
-            <input type="password" id="confirm_password" name="confirm_password" required minlength="6">
-        </div>
-
-        <button type="submit" class="btn">Register</button>
-    </form>
-
-    <p style="margin-top: 14px;">Already have an account? <a href="login.php" style="color:#1b2a4a; font-weight:600;">Login here</a></p>
+    </div>
 </div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

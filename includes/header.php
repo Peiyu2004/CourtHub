@@ -19,24 +19,52 @@
 
         <!-- Global Interactive Menu Layer -->
         <nav class="main-nav">
-            <a href="<?= h(app_url('/booking/courtService.php')) ?>">Court</a>
-            <a href="<?= h(app_url('/booking/search.php')) ?>">Book</a>
-            <a href="<?= h(app_url('/shop/equipment.php')) ?>">Equipment</a>
+            <a href="<?= h(app_url('/index.php')) ?>">Home</a>
+
+            <div class="nav-dropdown">
+                <button
+                    type="button"
+                    class="dropdown-btn"
+                    aria-label="Services menu">Services<span class="arrow">▼</span>
+                </button>
+
+                <div class="dropdown-menu">
+                    <a href="<?= h(app_url('/booking/courtService.php')) ?>">View Facilities</a>
+                    <a href="<?= h(app_url('/booking/search.php')) ?>">Book a Court</a>
+                    <a href="<?= h(app_url('/shop/equipment.php')) ?>">Equipment Store</a>
+                </div>
+            </div>
+
+            <a href="<?= h(app_url('/contact.php')) ?>">Contact</a>
 
             <?php if (isLoggedIn()): ?>
                 <!-- One entry for both halves of the history; the page's own
                      tabs switch between court bookings and equipment orders. -->
-                <a href="<?= h(app_url('/booking/history.php')) ?>">History</a>
                 <a href="<?= h(app_url('/shop/cart.php')) ?>">Cart</a>
+                
+                <div class="nav-dropdown account-dropdown">
+                    <button 
+                        type="button"
+                        class="dropdown-btn"
+                        aria-label="Account menu">Account<span class="arrow">▼</span>
+                    </button>
 
-                <?php if (isAdmin()): ?>
-                    <a href="<?= h(app_url('/admin/dashboard.php')) ?>">Dashboard</a>
-                <?php endif; ?>
+                    <div class="dropdown-menu">
+                        <a href="<?= h(app_url('/auth/profile.php')) ?>">My Profile</a>
+                        <a href="<?= h(app_url('/booking/history.php')) ?>">Purchase History</a>
 
-                <a href="<?= h(app_url('/auth/logout.php')) ?>">Logout</a>
+                        <?php if (isAdmin()): ?>
+                            <div class="dropdown-divider"></div>
+                            <a href="<?= h(app_url('/admin/dashboard.php')) ?>"class="admin-link">Admin Dashboard</a>
+                        <?php endif; ?>
+
+                        <div class="dropdown-divider"></div>
+
+                        <a href="<?= h(app_url('/auth/logout.php')) ?>"class="logout-link">Logout</a>
+                    </div>
+                </div>
             <?php else: ?>
                 <a href="<?= h(app_url('/auth/login.php')) ?>">Login</a>
-                <a href="<?= h(app_url('/auth/register.php')) ?>">Register</a>
             <?php endif; ?>
         </nav>
     </div>

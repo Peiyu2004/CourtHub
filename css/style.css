@@ -290,7 +290,7 @@ a {
 }
 
 .btn:hover {
-    background-color: #2c3e6b;
+    background-color: #90acf4;
 }
 
 .btn:disabled {
@@ -383,6 +383,19 @@ a {
 }
 
 .alert-warning p {
+    margin-top: 6px;
+    font-size: 0.94rem;
+}
+
+/* Used for notices that tell the customer how something works - the walk-in
+   collection notice on checkout - rather than warning them about anything. */
+.alert-info {
+    background-color: #eaf3fb;
+    color: #1c5480;
+    border: 1px solid #c5ddf0;
+}
+
+.alert-info p {
     margin-top: 6px;
     font-size: 0.94rem;
 }
@@ -495,6 +508,17 @@ a {
     color: #a15c00;
 }
 
+/* Equipment order collection: waiting at the counter, or handed over. */
+.status.pending {
+    background-color: #fff4e5;
+    color: #a15c00;
+}
+
+.status.completed {
+    background-color: #eafaf1;
+    color: #1e7e34;
+}
+
 .select-card {
     border: 1px solid #d9dee8;
     border-radius: 8px;
@@ -550,9 +574,96 @@ th {
     flex-wrap: wrap;
 }
 
+/* Number fields that sit on a row with their own button - the cart's quantity
+   box, the admin's price boxes. They are outside .form-group, so like the
+   search field they would otherwise be left with no border or radius at all
+   while the button beside them is fully styled. */
 .inline-form input[type="number"] {
     width: 82px;
-    padding: 8px;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #1e293b;
+    font-size: 1rem;
+}
+
+.inline-form input[type="number"]:hover {
+    border-color: #aab2c0;
+}
+
+.inline-form input[type="number"]:focus {
+    outline: none;
+    border-color: #1b2a4a;
+    box-shadow: 0 0 0 3px rgba(27, 42, 74, 0.12);
+}
+
+/* The cart's quantity box. Narrower than a price field because it holds a
+   couple of digits, and centred so the number sits under the column heading
+   rather than hard against the spinner arrows.
+
+   The selector is this specific to beat the width above, which it shares a
+   form with. */
+.inline-form input[type="number"].qty-input {
+    width: 72px;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* Chrome hides the arrows until the box is hovered or focused, which makes
+   the field jump as the pointer crosses it. Keeping them there means the
+   number stays where it was put. */
+.inline-form input[type="number"].qty-input::-webkit-inner-spin-button {
+    opacity: 1;
+}
+
+/* ---------- Search bar (admin equipment orders) ----------
+   A bare input outside .form-group gets none of the form styling above, so
+   the field is given its own here rather than being wrapped in a form group
+   it does not belong to - this one sits on a row with its buttons, not in a
+   column of labelled fields.
+
+   The rule sits under the bar rather than around it because the filter
+   buttons share the same card: the line is what separates "find one order"
+   from "browse them all". */
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #e5e8ef;
+}
+
+.search-bar label {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Grows into the space it is given, but stops well short of the full card -
+   an order number is a handful of digits and a field the width of the page
+   invites the wrong kind of search. */
+.search-bar input[type="search"] {
+    flex: 1 1 200px;
+    max-width: 260px;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    /* Safari styles search fields as rounded pills by default. */
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.search-bar input[type="search"]:focus {
+    outline: none;
+    border-color: #1b2a4a;
+    box-shadow: 0 0 0 3px rgba(27, 42, 74, 0.12);
+}
+
+.search-bar input[type="search"]::placeholder {
+    color: #98a2b3;
 }
 
 .checkout-bar {
@@ -1092,6 +1203,13 @@ th {
     td {
         padding: 10px 8px;
     }
+    
+    /* The label, field and buttons stack on a narrow screen, so the field
+       takes the whole row rather than sitting at its desktop width. */
+    .search-bar input[type="search"] {
+        flex-basis: 100%;
+        max-width: 100%;
+    }
 }
 
 @media (max-width: 768px) {
@@ -1113,8 +1231,13 @@ th {
         font-size: 0.85rem;
         padding: 6px 9px;
     }
+<<<<<<< HEAD
 
 }
+=======
+}
+
+>>>>>>> 137be1b4fdc6633294771cfd171e78ae55187741
 /* ---------- Contact Page---------- */
 
 .contact-container {

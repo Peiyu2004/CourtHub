@@ -118,7 +118,10 @@ require_once __DIR__ . '/../includes/header.php';
                                 <form method="POST" action="<?= h(app_url('/shop/cart.php')) ?>" class="inline-form">
                                     <input type="hidden" name="action" value="update">
                                     <input type="hidden" name="cart_id" value="<?= (int)$item['cart_id'] ?>">
-                                    <input type="number" name="quantity" value="<?= (int)$item['quantity'] ?>" min="1" max="<?= max(1, (int)$item['stock']) ?>">
+                                    <input type="number" name="quantity" class="qty-input"
+                                           value="<?= (int)$item['quantity'] ?>" min="1"
+                                           max="<?= max(1, (int)$item['stock']) ?>"
+                                           aria-label="Quantity of <?= h($item['name']) ?>">
                                     <button type="submit" class="btn btn-secondary">Update</button>
                                 </form>
                             </td>

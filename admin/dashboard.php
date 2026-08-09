@@ -103,6 +103,7 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="button-list">
             <a href="<?= h(app_url('/admin/courts.php')) ?>" class="btn">Add or Delete Courts</a>
             <a href="<?= h(app_url('/admin/equipment.php')) ?>" class="btn btn-secondary">Add or Delete Equipment</a>
+            <a href="<?= h(app_url('/admin/messages.php')) ?>" class="btn">View Customer Messages</a>
         </div>
     </div>
 </section>

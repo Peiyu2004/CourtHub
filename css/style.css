@@ -230,7 +230,7 @@ a {
     width: 100vw;
     margin-left: calc(50% - 50vw);
     padding: 20px;
-    margin-top: 40px;
+    margin-top: 70px;
 }
 
 
@@ -1170,3 +1170,43 @@ th {
     }
 }
 
+/* ---------- Customer Messages ---------- */
+
+.messages-card {
+    margin-top: 20px;
+}
+
+.messages-table th {
+    white-space: nowrap;
+}
+
+.messages-table td {
+    vertical-align: top;
+}
+
+.message-content {
+    max-width: 400px;
+    line-height: 1.5;
+    white-space: normal;
+}
+
+.message-date {
+    white-space: nowrap;
+    color: #667085;
+    font-size: 0.9rem;
+}
+
+.message-contact {
+    line-height: 1.5;
+}
+
+.message-contact strong {
+    display: block;
+    color: #1e293b;
+}
+
+.message-contact span {
+    display: block;
+    color: #667085;
+    font-size: 0.9rem;
+}

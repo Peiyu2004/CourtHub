@@ -33,6 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$user || !password_verify($password, $user['password_hash'])) {
             $errors[] = "Invalid email or password.";
         } else {
+            // Regenerate session ID to prevent session fixation attacks
+            session_regenerate_id(true);
+
             // Login successful - store what we need in the session
             $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['full_name'] = $user['full_name'];
@@ -109,4 +112,5 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<script src="<?= h(app_url('/js/auth.js')) ?>?v=1.0"></script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

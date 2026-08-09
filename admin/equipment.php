@@ -349,200 +349,213 @@ $result->close();
 require_once __DIR__ . '/../includes/header.php';
 ?>
 <link rel="stylesheet" href="<?= h(app_url('/css/shop.css')) ?>?v=1.0">
+<link rel="stylesheet" href="<?= h(app_url('/css/admin.css')) ?>">
 
 <section class="card">
-    <h1>Manage Equipment</h1>
-    <p class="muted">Add, edit and remove the products shown in the equipment store.</p>
-    <p><a class="btn btn-secondary" href="<?= h(app_url('/admin/categories.php')) ?>">Manage Categories</a></p>
+    <h1>Admin Dashboard</h1>
+    <p class="muted">Court reservation revenue and management shortcuts.</p>
 </section>
 
-<?php if ($notice): ?>
-    <div class="alert alert-success"><?= h($notice) ?></div>
-<?php endif; ?>
+<div class="dashboard-layout">
+    <!-- Persistent Admin Sidebar -->
+    <?php include __DIR__ . '/../includes/sideBar.php'; ?>
 
-<?php if (!empty($errors)): ?>
-    <div class="alert alert-error">
-        <?php foreach ($errors as $error): ?>
-            <p><?= h($error) ?></p>
-        <?php endforeach; ?>
-    </div>
-<?php endif; ?>
+    <!-- Main Content Area -->
+    <main class="dashboard-main-content">
+        <section class="card">
+            <h1>Manage Equipment</h1>
+            <p class="muted">Add, edit and remove the products shown in the equipment store.</p>
+        </section>
 
-<section class="card">
-    <h2><?= $editing ? 'Edit Equipment' : 'Add Equipment' ?></h2>
+        <?php if ($notice): ?>
+            <div class="alert alert-success"><?= h($notice) ?></div>
+        <?php endif; ?>
 
-    <?php if (empty($categories)): ?>
-        <div class="empty-state">
-            There are no categories yet. Please
-            <a href="<?= h(app_url('/admin/categories.php')) ?>">add a category</a> before adding a product.
-        </div>
-    <?php else: ?>
-        <!-- js-equipment-form switches on the checks in js/equipment.js -->
-        <form method="POST" action="<?= h(app_url('/admin/equipment.php')) ?>"
-              class="form-grid wide js-equipment-form">
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-error">
+                <?php foreach ($errors as $error): ?>
+                    <p><?= h($error) ?></p>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
 
-            <input type="hidden" name="action" value="<?= $editing ? 'update' : 'add' ?>">
-            <?php if ($editing): ?>
-                <input type="hidden" name="equipment_id" value="<?= (int)$editing['equipment_id'] ?>">
+        <section class="card">
+            <h2><?= $editing ? 'Edit Equipment' : 'Add Equipment' ?></h2>
+
+            <?php if (empty($categories)): ?>
+                <div class="empty-state">
+                    There are no categories yet. Please
+                    <a href="<?= h(app_url('/admin/categories.php')) ?>">add a category</a> before adding a product.
+                </div>
+            <?php else: ?>
+                <!-- js-equipment-form switches on the checks in js/equipment.js -->
+                <form method="POST" action="<?= h(app_url('/admin/equipment.php')) ?>"
+                    class="form-grid wide js-equipment-form">
+
+                    <input type="hidden" name="action" value="<?= $editing ? 'update' : 'add' ?>">
+                    <?php if ($editing): ?>
+                        <input type="hidden" name="equipment_id" value="<?= (int)$editing['equipment_id'] ?>">
+                    <?php endif; ?>
+
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" required value="<?= h($editing['name'] ?? '') ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sport_type_id">Sport Type</label>
+                        <select id="sport_type_id" name="sport_type_id" required>
+                            <?php foreach ($sports as $sport): ?>
+                                <option value="<?= (int)$sport['sport_type_id'] ?>"
+                                    <?= isset($editing) && (int)$editing['sport_type_id'] === (int)$sport['sport_type_id'] ? 'selected' : '' ?>>
+                                    <?= h($sport['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category_id">Category</label>
+                        <select id="category_id" name="category_id" required>
+                            <option value="">Choose a category</option>
+                            <?php foreach ($categories as $category): ?>
+                                <option value="<?= (int)$category['category_id'] ?>"
+                                    <?= isset($editing) && (int)$editing['category_id'] === (int)$category['category_id'] ? 'selected' : '' ?>>
+                                    <?= h($category['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="brand">Brand</label>
+                        <input type="text" id="brand" name="brand" value="<?= h($editing['brand'] ?? '') ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="price">Price (RM)</label>
+                        <input type="number" id="price" name="price" min="0.01" step="0.01" required
+                            value="<?= h($editing['price'] ?? '') ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stock">Stock</label>
+                        <input type="number" id="stock" name="stock" min="0" required
+                            value="<?= h($editing['stock'] ?? '') ?>">
+                    </div>
+
+                    <div class="form-group full-span">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="3"><?= h($editing['description'] ?? '') ?></textarea>
+                    </div>
+
+                    <div class="form-group full-span">
+                        <label for="image_url">Image URL</label>
+                        <!-- js-image-url makes js/equipment.js show a live preview -->
+                        <input type="text" id="image_url" name="image_url" class="js-image-url"
+                            placeholder="images/badminton.jpg"
+                            value="<?= h($editing['image_url'] ?? '') ?>">
+                        <p class="muted">Relative to the project folder, for example images/badminton.jpg</p>
+                        <?php if (!empty($editing['image_url'])): ?>
+                            <img class="image-preview" src="<?= h(equipmentImage($editing['image_url'])) ?>" alt="Image preview">
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="form-group full-span">
+                        <label for="options_text">Variant Options</label>
+                        <textarea id="options_text" name="options_text" rows="4"
+                                placeholder="Grip Size: G4, G5&#10;Grip Color: Red, Blue, Black"><?= h($editing ? optionsToText($conn, (int)$editing['equipment_id']) : '') ?></textarea>
+                        <p class="muted">One option group per line: Option Name: Value 1, Value 2</p>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn"><?= $editing ? 'Save Changes' : 'Add Equipment' ?></button>
+                    </div>
+
+                    <?php if ($editing): ?>
+                        <div class="form-actions">
+                            <a class="btn btn-secondary" href="<?= h(app_url('/admin/equipment.php')) ?>">Cancel</a>
+                        </div>
+                    <?php endif; ?>
+                </form>
             <?php endif; ?>
+        </section>
 
-            <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" id="name" name="name" required value="<?= h($editing['name'] ?? '') ?>">
-            </div>
+        <section class="card">
+            <h2>Equipment List</h2>
 
-            <div class="form-group">
-                <label for="sport_type_id">Sport Type</label>
-                <select id="sport_type_id" name="sport_type_id" required>
-                    <?php foreach ($sports as $sport): ?>
-                        <option value="<?= (int)$sport['sport_type_id'] ?>"
-                            <?= isset($editing) && (int)$editing['sport_type_id'] === (int)$sport['sport_type_id'] ? 'selected' : '' ?>>
-                            <?= h($sport['name']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+            <?php if (empty($equipment)): ?>
+                <div class="empty-state">No equipment has been added yet.</div>
+            <?php else: ?>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Sport</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Reviews</th>
+                                <th>Status</th>
+                                <th>Options</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($equipment as $item): ?>
+                                <tr>
+                                    <td>
+                                        <img class="admin-thumb" src="<?= h(equipmentImage($item['image_url'])) ?>"
+                                            alt="<?= h($item['name']) ?>">
+                                    </td>
+                                    <td>
+                                        <strong><?= h($item['name']) ?></strong><br>
+                                        <span class="muted"><?= h($item['brand']) ?></span>
+                                    </td>
+                                    <td><?= h($item['sport_name']) ?></td>
+                                    <td><?= h($item['category']) ?></td>
+                                    <td><?= money($item['price']) ?></td>
+                                    <td><?= (int)$item['stock'] ?></td>
+                                    <td><?= (int)$item['review_count'] ?></td>
+                                    <td>
+                                        <span class="status <?= h($item['status']) ?>">
+                                            <?= $item['status'] === 'active' ? 'Active' : 'Discontinued' ?>
+                                        </span>
+                                    </td>
+                                    <td class="muted"><?= h($item['options_summary'] ?: 'No variants') ?></td>
+                                    <td>
+                                        <div class="row-actions">
+                                            <a class="btn btn-secondary"
+                                            href="<?= h(app_url('/admin/equipment.php?edit=' . (int)$item['equipment_id'])) ?>">Edit</a>
 
-            <div class="form-group">
-                <label for="category_id">Category</label>
-                <select id="category_id" name="category_id" required>
-                    <option value="">Choose a category</option>
-                    <?php foreach ($categories as $category): ?>
-                        <option value="<?= (int)$category['category_id'] ?>"
-                            <?= isset($editing) && (int)$editing['category_id'] === (int)$category['category_id'] ? 'selected' : '' ?>>
-                            <?= h($category['name']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="brand">Brand</label>
-                <input type="text" id="brand" name="brand" value="<?= h($editing['brand'] ?? '') ?>">
-            </div>
-
-            <div class="form-group">
-                <label for="price">Price (RM)</label>
-                <input type="number" id="price" name="price" min="0.01" step="0.01" required
-                       value="<?= h($editing['price'] ?? '') ?>">
-            </div>
-
-            <div class="form-group">
-                <label for="stock">Stock</label>
-                <input type="number" id="stock" name="stock" min="0" required
-                       value="<?= h($editing['stock'] ?? '') ?>">
-            </div>
-
-            <div class="form-group full-span">
-                <label for="description">Description</label>
-                <textarea id="description" name="description" rows="3"><?= h($editing['description'] ?? '') ?></textarea>
-            </div>
-
-            <div class="form-group full-span">
-                <label for="image_url">Image URL</label>
-                <!-- js-image-url makes js/equipment.js show a live preview -->
-                <input type="text" id="image_url" name="image_url" class="js-image-url"
-                       placeholder="images/badminton.jpg"
-                       value="<?= h($editing['image_url'] ?? '') ?>">
-                <p class="muted">Relative to the project folder, for example images/badminton.jpg</p>
-                <?php if (!empty($editing['image_url'])): ?>
-                    <img class="image-preview" src="<?= h(equipmentImage($editing['image_url'])) ?>" alt="Image preview">
-                <?php endif; ?>
-            </div>
-
-            <div class="form-group full-span">
-                <label for="options_text">Variant Options</label>
-                <textarea id="options_text" name="options_text" rows="4"
-                          placeholder="Grip Size: G4, G5&#10;Grip Color: Red, Blue, Black"><?= h($editing ? optionsToText($conn, (int)$editing['equipment_id']) : '') ?></textarea>
-                <p class="muted">One option group per line: Option Name: Value 1, Value 2</p>
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" class="btn"><?= $editing ? 'Save Changes' : 'Add Equipment' ?></button>
-            </div>
-
-            <?php if ($editing): ?>
-                <div class="form-actions">
-                    <a class="btn btn-secondary" href="<?= h(app_url('/admin/equipment.php')) ?>">Cancel</a>
+                                            <?php if ($item['status'] === 'discontinued'): ?>
+                                                <form method="POST" action="<?= h(app_url('/admin/equipment.php')) ?>">
+                                                    <input type="hidden" name="action" value="reactivate">
+                                                    <input type="hidden" name="equipment_id" value="<?= (int)$item['equipment_id'] ?>">
+                                                    <button type="submit" class="btn">Restore</button>
+                                                </form>
+                                            <?php else: ?>
+                                                <form method="POST" action="<?= h(app_url('/admin/equipment.php')) ?>"
+                                                    class="js-confirm"
+                                                    data-confirm="Remove &quot;<?= h($item['name']) ?>&quot; from the store?">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="equipment_id" value="<?= (int)$item['equipment_id'] ?>">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             <?php endif; ?>
-        </form>
-    <?php endif; ?>
-</section>
-
-<section class="card">
-    <h2>Equipment List</h2>
-
-    <?php if (empty($equipment)): ?>
-        <div class="empty-state">No equipment has been added yet.</div>
-    <?php else: ?>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Sport</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Stock</th>
-                        <th>Reviews</th>
-                        <th>Status</th>
-                        <th>Options</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($equipment as $item): ?>
-                        <tr>
-                            <td>
-                                <img class="admin-thumb" src="<?= h(equipmentImage($item['image_url'])) ?>"
-                                     alt="<?= h($item['name']) ?>">
-                            </td>
-                            <td>
-                                <strong><?= h($item['name']) ?></strong><br>
-                                <span class="muted"><?= h($item['brand']) ?></span>
-                            </td>
-                            <td><?= h($item['sport_name']) ?></td>
-                            <td><?= h($item['category']) ?></td>
-                            <td><?= money($item['price']) ?></td>
-                            <td><?= (int)$item['stock'] ?></td>
-                            <td><?= (int)$item['review_count'] ?></td>
-                            <td>
-                                <span class="status <?= h($item['status']) ?>">
-                                    <?= $item['status'] === 'active' ? 'Active' : 'Discontinued' ?>
-                                </span>
-                            </td>
-                            <td class="muted"><?= h($item['options_summary'] ?: 'No variants') ?></td>
-                            <td>
-                                <div class="row-actions">
-                                    <a class="btn btn-secondary"
-                                       href="<?= h(app_url('/admin/equipment.php?edit=' . (int)$item['equipment_id'])) ?>">Edit</a>
-
-                                    <?php if ($item['status'] === 'discontinued'): ?>
-                                        <form method="POST" action="<?= h(app_url('/admin/equipment.php')) ?>">
-                                            <input type="hidden" name="action" value="reactivate">
-                                            <input type="hidden" name="equipment_id" value="<?= (int)$item['equipment_id'] ?>">
-                                            <button type="submit" class="btn">Restore</button>
-                                        </form>
-                                    <?php else: ?>
-                                        <form method="POST" action="<?= h(app_url('/admin/equipment.php')) ?>"
-                                              class="js-confirm"
-                                              data-confirm="Remove &quot;<?= h($item['name']) ?>&quot; from the store?">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="equipment_id" value="<?= (int)$item['equipment_id'] ?>">
-                                            <button type="submit" class="btn btn-danger">Delete</button>
-                                        </form>
-                                    <?php endif; ?>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    <?php endif; ?>
-</section>
+        </section>
+    </main>
+</div>
 
 <script src="<?= h(app_url('/js/equipment.js')) ?>?v=1.0"></script>
 

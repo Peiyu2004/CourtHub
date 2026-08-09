@@ -135,115 +135,129 @@ if (isset($_GET['edit'])) {
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
+
 <link rel="stylesheet" href="<?= h(app_url('/css/shop.css')) ?>?v=1.0">
+<link rel="stylesheet" href="<?= h(app_url('/css/admin.css')) ?>">
 
 <section class="card">
-    <h1>Manage Categories</h1>
-    <p class="muted">Categories group the products in the equipment store and fill the filter on the store page.</p>
-    <p><a class="btn btn-secondary" href="<?= h(app_url('/admin/equipment.php')) ?>">Back to Manage Equipment</a></p>
+    <h1>Admin Dashboard</h1>
+    <p class="muted">Court reservation revenue and management shortcuts.</p>
 </section>
 
-<?php if ($notice): ?>
-    <div class="alert alert-success"><?= h($notice) ?></div>
-<?php endif; ?>
+<div class="dashboard-layout">
+    <!-- Persistent Admin Sidebar -->
+    <?php include __DIR__ . '/../includes/sideBar.php'; ?>
 
-<?php if (!empty($errors)): ?>
-    <div class="alert alert-error">
-        <?php foreach ($errors as $error): ?>
-            <p><?= h($error) ?></p>
-        <?php endforeach; ?>
-    </div>
-<?php endif; ?>
+    <!-- Main Content Area -->
+    <main class="dashboard-main-content">
+        <section class="card">
+            <h1>Manage Categories</h1>
+            <p class="muted">Categories group the products in the equipment store and fill the filter on the store page.</p>
+        </section>
 
-<section class="card">
-    <h2><?= $editing ? 'Edit Category' : 'Add Category' ?></h2>
-
-    <!-- js-category-form switches on the checks in js/equipment.js.
-         data-editing-id lets it allow a category to keep its own name. -->
-    <form method="POST" action="<?= h(app_url('/admin/categories.php')) ?>"
-          class="form-grid wide js-category-form"
-          data-editing-id="<?= $editing ? (int)$editing['category_id'] : '' ?>">
-
-        <input type="hidden" name="action" value="<?= $editing ? 'update' : 'add' ?>">
-        <?php if ($editing): ?>
-            <input type="hidden" name="category_id" value="<?= (int)$editing['category_id'] ?>">
+        <?php if ($notice): ?>
+            <div class="alert alert-success"><?= h($notice) ?></div>
         <?php endif; ?>
 
-        <div class="form-group">
-            <label for="name">Name</label>
-            <input type="text" id="name" name="name" maxlength="50" required
-                   value="<?= h($editing['name'] ?? '') ?>">
-        </div>
-
-        <div class="form-group full-span">
-            <label for="description">Description</label>
-            <input type="text" id="description" name="description" maxlength="255"
-                   value="<?= h($editing['description'] ?? '') ?>">
-        </div>
-
-        <div class="form-actions">
-            <button type="submit" class="btn"><?= $editing ? 'Save Changes' : 'Add Category' ?></button>
-        </div>
-
-        <?php if ($editing): ?>
-            <div class="form-actions">
-                <a class="btn btn-secondary" href="<?= h(app_url('/admin/categories.php')) ?>">Cancel</a>
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-error">
+                <?php foreach ($errors as $error): ?>
+                    <p><?= h($error) ?></p>
+                <?php endforeach; ?>
             </div>
         <?php endif; ?>
-    </form>
-</section>
 
-<section class="card">
-    <h2>All Categories</h2>
+        <section class="card">
+            <h2><?= $editing ? 'Edit Category' : 'Add Category' ?></h2>
 
-    <?php if (empty($categories)): ?>
-        <div class="empty-state">No categories have been added yet.</div>
-    <?php else: ?>
-        <div class="table-wrap">
-            <table id="categoryTable">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Products</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($categories as $category): ?>
-                        <!-- data-category-* is read by js/equipment.js so a
-                             duplicate name is caught before the form is sent. -->
-                        <tr data-category-id="<?= (int)$category['category_id'] ?>"
-                            data-category-name="<?= h($category['name']) ?>">
+            <!-- js-category-form switches on the checks in js/equipment.js.
+                data-editing-id lets it allow a category to keep its own name. -->
+            <form method="POST" action="<?= h(app_url('/admin/categories.php')) ?>"
+                class="form-grid wide js-category-form"
+                data-editing-id="<?= $editing ? (int)$editing['category_id'] : '' ?>">
 
-                            <td><strong><?= h($category['name']) ?></strong></td>
-                            <td class="muted"><?= h($category['description'] ?: '-') ?></td>
-                            <td><?= (int)$category['product_count'] ?></td>
-                            <td>
-                                <div class="row-actions">
-                                    <a class="btn btn-secondary"
-                                       href="<?= h(app_url('/admin/categories.php?edit=' . (int)$category['category_id'])) ?>">Edit</a>
+                <input type="hidden" name="action" value="<?= $editing ? 'update' : 'add' ?>">
+                <?php if ($editing): ?>
+                    <input type="hidden" name="category_id" value="<?= (int)$editing['category_id'] ?>">
+                <?php endif; ?>
 
-                                    <?php if ((int)$category['product_count'] === 0): ?>
-                                        <form method="POST" action="<?= h(app_url('/admin/categories.php')) ?>"
-                                              class="js-confirm"
-                                              data-confirm="Delete the category &quot;<?= h($category['name']) ?>&quot;?">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="category_id" value="<?= (int)$category['category_id'] ?>">
-                                            <button type="submit" class="btn btn-danger">Delete</button>
-                                        </form>
-                                    <?php else: ?>
-                                        <span class="muted">In use</span>
-                                    <?php endif; ?>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    <?php endif; ?>
-</section>
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" maxlength="50" required
+                        value="<?= h($editing['name'] ?? '') ?>">
+                </div>
+
+                <div class="form-group full-span">
+                    <label for="description">Description</label>
+                    <input type="text" id="description" name="description" maxlength="255"
+                        value="<?= h($editing['description'] ?? '') ?>">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn"><?= $editing ? 'Save Changes' : 'Add Category' ?></button>
+                </div>
+
+                <?php if ($editing): ?>
+                    <div class="form-actions">
+                        <a class="btn btn-secondary" href="<?= h(app_url('/admin/categories.php')) ?>">Cancel</a>
+                    </div>
+                <?php endif; ?>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>All Categories</h2>
+
+            <?php if (empty($categories)): ?>
+                <div class="empty-state">No categories have been added yet.</div>
+            <?php else: ?>
+                <div class="table-wrap">
+                    <table id="categoryTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Products</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($categories as $category): ?>
+                                <!-- data-category-* is read by js/equipment.js so a
+                                    duplicate name is caught before the form is sent. -->
+                                <tr data-category-id="<?= (int)$category['category_id'] ?>"
+                                    data-category-name="<?= h($category['name']) ?>">
+
+                                    <td><strong><?= h($category['name']) ?></strong></td>
+                                    <td class="muted"><?= h($category['description'] ?: '-') ?></td>
+                                    <td><?= (int)$category['product_count'] ?></td>
+                                    <td>
+                                        <div class="row-actions">
+                                            <a class="btn btn-secondary"
+                                            href="<?= h(app_url('/admin/categories.php?edit=' . (int)$category['category_id'])) ?>">Edit</a>
+
+                                            <?php if ((int)$category['product_count'] === 0): ?>
+                                                <form method="POST" action="<?= h(app_url('/admin/categories.php')) ?>"
+                                                    class="js-confirm"
+                                                    data-confirm="Delete the category &quot;<?= h($category['name']) ?>&quot;?">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="category_id" value="<?= (int)$category['category_id'] ?>">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            <?php else: ?>
+                                                <span class="muted">In use</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </section>
+    </main>
+</div>
 
 <script src="<?= h(app_url('/js/equipment.js')) ?>?v=1.0"></script>
 

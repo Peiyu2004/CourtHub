@@ -48,72 +48,114 @@ while ($row = $result->fetch_assoc()) {
     $monthly_revenue[] = $row;
 }
 
+// Convert monthly revenue for JavaScript visual bars
+$chart_months = [];
+$chart_data = [];
+foreach (array_reverse($monthly_revenue) as $m) {
+    $chart_months[] = date('M', strtotime($m['revenue_month'] . '-01'));
+    $chart_data[] = (float)$m['revenue'];
+}
+
 require_once __DIR__ . '/../includes/header.php';
 ?>
+
+<link rel="stylesheet" href="<?= h(app_url('/css/admin.css')) ?>">
 
 <section class="card">
     <h1>Admin Dashboard</h1>
     <p class="muted">Court reservation revenue and management shortcuts.</p>
 </section>
 
-<section class="stats-grid">
-    <div class="card stat-card">
-        <span>Current Month Revenue</span>
-        <strong><?= money($stats['current_month_revenue']) ?></strong>
-    </div>
-    <div class="card stat-card">
-        <span>Active Courts</span>
-        <strong><?= (int)$stats['active_courts'] ?></strong>
-    </div>
-    <div class="card stat-card">
-        <span>Pending Court Deletions</span>
-        <strong><?= (int)$stats['pending_courts'] ?></strong>
-    </div>
-    <div class="card stat-card">
-        <span>Equipment Items</span>
-        <strong><?= (int)$stats['equipment_items'] ?></strong>
-    </div>
-    <div class="card stat-card">
-        <span>Orders To Collect</span>
-        <strong><?= (int)$order_counts['pending'] ?></strong>
-    </div>
-</section>
+<div class="dashboard-layout">
+    <!-- Persistent Admin Sidebar -->
+    <?php include __DIR__ . '/../includes/sideBar.php'; ?>
 
-<section class="grid two-col">
-    <div class="card">
-        <h2>Monthly Court Reservation Revenue</h2>
-        <?php if (empty($monthly_revenue)): ?>
-            <div class="empty-state">No paid reservation revenue yet.</div>
-        <?php else: ?>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Month</th>
-                            <th>Revenue</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($monthly_revenue as $row): ?>
-                            <tr>
-                                <td><?= h($row['revenue_month']) ?></td>
-                                <td><?= money($row['revenue']) ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php endif; ?>
-    </div>
-
-    <div class="card">
-        <h2>Manage</h2>
-        <div class="button-list">
-            <a href="<?= h(app_url('/admin/courts.php')) ?>" class="btn">Add or Delete Courts</a>
-            <a href="<?= h(app_url('/admin/equipment.php')) ?>" class="btn btn-secondary">Add or Delete Equipment</a>
-            <a href="<?= h(app_url('/admin/orders.php')) ?>" class="btn btn-secondary">Equipment Orders to Collect</a>
+    <!-- Main Content Area -->
+    <main class="dashboard-main-content">
+        <div class="card">
+            <h1>Overview</h1>
         </div>
-    </div>
-</section>
+
+        <!-- Top Stat Overview Cards -->
+        <div class="stats-grid">
+            <div class="card stat-card">
+                <div class="stat-info">
+                    <span>Current Month Revenue</span>
+                    <strong><?= money($stats['current_month_revenue']) ?></strong>
+                </div>
+            </div>
+
+            <div class="card stat-card">
+                <div class="stat-info">
+                    <span>Active Courts</span>
+                    <strong><?= (int)$stats['active_courts'] ?></strong>
+                </div>
+            </div>
+
+            <div class="card stat-card">
+                <div class="stat-info">
+                    <span>Pending Deletions</span>
+                    <strong><?= (int)$stats['pending_courts'] ?></strong>
+                </div>
+            </div>
+
+            <div class="card stat-card">
+                <div class="stat-info">
+                    <span>Equipment Items</span>
+                    <strong><?= (int)$stats['equipment_items'] ?></strong>
+                </div>
+            </div>
+
+            <div class="card stat-card">
+                <div class="stat-info">
+                    <span>Orders To Collect</span>
+                    <strong><?= (int)$order_counts['pending'] ?></strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Analytics & Table -->
+        <div class="card analytics-card">
+            <div class="split-row">
+                <h2>Monthly Court Reservation Revenue</h2>
+            </div>
+
+            <!-- Visual Bar Graph Container -->
+            <div class="revenue-chart-container">
+                <div class="bar-chart" id="revenueBarChart"></div>
+            </div>
+
+            <?php if (empty($monthly_revenue)): ?>
+                <div class="empty-state">No paid reservation revenue yet.</div>
+            <?php else: ?>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($monthly_revenue as $row): ?>
+                                <tr>
+                                    <td><strong><?= h(date('F Y', strtotime($row['revenue_month'] . '-01'))) ?></strong></td>
+                                    <td class="revenue-amount"><?= money($row['revenue']) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </main>
+</div>
+
+<!-- Data for Chart Script -->
+<script>
+    window.chartMonths = <?= json_encode($chart_months) ?>;
+    window.chartData = <?= json_encode($chart_data) ?>;
+</script>
+<script src="<?= h(app_url('/js/dashboard.js')) ?>"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

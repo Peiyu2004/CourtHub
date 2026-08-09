@@ -99,16 +99,13 @@ $stmt->close();
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="site-main">
-    <div class="split-row" style="margin-bottom: 24px;">
-        <div>
-            <h2>Account Management</h2>
-            <p class="muted">Manage your profile details and account security.</p>
-        </div>
-        <div>
-            <span class="tag">Role: <?= h(ucfirst($current_user['role'])) ?></span>
-        </div>
+<section class="card">
+    <h1>My Profile</h1>
+    <p class="muted">Manage your profile details and account security.</p>
+    <div>
+        <span class="tag">Role: <?= h(ucfirst($current_user['role'])) ?></span>
     </div>
+</section>
 
     <div class="grid two-col">
         <!-- Profile Details Form -->
@@ -193,4 +190,5 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<script src="<?= h(app_url('/js/auth.js')) ?>?v=1.0"></script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

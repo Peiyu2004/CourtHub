@@ -20,7 +20,7 @@
         <!-- Global Interactive Menu Layer -->
         <nav class="main-nav">
             <a href="<?= h(app_url('/index.php')) ?>">Home</a>
-
+            <a href="<?= h(app_url('/contact.php')) ?>">Contact</a>
             <div class="nav-dropdown">
                 <button
                     type="button"
@@ -34,8 +34,6 @@
                     <a href="<?= h(app_url('/shop/equipment.php')) ?>">Equipment Store</a>
                 </div>
             </div>
-
-            <a href="<?= h(app_url('/contact.php')) ?>">Contact</a>
 
             <?php if (isLoggedIn()): ?>
                 <!-- One entry for both halves of the history; the page's own
@@ -51,7 +49,7 @@
 
                     <div class="dropdown-menu">
                         <a href="<?= h(app_url('/auth/profile.php')) ?>">My Profile</a>
-                        <a href="<?= h(app_url('/booking/history.php')) ?>">Purchase History</a>
+                        <a href="<?= h(app_url('/booking/history.php')) ?>">My History</a>
 
                         <?php if (isAdmin()): ?>
                             <div class="dropdown-divider"></div>

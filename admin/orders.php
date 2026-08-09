@@ -98,163 +98,175 @@ $view_query = $searching
 require_once __DIR__ . '/../includes/header.php';
 ?>
 <link rel="stylesheet" href="<?= h(app_url('/css/shop.css')) ?>?v=1.0">
+<link rel="stylesheet" href="<?= h(app_url('/css/admin.css')) ?>">
 
 <section class="card">
-    <h1>Equipment Orders</h1>
-    <p class="muted">
-        Customers collect their items at the counter. Check the order number, hand the
-        items over, then mark the order as collected.
-    </p>
-    <p><a class="btn btn-secondary" href="<?= h(app_url('/admin/dashboard.php')) ?>">Back to Dashboard</a></p>
+    <h1>Admin Dashboard</h1>
+    <p class="muted">Court reservation revenue and management shortcuts.</p>
 </section>
 
-<?php if ($notice): ?>
-    <div class="alert alert-success"><?= h($notice) ?></div>
-<?php endif; ?>
+<div class="dashboard-layout">
+    <!-- Persistent Admin Sidebar -->
+    <?php include __DIR__ . '/../includes/sideBar.php'; ?>
 
-<?php if (!empty($errors)): ?>
-    <div class="alert alert-error">
-        <?php foreach ($errors as $error): ?>
-            <p><?= h($error) ?></p>
-        <?php endforeach; ?>
-    </div>
-<?php endif; ?>
+    <!-- Main Content Area -->
+    <main class="dashboard-main-content">
+        <section class="card">
+            <h1>Equipment Orders</h1>
+            <p class="muted">
+                Customers collect their items at the counter. Check the order number, hand the
+                items over, then mark the order as collected.
+            </p>
+        </section>
 
-<section class="card">
-    <form method="GET" action="<?= h(app_url('/admin/orders.php')) ?>" class="search-bar">
-        <label for="q">Order number</label>
-        <input type="search" id="q" name="q" value="<?= h($search) ?>"
-               placeholder="e.g. 12" inputmode="numeric" autocomplete="off">
-        <button type="submit" class="btn">Search</button>
-        <?php if ($searching): ?>
-            <a class="btn btn-secondary" href="<?= h(app_url('/admin/orders.php')) ?>">Clear Search</a>
+        <?php if ($notice): ?>
+            <div class="alert alert-success"><?= h($notice) ?></div>
         <?php endif; ?>
-    </form>
 
-    <?php /* A search answers itself, so no tab is the current view while one
-             is running and none of them is highlighted. */ ?>
-    <div class="row-actions">
-        <?php foreach ($filters as $key => $label): ?>
-            <a class="btn <?= (!$searching && $key === $status) ? '' : 'btn-secondary' ?>"
-               href="<?= h(app_url('/admin/orders.php?status=' . $key)) ?>"><?= h($label) ?></a>
-        <?php endforeach; ?>
-    </div>
-</section>
-
-<section class="card">
-    <h2>
-        <?php if ($search_id > 0): ?>
-            Order #<?= (int)$search_id ?>
-        <?php elseif ($searching): ?>
-            Search Results
-        <?php else: ?>
-            <?= h($filters[$status]) ?>
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-error">
+                <?php foreach ($errors as $error): ?>
+                    <p><?= h($error) ?></p>
+                <?php endforeach; ?>
+            </div>
         <?php endif; ?>
-    </h2>
 
-    <?php if (empty($orders)): ?>
-        <div class="empty-state">
-            <?php if ($searching): ?>
-                <?= $search_id > 0
-                    ? 'No paid order has the number #' . (int)$search_id . '.'
-                    : 'Type an order number to search, for example 12.' ?>
+        <section class="card">
+            <form method="GET" action="<?= h(app_url('/admin/orders.php')) ?>" class="search-bar">
+                <label for="q">Order number</label>
+                <input type="search" id="q" name="q" value="<?= h($search) ?>"
+                    placeholder="e.g. 12" inputmode="numeric" autocomplete="off">
+                <button type="submit" class="btn">Search</button>
+                <?php if ($searching): ?>
+                    <a class="btn btn-secondary" href="<?= h(app_url('/admin/orders.php')) ?>">Clear Search</a>
+                <?php endif; ?>
+            </form>
+
+            <?php /* A search answers itself, so no tab is the current view while one
+                    is running and none of them is highlighted. */ ?>
+            <div class="row-actions">
+                <?php foreach ($filters as $key => $label): ?>
+                    <a class="btn <?= (!$searching && $key === $status) ? '' : 'btn-secondary' ?>"
+                    href="<?= h(app_url('/admin/orders.php?status=' . $key)) ?>"><?= h($label) ?></a>
+                <?php endforeach; ?>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>
+                <?php if ($search_id > 0): ?>
+                    Order #<?= (int)$search_id ?>
+                <?php elseif ($searching): ?>
+                    Search Results
+                <?php else: ?>
+                    <?= h($filters[$status]) ?>
+                <?php endif; ?>
+            </h2>
+
+            <?php if (empty($orders)): ?>
+                <div class="empty-state">
+                    <?php if ($searching): ?>
+                        <?= $search_id > 0
+                            ? 'No paid order has the number #' . (int)$search_id . '.'
+                            : 'Type an order number to search, for example 12.' ?>
+                    <?php else: ?>
+                        <?= $status === 'pending'
+                            ? 'No orders are waiting to be collected.'
+                            : 'There are no orders to show here yet.' ?>
+                    <?php endif; ?>
+                </div>
             <?php else: ?>
-                <?= $status === 'pending'
-                    ? 'No orders are waiting to be collected.'
-                    : 'There are no orders to show here yet.' ?>
-            <?php endif; ?>
-        </div>
-    <?php else: ?>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Order</th>
-                        <th>Customer</th>
-                        <th>Items</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($orders as $order): ?>
-                        <tr>
-                            <td>
-                                <?php /* The database id, which is the number the
-                                         customer's own history shows them, so
-                                         they can be read out and matched. */ ?>
-                                <strong>#<?= (int)$order['equipment_order_id'] ?></strong><br>
-                                <span class="muted">
-                                    <?= h(date('d M Y, h:i A', strtotime($order['created_at']))) ?>
-                                </span>
-                            </td>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($orders as $order): ?>
+                                <tr>
+                                    <td>
+                                        <?php /* The database id, which is the number the
+                                                customer's own history shows them, so
+                                                they can be read out and matched. */ ?>
+                                        <strong>#<?= (int)$order['equipment_order_id'] ?></strong><br>
+                                        <span class="muted">
+                                            <?= h(date('d M Y, h:i A', strtotime($order['created_at']))) ?>
+                                        </span>
+                                    </td>
 
-                            <td>
-                                <strong><?= h($order['full_name']) ?></strong><br>
-                                <span class="muted"><?= h($order['email']) ?></span><br>
-                                <span class="muted"><?= h($order['phone'] ?: 'No phone') ?></span>
-                            </td>
+                                    <td>
+                                        <strong><?= h($order['full_name']) ?></strong><br>
+                                        <span class="muted"><?= h($order['email']) ?></span><br>
+                                        <span class="muted"><?= h($order['phone'] ?: 'No phone') ?></span>
+                                    </td>
 
-                            <td>
-                                <?php foreach ($order['items'] as $item): ?>
-                                    <?php $options = decodeSelectedOptions($item['selected_options']); ?>
-                                    <div>
-                                        <?= (int)$item['quantity'] ?> &times;
-                                        <?php /* A product deleted after the sale
-                                                 leaves its line behind with no
-                                                 name, so the line still has to
-                                                 say something. */ ?>
-                                        <?= h($item['equipment_name'] ?? 'Item no longer in the shop') ?>
-                                        <?php foreach ($options as $name => $value): ?>
-                                            <span class="mini-pill"><?= h($name) ?>: <?= h($value) ?></span>
+                                    <td>
+                                        <?php foreach ($order['items'] as $item): ?>
+                                            <?php $options = decodeSelectedOptions($item['selected_options']); ?>
+                                            <div>
+                                                <?= (int)$item['quantity'] ?> &times;
+                                                <?php /* A product deleted after the sale
+                                                        leaves its line behind with no
+                                                        name, so the line still has to
+                                                        say something. */ ?>
+                                                <?= h($item['equipment_name'] ?? 'Item no longer in the shop') ?>
+                                                <?php foreach ($options as $name => $value): ?>
+                                                    <span class="mini-pill"><?= h($name) ?>: <?= h($value) ?></span>
+                                                <?php endforeach; ?>
+                                            </div>
                                         <?php endforeach; ?>
-                                    </div>
-                                <?php endforeach; ?>
-                                <span class="muted"><?= (int)$order['item_count'] ?> item(s) in total</span>
-                            </td>
+                                        <span class="muted"><?= (int)$order['item_count'] ?> item(s) in total</span>
+                                    </td>
 
-                            <td>
-                                <?= money($order['total_amount']) ?><br>
-                                <span class="muted"><?= h(paymentMethodLabel($order['payment_method'])) ?></span>
-                            </td>
+                                    <td>
+                                        <?= money($order['total_amount']) ?><br>
+                                        <span class="muted"><?= h(paymentMethodLabel($order['payment_method'])) ?></span>
+                                    </td>
 
-                            <td>
-                                <span class="status <?= h($order['order_status']) ?>">
-                                    <?= h(equipmentOrderStatusLabel($order['order_status'])) ?>
-                                </span>
-                                <?php if ($order['collected_at']): ?>
-                                    <span class="muted">
-                                        <?= h(date('d M Y, h:i A', strtotime($order['collected_at']))) ?>
-                                    </span>
-                                <?php endif; ?>
-                            </td>
+                                    <td>
+                                        <span class="status <?= h($order['order_status']) ?>">
+                                            <?= h(equipmentOrderStatusLabel($order['order_status'])) ?>
+                                        </span>
+                                        <?php if ($order['collected_at']): ?>
+                                            <span class="muted">
+                                                <?= h(date('d M Y, h:i A', strtotime($order['collected_at']))) ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
 
-                            <td>
-                                <?php if ($order['order_status'] === 'pending'): ?>
-                                    <?php /* js-confirm asks first (js/equipment.js).
-                                             Marking an order collected cannot be
-                                             undone from this page. */ ?>
-                                    <form method="POST" action="<?= h(app_url('/admin/orders.php' . $view_query)) ?>"
-                                          class="js-confirm"
-                                          data-confirm="Mark order #<?= (int)$order['equipment_order_id'] ?> as collected by <?= h($order['full_name']) ?>?">
-                                        <input type="hidden" name="action" value="collect">
-                                        <input type="hidden" name="equipment_order_id"
-                                               value="<?= (int)$order['equipment_order_id'] ?>">
-                                        <button type="submit" class="btn">Mark as Collected</button>
-                                    </form>
-                                <?php else: ?>
-                                    <span class="muted">Done</span>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    <?php endif; ?>
-</section>
-
+                                    <td>
+                                        <?php if ($order['order_status'] === 'pending'): ?>
+                                            <?php /* js-confirm asks first (js/equipment.js).
+                                                    Marking an order collected cannot be
+                                                    undone from this page. */ ?>
+                                            <form method="POST" action="<?= h(app_url('/admin/orders.php' . $view_query)) ?>"
+                                                class="js-confirm"
+                                                data-confirm="Mark order #<?= (int)$order['equipment_order_id'] ?> as collected by <?= h($order['full_name']) ?>?">
+                                                <input type="hidden" name="action" value="collect">
+                                                <input type="hidden" name="equipment_order_id"
+                                                    value="<?= (int)$order['equipment_order_id'] ?>">
+                                                <button type="submit" class="btn">Mark as Collected</button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span class="muted">Done</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </section>
+    </main>
+</div>
 <script src="<?= h(app_url('/js/equipment.js')) ?>?v=1.0"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

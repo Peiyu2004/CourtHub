@@ -147,123 +147,141 @@ while ($row = $result->fetch_assoc()) {
     $courts[] = $row;
 }
 
+// Get order count for sidebar badge indicator
+$order_counts = function_exists('equipmentOrderStatusCounts') ? equipmentOrderStatusCounts($conn) : ['pending' => 0];
+
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<section class="card">
-    <h1>Manage Courts</h1>
-    <p class="muted">Deleted reserved courts stop accepting new reservations immediately, then disappear after their existing reservations are complete.</p>
-</section>
-
-<?php if ($notice): ?>
-    <div class="alert alert-success"><?= h($notice) ?></div>
-<?php endif; ?>
-
-<?php if (!empty($errors)): ?>
-    <div class="alert alert-error">
-        <?php foreach ($errors as $error): ?>
-            <p><?= h($error) ?></p>
-        <?php endforeach; ?>
-    </div>
-<?php endif; ?>
-
-<section class="grid two-col">
-    <div class="card">
-        <h2>Add Court</h2>
-        <form method="POST" action="<?= h(app_url('/admin/courts.php')) ?>">
-            <input type="hidden" name="action" value="add">
-            <div class="form-group">
-                <label for="court_number">Court Name</label>
-                <input type="text" id="court_number" name="court_number" placeholder="Badminton Court 7" required>
-            </div>
-            <div class="form-group">
-                <label for="sport_type_id">Sport Type</label>
-                <select id="sport_type_id" name="sport_type_id" required>
-                    <?php foreach ($sports as $sport): ?>
-                        <option value="<?= (int)$sport['sport_type_id'] ?>"><?= h($sport['name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <button type="submit" class="btn">Add Court</button>
-        </form>
-    </div>
-
-    <div class="card">
-        <h2>Facility Prices</h2>
-        <p class="muted">These prices are used for new reservations. Existing paid reservations keep their original paid price.</p>
-        <?php foreach ($sports as $sport): ?>
-            <form method="POST" action="<?= h(app_url('/admin/courts.php')) ?>" class="inline-form price-form">
-                <input type="hidden" name="action" value="update_price">
-                <input type="hidden" name="sport_type_id" value="<?= (int)$sport['sport_type_id'] ?>">
-                <label for="price_<?= (int)$sport['sport_type_id'] ?>"><?= h($sport['name']) ?></label>
-                <input type="number" id="price_<?= (int)$sport['sport_type_id'] ?>" name="price_per_hour" value="<?= h($sport['price_per_hour']) ?>" min="0.01" step="0.01" required>
-                <button type="submit" class="btn btn-secondary">Update Price</button>
-            </form>
-        <?php endforeach; ?>
-    </div>
-</section>
+<link rel="stylesheet" href="<?= h(app_url('/css/admin.css')) ?>">
 
 <section class="card">
-        <h2>Current Courts</h2>
-        <?php if (empty($courts)): ?>
-            <div class="empty-state">No courts are currently displayed.</div>
-        <?php else: ?>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Court</th>
-                            <th>Sport</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($courts as $court): ?>
-                            <?php $court_form_id = 'court_form_' . (int)$court['court_id']; ?>
-                            <tr>
-                                <td>
-                                    <?php if ($court['status'] === 'active'): ?>
-                                        <form id="<?= h($court_form_id) ?>" method="POST" action="<?= h(app_url('/admin/courts.php')) ?>"></form>
-                                        <input type="hidden" name="action" value="update_court" form="<?= h($court_form_id) ?>">
-                                        <input type="hidden" name="court_id" value="<?= (int)$court['court_id'] ?>" form="<?= h($court_form_id) ?>">
-                                        <input type="text" name="court_number" value="<?= h($court['court_number']) ?>" form="<?= h($court_form_id) ?>" required>
-                                    <?php else: ?>
-                                        <?= h($court['court_number']) ?>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <?php if ($court['status'] === 'active'): ?>
-                                        <select name="sport_type_id" form="<?= h($court_form_id) ?>" required>
-                                            <?php foreach ($sports as $sport): ?>
-                                                <option value="<?= (int)$sport['sport_type_id'] ?>" <?= (int)$court['sport_type_id'] === (int)$sport['sport_type_id'] ? 'selected' : '' ?>>
-                                                    <?= h($sport['name']) ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    <?php else: ?>
-                                        <?= h($court['sport_name']) ?>
-                                    <?php endif; ?>
-                                </td>
-                                <td><span class="status <?= h($court['status']) ?>"><?= h(str_replace('_', ' ', $court['status'])) ?></span></td>
-                                <td>
-                                    <?php if ($court['status'] !== 'pending_deletion'): ?>
-                                        <button type="submit" class="btn btn-secondary" form="<?= h($court_form_id) ?>">Save</button>
-                                        <form method="POST" action="<?= h(app_url('/admin/courts.php')) ?>">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="court_id" value="<?= (int)$court['court_id'] ?>">
-                                            <button type="submit" class="btn btn-danger">Delete</button>
-                                        </form>
-                                    <?php else: ?>
-                                        <span class="muted">Disabled</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+    <h1>Admin Dashboard</h1>
+    <p class="muted">Court reservation revenue and management shortcuts.</p>
+</section>
+
+<div class="dashboard-layout">
+    <!-- Persistent Admin Sidebar -->
+    <?php include __DIR__ . '/../includes/sideBar.php'; ?>
+
+    <!-- Main Content Area -->
+    <main class="dashboard-main-content">
+        <section class="card">
+            <h1>Manage Courts</h1>
+            <p class="muted">Deleted reserved courts stop accepting new reservations immediately, then disappear after their existing reservations are complete.</p>
+        </section>
+
+        <?php if ($notice): ?>
+            <div class="alert alert-success"><?= h($notice) ?></div>
+        <?php endif; ?>
+
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-error">
+                <?php foreach ($errors as $error): ?>
+                    <p><?= h($error) ?></p>
+                <?php endforeach; ?>
             </div>
         <?php endif; ?>
-</section>
+
+        <section class="grid two-col">
+            <div class="card">
+                <h2>Add Court</h2>
+                <form method="POST" action="<?= h(app_url('/admin/courts.php')) ?>">
+                    <input type="hidden" name="action" value="add">
+                    <div class="form-group">
+                        <label for="court_number">Court Name</label>
+                        <input type="text" id="court_number" name="court_number" placeholder="Badminton Court 7" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sport_type_id">Sport Type</label>
+                        <select id="sport_type_id" name="sport_type_id" required>
+                            <?php foreach ($sports as $sport): ?>
+                                <option value="<?= (int)$sport['sport_type_id'] ?>"><?= h($sport['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">Add Court</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Facility Prices</h2>
+                <p class="muted">These prices are used for new reservations. Existing paid reservations keep their original paid price.</p>
+                <?php foreach ($sports as $sport): ?>
+                    <form method="POST" action="<?= h(app_url('/admin/courts.php')) ?>" class="inline-form price-form">
+                        <input type="hidden" name="action" value="update_price">
+                        <input type="hidden" name="sport_type_id" value="<?= (int)$sport['sport_type_id'] ?>">
+                        <label for="price_<?= (int)$sport['sport_type_id'] ?>"><?= h($sport['name']) ?></label>
+                        <input type="number" id="price_<?= (int)$sport['sport_type_id'] ?>" name="price_per_hour" value="<?= h($sport['price_per_hour']) ?>" min="0.01" step="0.01" required>
+                        <button type="submit" class="btn btn-secondary">Update Price</button>
+                    </form>
+                <?php endforeach; ?>
+            </div>
+        </section>
+
+        <section class="card">
+                <h2>Current Courts</h2>
+                <?php if (empty($courts)): ?>
+                    <div class="empty-state">No courts are currently displayed.</div>
+                <?php else: ?>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Court</th>
+                                    <th>Sport</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($courts as $court): ?>
+                                    <?php $court_form_id = 'court_form_' . (int)$court['court_id']; ?>
+                                    <tr>
+                                        <td>
+                                            <?php if ($court['status'] === 'active'): ?>
+                                                <form id="<?= h($court_form_id) ?>" method="POST" action="<?= h(app_url('/admin/courts.php')) ?>"></form>
+                                                <input type="hidden" name="action" value="update_court" form="<?= h($court_form_id) ?>">
+                                                <input type="hidden" name="court_id" value="<?= (int)$court['court_id'] ?>" form="<?= h($court_form_id) ?>">
+                                                <input type="text" name="court_number" value="<?= h($court['court_number']) ?>" form="<?= h($court_form_id) ?>" required>
+                                            <?php else: ?>
+                                                <?= h($court['court_number']) ?>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php if ($court['status'] === 'active'): ?>
+                                                <select name="sport_type_id" form="<?= h($court_form_id) ?>" required>
+                                                    <?php foreach ($sports as $sport): ?>
+                                                        <option value="<?= (int)$sport['sport_type_id'] ?>" <?= (int)$court['sport_type_id'] === (int)$sport['sport_type_id'] ? 'selected' : '' ?>>
+                                                            <?= h($sport['name']) ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            <?php else: ?>
+                                                <?= h($court['sport_name']) ?>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><span class="status <?= h($court['status']) ?>"><?= h(str_replace('_', ' ', $court['status'])) ?></span></td>
+                                        <td>
+                                            <?php if ($court['status'] !== 'pending_deletion'): ?>
+                                                <button type="submit" class="btn btn-secondary" form="<?= h($court_form_id) ?>">Save</button>
+                                                <form method="POST" action="<?= h(app_url('/admin/courts.php')) ?>">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="court_id" value="<?= (int)$court['court_id'] ?>">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            <?php else: ?>
+                                                <span class="muted">Disabled</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+        </section>
+    </main>
+</div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

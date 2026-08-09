@@ -1286,10 +1286,131 @@ th {
     }
 }
 
-.site-footer {
+/* ---------- Customer Messages ---------- */
+
+.messages-card {
+    margin-top: 20px;
+}
+
+.messages-table th {
+    white-space: nowrap;
+}
+
+.messages-table td {
+    vertical-align: top;
+}
+
+.message-content {
+    max-width: 400px;
+    line-height: 1.5;
+    white-space: normal;
+}
+
+.message-date {
+    white-space: nowrap;
+    color: #667085;
+    font-size: 0.9rem;
+}
+
+.message-contact {
+    line-height: 1.5;
+}
+
+.message-contact strong {
+    display: block;
+    color: #1e293b;
+}
+
+.message-contact span {
+    display: block;
+    color: #667085;
+    font-size: 0.9rem;
+}
+
+/* ---------- Home Contact Section ---------- */
+
+.home-contact {
+    padding: 80px 20px;
+    background-color: #f5f6fa;
+}
+
+.home-contact-content {
+    width: fit-content;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 600px 380px;
+    gap: 60px;
+    align-items: center;
+}
+
+.home-contact-text {
+    max-width: 600px;
+}
+
+.section-label {
+    color: #3572d4;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.home-contact-text h2 {
+    font-size: 2.8rem;
+    margin: 10px 0 20px;
+    color: #222;
+}
+
+.home-contact-text p {
+    color: #667085;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    margin-bottom: 25px;
+}
+
+.contact-home-btn {
+    text-decoration: none;
+    padding: 12px 25px;
+}
+
+.home-contact-info {
     background-color: #ffffff;
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
-    padding: 20px;
-    margin-top: 40px;
+    padding: 30px;
+    border-radius: 10px;
+    width: 350px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+
+.contact-info-item {
+    padding: 15px 0;
+    padding-left: 20px;
+    border-bottom: 1px solid #e5e8ef;
+}
+
+.contact-info-item:last-child {
+    border-bottom: none;
+}
+
+.contact-info-item strong {
+    color: #1e293b;
+}
+
+.contact-info-item p {
+    color: #667085;
+    margin: 6px 0 0;
+}
+
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 768px) {
+
+    .home-contact-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .home-contact-text h2 {
+        font-size: 2.2rem;
+    }
+
 }

@@ -36,6 +36,15 @@ const PAYMENT_TYPE_EQUIPMENT = 'equipment';
  * are interpolated into SQL below, which is only safe because of that - every
  * lookup goes through paymentType() first, so a value from a request can never
  * reach the query. Anything unrecognised returns null and the caller stops.
+ *
+ * number_style is which number the customer is shown for the order:
+ *
+ *   'sequence'  their own 1, 2, 3, counted across their bookings
+ *   'id'        the real database id
+ *
+ * Bookings are private to the customer, so they get the tidier sequence.
+ * Equipment orders are collected in person and read out at the counter, where
+ * they have to mean the same thing to the admin, so they get the real id.
  */
 function paymentType($type) {
     $types = [
@@ -43,6 +52,7 @@ function paymentType($type) {
             'table' => 'booking_orders',
             'id_column' => 'booking_order_id',
             'noun' => 'Booking',
+            'number_style' => 'sequence',
             'return_url' => '/booking/history.php',
             'return_param' => 'booking_success',
         ],
@@ -50,6 +60,7 @@ function paymentType($type) {
             'table' => 'equipment_orders',
             'id_column' => 'equipment_order_id',
             'noun' => 'Order',
+            'number_style' => 'id',
             'return_url' => '/shop/purchaseHistory.php',
             'return_param' => 'order_success',
         ],
@@ -322,14 +333,20 @@ function findPaidOrder($conn, $user_id, $type, $order_id) {
  * The number this customer sees for one of their own orders, e.g. 3.
  *
  * The receipt has to name the same number the history page will show when the
- * customer lands back on it, so the whole list is numbered with the same
- * orderDisplayNumbers() both history pages use and this picks one out.
- * Ordering the query the way those pages do is what keeps them in step.
+ * customer lands back on it, so this follows whichever number_style that type
+ * uses. For an equipment order that is the database id, which the history page
+ * prints straight out. For a booking the whole list is numbered with the same
+ * orderDisplayNumbers() that page uses and this picks one out - ordering the
+ * query the way it does is what keeps the two in step.
  */
 function paidOrderDisplayNumber($conn, $user_id, $type, $order_id) {
     $config = paymentType($type);
     if (!$config) {
         return 0;
+    }
+
+    if ($config['number_style'] === 'id') {
+        return $order_id;
     }
 
     $orders = [];

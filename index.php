@@ -89,4 +89,48 @@
     </div>
 </section>
 
+<section class="home-contact">
+
+    <div class="home-contact-content">
+
+        <div class="home-contact-text">
+
+            <span class="section-label">CONTACT US</span>
+
+            <h2>We're here to help</h2>
+
+            <p>
+                Have questions about court reservations, equipment
+                or our services? Get in touch with CourtHub Sport Center.
+            </p>
+
+            <a href="<?= h(app_url('contact.php')) ?>" class="btn contact-home-btn">
+                Contact Us
+            </a>
+
+        </div>
+
+        <div class="home-contact-info">
+
+            <div class="contact-info-item">
+                <strong>📍 Address</strong>
+                <p>CourtHub Sport Center<br>Kuala Lumpur, Malaysia</p>
+            </div>
+
+            <div class="contact-info-item">
+                <strong>📞 Phone</strong>
+                <p>+60 12-566 6710</p>
+            </div>
+
+            <div class="contact-info-item">
+                <strong>✉ Email</strong>
+                <p>support@courthub.com</p>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

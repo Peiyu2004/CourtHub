@@ -14,11 +14,6 @@
 
         </a>
 
-
-        <a href="<?= h(app_url('/contact.php')) ?>" class="footer-contact">
-            Contact Us
-        </a>
-
     </div>
 
 

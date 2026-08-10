@@ -126,7 +126,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <form class="contact-form" method="post" action="contact.php">
 
             <div class="form-group">
-                <label>Your Name</label>
+                <label>Name</label>
                 <input type="text" name="name" required>
             </div>
 
@@ -138,13 +138,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
             <div class="form-group">
-                <label>Phone Number</label>
-                <input type="tel" name="phone" required>
+                <label>Phone Number (e.g. 0123456789)</label>
+                <input 
+                    type="tel" 
+                    name="phone" 
+                    inputmode="numeric" 
+                    pattern="[0-9]+" 
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+                    required>
             </div>
 
 
             <div class="form-group">
-                <label>Your Message</label>
+                <label>Message</label>
                 <textarea name="message" rows="5" required></textarea>
             </div>
 

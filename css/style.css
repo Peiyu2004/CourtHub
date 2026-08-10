@@ -192,6 +192,25 @@ a {
     font-weight: 600 !important;
 }
 
+.status-select {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background: white;
+}
+
+.status-select:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.status-form {
+    margin: 0;
+}
+
 /* ---------- Logout ---------- */
 
 .logout-link {
@@ -554,7 +573,10 @@ a {
 }
 
 .table-wrap {
+    width: 100%;
     overflow-x: auto;
+    overflow-y: visible;
+    padding-bottom: 10px;
 }
 
 table {
@@ -1308,10 +1330,6 @@ th {
 
 /* ---------- Customer Messages ---------- */
 
-.messages-card {
-    margin-top: 20px;
-}
-
 .messages-table th {
     white-space: nowrap;
 }
@@ -1465,3 +1483,4 @@ th {
     gap: 6px;
     text-align: center;
 }
+

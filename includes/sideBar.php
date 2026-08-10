@@ -38,6 +38,10 @@ $order_counts = function_exists('equipmentOrderStatusCounts') ? equipmentOrderSt
                 <span class="nav-badge"><?= (int)$order_counts['pending'] ?></span>
             <?php endif; ?>
         </a>
+        <a href="<?= h(app_url('/admin/messages.php')) ?>" class="nav-item <?= $current_page === 'messages.php' ? 'active' : '' ?>">
+            <span class="nav-icon">📩</span>
+            <span class="nav-text">Messages</span>
+        </a>
     </nav>
 </aside>
 

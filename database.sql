@@ -290,6 +290,7 @@ CREATE TABLE contact_messages (
     email VARCHAR(100) NOT NULL,
     phone VARCHAR(20) NOT NULL,
     message TEXT NOT NULL,
+    status ENUM('New', 'In Progress', 'Completed') NOT NULL DEFAULT 'New',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

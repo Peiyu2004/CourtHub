@@ -7,6 +7,9 @@
 
 <section class="grid" style="margin-top: 24px;">
     <div class="card">
+        <div class="card-pic">
+                <img src="<?= h(app_url('/images/badmintonCourt.jpg')) ?>" alt="Badminton Hall">
+        </div>
         <h3>Badminton</h3>
         <p>6 indoor courts available.</p>
         <p><strong>RM30 / hour</strong></p>
@@ -14,6 +17,9 @@
     </div>
 
     <div class="card">
+        <div class="card-pic">
+                <img src="<?= h(app_url('/images/pickleballCourt.jpg')) ?>" alt="Pickleball Arena">
+        </div>
         <h3>Pickleball</h3>
         <p>6 indoor courts available.</p>
         <p><strong>RM50 / hour</strong></p>
@@ -21,6 +27,9 @@
     </div>
 
     <div class="card">
+        <div class="card-pic">
+            <img src="<?= h(app_url('/images/futsalCourt.jpg')) ?>" alt="Futsal Pitch">
+        </div>
         <h3>Futsal</h3>
         <p>2 full-size courts available.</p>
         <p><strong>RM120 / hour</strong></p>

@@ -276,6 +276,26 @@ a {
     margin-bottom: 20px;
 }
 
+.card-pic {
+    width: 300px;
+    height: 300px;
+    overflow: hidden;
+}
+
+.pic {
+    width: 1000px;
+    height: 400px;
+    object-fit: contain;
+    display: block;
+    overflow: hidden;
+}
+
+.pic img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .btn {
     display: inline-block;
     background-color: #1b2a4a;
@@ -1413,4 +1433,35 @@ th {
         font-size: 2.2rem;
     }
 
+}
+
+/* ---------- Search ---------- */
+.amenities-card {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+
+.amenities-card h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.amenities-list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 35px;
+    flex-wrap: wrap;
+}
+
+.amenity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
 }

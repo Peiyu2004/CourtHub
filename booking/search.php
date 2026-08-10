@@ -137,6 +137,66 @@ require_once __DIR__ . '/../includes/header.php';
             <?= money($price_per_court) ?> per court.
         </p>
 
+        <div class="court-layout">
+            <!-- Floor Plan -->
+            <div class="pic">
+
+                <?php if (strtolower($selected_sport['name']) === 'badminton'): ?>
+
+                    <img 
+                        src="<?= h(app_url('/images/Badminton Floor Plan.png')) ?>" 
+                        alt="Badminton Hall"
+                    >
+
+                <?php elseif (strtolower($selected_sport['name']) === 'pickleball'): ?>
+
+                    <img 
+                        src="<?= h(app_url('/images/Pickleball Floor Plan.png')) ?>" 
+                        alt="Pickleball Hall"
+                    >
+
+                <?php elseif (strtolower($selected_sport['name']) === 'futsal'): ?>
+
+                    <img 
+                        src="<?= h(app_url('/images/Futsal Floor Plan.png')) ?>" 
+                        alt="Futsal Hall"
+                    >
+
+                <?php endif; ?>
+
+            </div>
+
+            <!-- Amenities -->
+            <div class="amenities-card">
+
+                <h2>Amenities</h2>
+
+                <div class="amenities-list">
+
+                    <div class="amenity">
+                        <span>Ⓟ Parking</span>
+                    </div>
+
+                    <div class="amenity">
+                        <span>🚿 Shower</span>
+                    </div>
+
+                    <div class="amenity">
+                        <span>🛍 Pro Shop</span>
+                    </div>
+
+                    <div class="amenity">
+                        <span>🥤 Drinks</span>
+                    </div>
+
+                    <div class="amenity">
+                        <span>🕌 Surau</span>
+                    </div>
+
+                </div>
+
+            </div>
+        <div>
         <?php if (empty($available_courts)): ?>
             <div class="empty-state">
                 Every <?= h($selected_sport['name']) ?> court is taken for this slot. Try another time or date.

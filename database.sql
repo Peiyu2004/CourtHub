@@ -347,20 +347,20 @@ INSERT INTO categories (name, description) VALUES
 --   'Court Grip Tape' has stock 0    -> shows the disabled "Add to Cart" state
 --   the 'Drinks' category has no rows -> shows the "no results" empty state
 INSERT INTO equipment (name, sport_type_id, category_id, category, brand, price, stock, description, image_url) VALUES
-('Astrox 100ZZ Racquet',          1,  1, 'Racquet',     'Yonex',   899.00,  20, 'Head-heavy badminton racquet built for steep, powerful smashes. Suits attacking singles players.', 'images/badminton.jpg'),
-('Nanoflare 800 Pro Racquet',     1,  1, 'Racquet',     'Yonex',   949.00,  12, 'Head-light frame with a fast swing for quick doubles exchanges and rapid defence.', 'images/badminton.jpg'),
-('Aerosensa 50 Shuttlecock Tube', 1,  4, 'Shuttlecock', 'Yonex',   145.00,  60, 'Tournament grade goose feather shuttlecocks. One tube contains 12 shuttles.', 'images/badminton.jpg'),
-('Super Grap Overgrip 3-Pack',    1,  5, 'Grip',        'Yonex',    25.00, 100, 'Tacky overgrip that absorbs sweat well. Three rolls per pack.', 'images/equipment.jpg'),
-('BG66 Ultimax String',           1,  6, 'String',      'Yonex',    38.00,  80, 'Thin 0.65mm gauge string for a crisp, high-pitched repulsion feel.', 'images/equipment.jpg'),
-('Power Cushion 65Z3 Shoes',      1,  9, 'Footwear',    'Yonex',   459.00,  18, 'Indoor court shoes with cushioned heel support for repeated lunging.', 'images/equipment.jpg'),
-('Pro Tournament Racquet Bag',    1,  7, 'Bag',         'Yonex',   289.00,  22, 'Six-racquet thermal bag with a separate ventilated shoe compartment.', 'images/equipment.jpg'),
-('Vanguard Power Air Paddle',     2,  2, 'Paddle',      'Selkirk', 450.00,  15, 'Carbon fibre pickleball paddle with a large sweet spot and quiet core.', 'images/pickleball.jpg'),
-('Amped Epic Paddle',             2,  2, 'Paddle',      'Selkirk', 389.00,  10, 'Balanced control paddle with an elongated handle for two-handed backhands.', 'images/pickleball.jpg'),
-('Dura Fast 40 Balls 6-Pack',     2,  3, 'Ball',        'Onix',     69.00,  40, 'Outdoor pickleballs with 40 precision drilled holes for consistent flight.', 'images/pickleball.jpg'),
-('Court Grip Tape',               2,  5, 'Grip',        'Selkirk',  19.00,   0, 'Replacement grip tape for pickleball paddle handles. Currently out of stock.', 'images/equipment.jpg'),
-('Premier Futsal Match Ball',     3,  3, 'Ball',        'Nike',     89.00,  30, 'Size 4 low-bounce futsal ball that stays controllable on hard indoor courts.', 'images/futsal.jpg'),
-('Lunargato II Indoor Boots',     3,  9, 'Footwear',    'Nike',    379.00,  14, 'Low-profile indoor boots with a gum rubber sole for grip on futsal courts.', 'images/futsal.jpg'),
-('Club Training Jersey',          3,  8, 'Apparel',     'Nike',    119.00,  25, 'Breathable training jersey with moisture-wicking fabric for indoor matches.', 'images/futsal.jpg');
+('Astrox 100ZZ Racquet',          1,  1, 'Racquet',     'Yonex',   899.00,  20, 'Head-heavy badminton racquet built for steep, powerful smashes. Suits attacking singles players.', 'images/Astrox 100ZZ Racquet.jpg'),
+('Nanoflare 800 Pro Racquet',     1,  1, 'Racquet',     'Yonex',   949.00,  12, 'Head-light frame with a fast swing for quick doubles exchanges and rapid defence.', 'images/Nanoflare 800 Pro Racquet.png'),
+('Aerosensa 50 Shuttlecock Tube', 1,  4, 'Shuttlecock', 'Yonex',   145.00,  60, 'Tournament grade goose feather shuttlecocks. One tube contains 12 shuttles.', 'images/Aerosensa 50 Shuttlecock Tube.jpg'),
+('Super Grap Overgrip 3-Pack',    1,  5, 'Grip',        'Yonex',    25.00, 100, 'Tacky overgrip that absorbs sweat well. Three rolls per pack.', 'images/Super Grap Overgrip 3-Pack.png'),
+('BG66 Ultimax String',           1,  6, 'String',      'Yonex',    38.00,  80, 'Thin 0.65mm gauge string for a crisp, high-pitched repulsion feel.', 'images/BG66 Ultimax String.png'),
+('Power Cushion 65Z3 Shoes',      1,  9, 'Footwear',    'Yonex',   459.00,  18, 'Indoor court shoes with cushioned heel support for repeated lunging.', 'images/Power Cushion 65Z3 Shoes.jpg'),
+('Pro Tournament Racquet Bag',    1,  7, 'Bag',         'Yonex',   289.00,  22, 'Six-racquet thermal bag with a separate ventilated shoe compartment.', 'images/Pro Tournament Racquet Bag.jpg'),
+('Vanguard Power Air Paddle',     2,  2, 'Paddle',      'Selkirk', 450.00,  15, 'Carbon fibre pickleball paddle with a large sweet spot and quiet core.', 'images/Vanguard Power Air Paddle.jpg'),
+('Amped Epic Paddle',             2,  2, 'Paddle',      'Selkirk', 389.00,  10, 'Balanced control paddle with an elongated handle for two-handed backhands.', 'images/Amped Epic Paddle.jpg'),
+('Dura Fast 40 Balls 6-Pack',     2,  3, 'Ball',        'Onix',     69.00,  40, 'Outdoor pickleballs with 40 precision drilled holes for consistent flight.', 'images/Dura Fast 40 Balls 6-Pack.jpg'),
+('Court Grip Tape',               2,  5, 'Grip',        'Selkirk',  19.00,   0, 'Replacement grip tape for pickleball paddle handles. Currently out of stock.', 'images/Court Grip Tape.jpg'),
+('Premier Futsal Match Ball',     3,  3, 'Ball',        'Nike',     89.00,  30, 'Size 4 low-bounce futsal ball that stays controllable on hard indoor courts.', 'images/Premier Futsal Match Ball.png'),
+('Lunargato II Indoor Boots',     3,  9, 'Footwear',    'Nike',    379.00,  14, 'Low-profile indoor boots with a gum rubber sole for grip on futsal courts.', 'images/Lunargato II Indoor Boots.jpg'),
+('Club Training Jersey',          3,  8, 'Apparel',     'Nike',    119.00,  25, 'Breathable training jersey with moisture-wicking fabric for indoor matches.', 'images/Club Training Jersey.jpg');
 
 -- Equipment variant options (independent selectors, req 14)
 -- Only products that genuinely have choices get rows here. Products with no

@@ -19,15 +19,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirm_password = $_POST['confirm_password'];
 
     // ---- Validation ----
+    // 1. Full Name Validation
     if ($full_name === '') {
         $errors[] = "Full name is required.";
+    } elseif (strlen($full_name) < 2 || strlen($full_name) > 100) {
+        $errors[] = "Full name must be between 2 and 100 characters.";
+    } elseif (!preg_match("/^[a-zA-Z\s'-]+$/", $full_name)) {
+        $errors[] = "Full name can only contain letters, spaces, hyphens, and apostrophes.";
     }
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+    // 2. Email Validation
+    if ($email === '') {
+        $errors[] = "Email address is required.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = "Please enter a valid email address.";
     }
-    if (strlen($password) < 6) {
-        $errors[] = "Password must be at least 6 characters long.";
+
+    // 3. Phone Number Validation (Optional field, but validate format if entered)
+    if ($phone !== '' && !preg_match("/^[0-9+\s\-()]{7,20}$/", $phone)) {
+        $errors[] = "Please enter a valid phone number (e.g., 0123456789).";
     }
+
+    // 4. Password Validation
+    if ($password === '') {
+        $errors[] = "Password is required.";
+    } elseif (strlen($password) < 6) {
+        $errors[] = "Password must be at least 6 characters long.";
+    } elseif (!preg_match("/[A-Za-z]/", $password) || !preg_match("/[0-9]/", $password)) {
+        $errors[] = "Password must contain at least one letter and one number.";
+    }
+
+    // 5. Password Confirmation
     if ($password !== $confirm_password) {
         $errors[] = "Passwords do not match.";
     }
@@ -73,7 +95,7 @@ require_once __DIR__ . '/../includes/header.php';
 <div class="auth-page-wrapper">
     <div class="auth-card-container">
         
-        <!-- Left Column: Image set as CSS Background -->
+        <!-- Left Column: Visual Side -->
         <div class="auth-visual-side" style="background-image: url('<?= h(app_url('/images/signUp.png')) ?>');">
             <div class="auth-visual-overlay">
                 <div class="auth-brand-badge">
@@ -98,10 +120,10 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="register.php" class="auth-form">
+            <form method="POST" action="register.php" class="auth-form" id="registerForm" novalidate>
                 <div class="form-group">
                     <label for="full_name">Full Name</label>
-                    <input type="text" id="full_name" name="full_name" value="<?= h($full_name) ?>" placeholder="Enter your full name" required>
+                    <input type="text" id="full_name" name="full_name" value="<?= h($full_name) ?>" placeholder="Enter your full name" required minlength="2" maxlength="100">
                 </div>
 
                 <div class="form-group">
@@ -111,17 +133,23 @@ require_once __DIR__ . '/../includes/header.php';
 
                 <div class="form-group">
                     <label for="phone">Phone Number</label>
-                    <input type="text" id="phone" name="phone" value="<?= h($phone) ?>" placeholder="Enter your phone number">
+                    <input type="tel" id="phone" name="phone" value="<?= h($phone) ?>" placeholder="Enter your phone number (e.g. 0123456789)">
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" placeholder="Create a password (min. 6 chars)" required minlength="6">
+                    <div class="password-input-wrapper">
+                        <input type="password" id="password" name="password" placeholder="Create a password (min. 6 chars)" required minlength="6">
+                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">👁️</button>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="confirm_password">Confirm Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Re-enter your password" required minlength="6">
+                    <div class="password-input-wrapper">
+                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Re-enter your password" required minlength="6">
+                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">👁️</button>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn btn-auth-submit">Register</button>

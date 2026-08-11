@@ -1,4 +1,6 @@
-/* Login & Register */
+/* =====================================================
+   Login & Register
+   ===================================================== */
 /* Layout Wrapper */
 .auth-page-wrapper {
     display: flex;
@@ -93,24 +95,82 @@
     border-radius: 6px;
     font-size: 0.95rem;
     box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .auth-form input:focus {
     outline: none;
     border-color: #2589cc;
+    box-shadow: 0 0 0 3px rgba(37, 137, 204, 0.15);
 }
 
+/* =====================================================
+   Password Toggle Field Positioning
+   ===================================================== */
+.password-input-wrapper {
+    position: relative !important;
+    width: 100%;
+}
+
+/* Leave room for the toggle icon so text doesn't hide beneath it */
+.password-input-wrapper input {
+    width: 100%;
+    padding-right: 45px !important; /* Prevents text from hiding under icon */
+    box-sizing: border-box;
+}
+
+/* Eye icon toggle button styling */
+.password-input-wrapper .toggle-password {
+    position: absolute !important;
+    right: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+    z-index: 10;
+    user-select: none;
+}
+
+.toggle-password:hover {
+    background-color: #f1f5f9;
+    color: #071630;
+}
+
+.toggle-password:focus {
+    outline: none;
+    background-color: #e2e8f0;
+}
+
+/* =====================================================
+   Buttons & Links
+   ===================================================== */
 .btn-auth-submit {
     width: 100%;
     padding: 12px;
     font-size: 1rem;
-    font-weight: 400;
+    font-weight: 600;
     margin-top: 10px;
     background-color: #071630;
     color: #ffffff;
     border: none;
     border-radius: 6px;
     cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-auth-submit:hover {
+    background-color: #1e293b;
+}
+
+.btn-auth-submit:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
 }
 
 .auth-footer-text {
@@ -126,12 +186,17 @@
     text-decoration: underline;
 }
 
-/* Mobile responsive collapse */
+/* =====================================================
+   Mobile Responsive Fallback
+   ===================================================== */
 @media (max-width: 768px) {
     .auth-card-container {
         flex-direction: column;
     }
     .auth-visual-side {
-        min-height: 200px;
+        min-height: 180px;
+    }
+    .auth-form-side {
+        padding: 25px;
     }
 }

@@ -1,7 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     /* =====================================================
-       1. Login Page Enhancements
+       Universal Password Visibility Toggle
+       ===================================================== */
+    const toggleButtons = document.querySelectorAll('.toggle-password');
+
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            // Prevent form submit if button type isn't properly scoped
+            e.preventDefault();
+
+            // Find the wrapper parent or previous sibling input
+            const wrapper = button.closest('.password-input-wrapper');
+            const input = wrapper ? wrapper.querySelector('input') : button.previousElementSibling;
+
+            if (input) {
+                const isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+                button.textContent = isPassword ? '🙈' : '👁️';
+            }
+        });
+    });
+
+    /* =====================================================
+       Login Page Enhancements
        ===================================================== */
     const loginForm = document.querySelector('.auth-form[action*="login.php"]');
     if (loginForm) {
@@ -16,22 +38,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* =====================================================
-       2. Register Page Validation
+       Register Page Validation
        ===================================================== */
-    const registerForm = document.querySelector('.auth-form[action*="register.php"]');
+    const registerForm = document.getElementById('registerForm');
     if (registerForm) {
+        const fullName = registerForm.querySelector('#full_name');
+        const email = registerForm.querySelector('#email');
+        const phone = registerForm.querySelector('#phone');
         const password = registerForm.querySelector('#password');
         const confirmPassword = registerForm.querySelector('#confirm_password');
         const submitBtn = registerForm.querySelector('.btn-auth-submit');
 
         registerForm.addEventListener('submit', (e) => {
+            let errors = [];
+
+            // Name check
+            if (fullName && fullName.value.trim().length < 2) {
+                errors.push("Full name must be at least 2 characters.");
+            }
+
+            // Email check
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email && !emailRegex.test(email.value.trim())) {
+                errors.push("Please enter a valid email address.");
+            }
+
+            // Phone check (optional, check if filled)
+            if (phone && phone.value.trim() !== '') {
+                const phoneRegex = /^[0-9+\s\-()]{7,20}$/;
+                if (!phoneRegex.test(phone.value.trim())) {
+                    errors.push("Please enter a valid phone number format.");
+                }
+            }
+
+            // Password rules (Min 6 chars + 1 letter + 1 number)
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
+            if (password && !passwordRegex.test(password.value)) {
+                errors.push("Password must be at least 6 characters long and contain both letters and numbers.");
+            }
+
+            // Password matching
             if (password && confirmPassword && password.value !== confirmPassword.value) {
+                errors.push("Passwords do not match.");
+            }
+
+            // Display errors if any exist
+            if (errors.length > 0) {
                 e.preventDefault();
-                alert('Passwords do not match. Please re-enter.');
-                confirmPassword.focus();
+                alert(errors.join("\n"));
                 return false;
             }
 
+            // Disable submit button on valid submission to prevent double submission
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Creating Account...';
@@ -40,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* =====================================================
-       3. Profile Page Password Validation
+       Profile Page Password Validation
        ===================================================== */
     const passwordForm = document.getElementById('passwordForm');
     if (passwordForm) {

@@ -190,5 +190,5 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<script src="<?= h(app_url('/js/auth.js')) ?>?v=1.0"></script>
+<script src="<?= h(asset_url('/js/auth.js')) ?>"></script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

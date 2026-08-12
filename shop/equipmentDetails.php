@@ -142,7 +142,7 @@ if ($equipment_id > 0) {
 // so it gets a friendly page instead of a crash or a blank screen.
 if (!$product) {
     require_once __DIR__ . '/../includes/header.php';
-    echo '<link rel="stylesheet" href="' . h(app_url('/css/shop.css')) . '?v=1.0">';
+    echo '<link rel="stylesheet" href="' . h(asset_url('/css/shop.css')) . '">';
     ?>
     <section class="card">
         <h1>Product not found</h1>
@@ -155,6 +155,7 @@ if (!$product) {
 }
 
 $option_groups = getEquipmentOptionGroups($conn, $equipment_id);
+$variants      = getEquipmentVariants($conn, $equipment_id);
 $reviews       = getEquipmentReviews($conn, $equipment_id);
 $summary       = reviewSummary($reviews);
 $breakdown     = ratingBreakdown($reviews);
@@ -188,11 +189,52 @@ if (!empty($product['category_id'])) {
     $stmt->close();
 }
 
-$in_stock = (int)$product['stock'] > 0 && $product['status'] === 'active';
+/*
+ * Availability on this page is answered twice, because the two answers are
+ * genuinely different questions.
+ *
+ * $total_stock is every combination added up, and it only decides whether the
+ * product can be bought at all - a racquet with stock in one colour is still
+ * for sale even if two other colours are empty.
+ *
+ * $initial_stock is what the dropdowns are actually showing. Each <select>
+ * starts on its first value, so the combination the customer is looking at the
+ * moment the page loads is known here, and the quantity limit, the
+ * availability line and the state of the button are all rendered from it.
+ * JavaScript re-does this from $variant_stock as the dropdowns change, but the
+ * page is already correct before any of it runs.
+ */
+$variant_stock = variantStockMap($variants);
+$total_stock   = totalVariantStock($variants);
+$in_stock      = $total_stock > 0 && $product['status'] === 'active';
+
+// The dropdowns open on the first combination that has stock, rather than on
+// whichever one happens to sort first. Without this the shoe below opens on
+// "UK 10 - sold out" purely because 10 sorts before 7, and a customer meets a
+// dead "Out of Stock" button on a product with three sizes on the shelf.
+// Falling back to the first value of each group covers the case where nothing
+// is in stock at all, and the page then says so honestly.
+$initial_options = [];
+foreach ($option_groups as $option_name => $values) {
+    $initial_options[$option_name] = $values[0];
+}
+foreach ($variants as $variant) {
+    if ($variant['stock'] > 0 && !empty($variant['options'])) {
+        $initial_options = $variant['options'];
+        break;
+    }
+}
+$initial_key   = variantKeyFor($initial_options);
+$initial_stock = $variant_stock[$initial_key] ?? 0;
+
+// How many of each single value are left across every combination holding it.
+// A value totalling zero is marked in the dropdown, so the customer is not
+// invited to pick a size that cannot be supplied in any colour.
+$value_stock = optionValueStock($option_groups, $variants);
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="<?= h(app_url('/css/shop.css')) ?>?v=1.0">
+<link rel="stylesheet" href="<?= h(asset_url('/css/shop.css')) ?>">
 
 <section class="card">
     <p class="muted">
@@ -248,7 +290,10 @@ renderToast($notice);
                 <li>
                     <span>Availability</span>
                     <span class="<?= $in_stock ? 'stock-ok' : 'stock-out' ?>">
-                        <?= $in_stock ? (int)$product['stock'] . ' in stock' : 'Out of stock' ?>
+                        <?= $in_stock ? (int)$total_stock . ' in stock' : 'Out of stock' ?>
+                        <?php if ($in_stock && count($variants) > 1): ?>
+                            <span class="muted">across <?= count($variants) ?> variations</span>
+                        <?php endif; ?>
                     </span>
                 </li>
             </ul>
@@ -262,12 +307,16 @@ renderToast($notice);
             <?php elseif (!$in_stock): ?>
                 <div class="empty-state">This item is currently unavailable.</div>
             <?php else: ?>
-                <!-- data-* values are read by js/equipment.js to bound the
-                     quantity stepper and work out the live line total -->
+                <!-- data-variants carries the stock of every combination, keyed
+                     the same way the database keys them, so js/equipment.js can
+                     follow the dropdowns without asking the server again. The
+                     values rendered below already match the combination the
+                     selects start on, so the page is right with JavaScript off
+                     too - and either way the PHP checks it all again on POST. -->
                 <form method="POST"
                       action="<?= h(app_url('/shop/equipmentDetails.php?id=' . (int)$equipment_id)) ?>"
                       id="addToCartForm"
-                      data-stock="<?= (int)$product['stock'] ?>"
+                      data-variants="<?= h(json_encode($variant_stock)) ?>"
                       data-price="<?= h(number_format((float)$product['price'], 2, '.', '')) ?>">
                     <input type="hidden" name="action" value="add_to_cart">
                     <input type="hidden" name="equipment_id" value="<?= (int)$equipment_id ?>">
@@ -276,27 +325,44 @@ renderToast($notice);
                         <div class="form-group compact">
                             <label for="opt-<?= h(str_replace(' ', '-', $option_name)) ?>"><?= h($option_name) ?></label>
                             <select id="opt-<?= h(str_replace(' ', '-', $option_name)) ?>"
+                                    class="js-variant-option"
+                                    data-option-name="<?= h($option_name) ?>"
                                     name="options[<?= h($option_name) ?>]" required>
                                 <?php foreach ($values as $value): ?>
-                                    <option value="<?= h($value) ?>"><?= h($value) ?></option>
+                                    <?php $value_left = (int)($value_stock[$option_name][$value] ?? 0); ?>
+                                    <option value="<?= h($value) ?>"
+                                        <?= ($initial_options[$option_name] ?? null) === $value ? 'selected' : '' ?>>
+                                        <?= h($value) ?><?= $value_left === 0 ? ' — sold out' : '' ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
                     <?php endforeach; ?>
+
+                    <?php if (!empty($option_groups)): ?>
+                        <p class="<?= $initial_stock > 0 ? 'stock-ok' : 'stock-out' ?>" id="variantStock">
+                            <?= $initial_stock > 0
+                                    ? (int)$initial_stock . ' left in this combination'
+                                    : 'This combination is out of stock' ?>
+                        </p>
+                    <?php endif; ?>
 
                     <div class="form-group compact">
                         <label for="quantity">Quantity</label>
                         <div class="qty-control">
                             <button type="button" id="qtyDown" aria-label="Decrease quantity">&minus;</button>
                             <input type="number" id="quantity" name="quantity"
-                                   value="1" min="1" max="<?= (int)$product['stock'] ?>" required>
+                                   value="1" min="1" max="<?= max(1, (int)$initial_stock) ?>" required>
                             <button type="button" id="qtyUp" aria-label="Increase quantity">+</button>
                         </div>
                     </div>
 
                     <p class="line-total">Total: <strong id="lineTotal"><?= money($product['price']) ?></strong></p>
 
-                    <button type="submit" class="btn">Add to Cart</button>
+                    <button type="submit" class="btn" id="addToCartButton"
+                            <?= $initial_stock > 0 ? '' : 'disabled' ?>>
+                        <?= $initial_stock > 0 ? 'Add to Cart' : 'Out of Stock' ?>
+                    </button>
                 </form>
             <?php endif; ?>
         </div>
@@ -433,6 +499,6 @@ renderToast($notice);
     </section>
 <?php endif; ?>
 
-<script src="<?= h(app_url('/js/equipment.js')) ?>?v=1.0"></script>
+<script src="<?= h(asset_url('/js/equipment.js')) ?>"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

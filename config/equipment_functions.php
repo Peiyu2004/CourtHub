@@ -106,6 +106,370 @@ function getOptionGroupsForMany($conn, $equipment_ids) {
     return $groups;
 }
 
+/* ---------------------------------------------------------------------
+   Variants
+   ---------------------------------------------------------------------
+   equipment_options says what a product offers; equipment_variants says
+   what can actually be bought, and holds the stock. A racquet offering
+   Grip Size (G4, G5) and Grip Color (Red, Blue, Black) has six variants,
+   each with its own stock, so the last "G4 / Red" can sell out without
+   taking every other colour down with it.
+
+   A combination is identified by its variant_key, one canonical string:
+       'Grip Color=Red|Grip Size=G4'
+   The names are sorted before the string is built, so the same choices
+   always produce the same text whichever order the dropdowns were filled
+   in, and looking a variant up stays one indexed equality test.
+
+   A product with no options is not a special case: it gets a single
+   variant whose key is the empty string, so every page counts, checks and
+   decrements stock through exactly one code path.
+   --------------------------------------------------------------------- */
+
+/** Separates one name=value pair from the next inside a variant_key. */
+const VARIANT_PAIR_SEPARATOR = '|';
+/** Separates an option name from its value inside a variant_key. */
+const VARIANT_VALUE_SEPARATOR = '=';
+
+/**
+ * Builds the canonical key for a set of choices:
+ *   ['Grip Size' => 'G4', 'Grip Color' => 'Red']
+ *     -> 'Grip Color=Red|Grip Size=G4'
+ *
+ * ksort() is the important line. Without it the key would depend on the
+ * order the choices happened to arrive in - the details page posts them in
+ * dropdown order, the admin grid builds them in sorted order - and the same
+ * combination would produce two different keys that never matched.
+ *
+ * An empty set of choices gives '', which is the key of the single variant
+ * belonging to a product with no options.
+ */
+function variantKeyFor(array $options) {
+    ksort($options);
+
+    $parts = [];
+    foreach ($options as $name => $value) {
+        $parts[] = $name . VARIANT_VALUE_SEPARATOR . $value;
+    }
+
+    return implode(VARIANT_PAIR_SEPARATOR, $parts);
+}
+
+/**
+ * The opposite of variantKeyFor(): turns a key back into the choices it
+ * stands for, e.g. ['Grip Color' => 'Red', 'Grip Size' => 'G4'].
+ *
+ * Returns an empty array for the '' key and for anything malformed, so a
+ * caller can always foreach over the result without checking it first.
+ */
+function decodeVariantKey($variant_key) {
+    $options = [];
+
+    $key = trim((string)$variant_key);
+    if ($key === '') {
+        return $options;
+    }
+
+    foreach (explode(VARIANT_PAIR_SEPARATOR, $key) as $pair) {
+        $bits = explode(VARIANT_VALUE_SEPARATOR, $pair, 2);
+        if (count($bits) === 2 && $bits[0] !== '') {
+            $options[$bits[0]] = $bits[1];
+        }
+    }
+
+    return $options;
+}
+
+/**
+ * A short human label for a variant, e.g. 'G4 / Red'.
+ * Only the values are shown, because the names are already the labels on the
+ * dropdowns the customer just used. A product with no options reads
+ * 'Standard' rather than an empty string, so the admin stock grid always has
+ * something in its first column.
+ */
+function variantLabel($variant_key) {
+    $options = decodeVariantKey($variant_key);
+    if (empty($options)) {
+        return 'Standard';
+    }
+    return implode(' / ', array_values($options));
+}
+
+/**
+ * Every combination of the option groups, as an array of choice arrays.
+ *
+ * Each group multiplies what came before it, so two sizes and three colours
+ * give six results. A product with no groups gives one empty combination
+ * rather than none, which is what creates that product's single variant.
+ */
+function variantCombinations(array $option_groups) {
+    ksort($option_groups);
+
+    $combinations = [[]];
+    foreach ($option_groups as $option_name => $values) {
+        $expanded = [];
+        foreach ($combinations as $combination) {
+            foreach ($values as $value) {
+                $combination[$option_name] = $value;
+                $expanded[] = $combination;
+            }
+        }
+        $combinations = $expanded;
+    }
+
+    return $combinations;
+}
+
+/**
+ * Brings a product's variants back in line with the options it now offers.
+ *
+ * Called after the admin saves a product, and it deliberately does not wipe
+ * and rebuild the table. A variant that still exists keeps its row, which
+ * means it keeps its stock and stays pointed at by anybody who has it in
+ * their cart. Only combinations that are no longer offered are removed, and
+ * only genuinely new ones are added - those start at 0, because nobody has
+ * said yet how many of them the shop has.
+ *
+ * Deleting a variant does empty it out of the carts holding it, which is the
+ * right outcome: the shop has stopped selling that colour, so it cannot be
+ * checked out. Past order lines survive - equipment_order_items.variant_id is
+ * ON DELETE SET NULL and the receipt reads from its own selected_options
+ * snapshot, not from the variant.
+ *
+ * The caller runs this inside its transaction so a half-updated product and
+ * its variants can never both be committed.
+ */
+function syncEquipmentVariants($conn, $equipment_id, array $option_groups) {
+    $wanted = [];
+    foreach (variantCombinations($option_groups) as $combination) {
+        $wanted[variantKeyFor($combination)] = true;
+    }
+
+    $existing = [];
+    $stmt = $conn->prepare(
+        "SELECT variant_id, variant_key FROM equipment_variants WHERE equipment_id = ?"
+    );
+    $stmt->bind_param("i", $equipment_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $existing[$row['variant_key']] = (int)$row['variant_id'];
+    }
+    $stmt->close();
+
+    $stale = [];
+    foreach ($existing as $variant_key => $variant_id) {
+        if (!isset($wanted[$variant_key])) {
+            $stale[] = $variant_id;
+        }
+    }
+
+    if (!empty($stale)) {
+        $placeholders = implode(',', array_fill(0, count($stale), '?'));
+        $stmt = $conn->prepare(
+            "DELETE FROM equipment_variants WHERE variant_id IN (" . $placeholders . ")"
+        );
+        bindParams($stmt, str_repeat('i', count($stale)), $stale);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    $missing = array_diff_key($wanted, $existing);
+    if (!empty($missing)) {
+        $stmt = $conn->prepare(
+            "INSERT INTO equipment_variants (equipment_id, variant_key, stock) VALUES (?, ?, 0)"
+        );
+        foreach (array_keys($missing) as $variant_key) {
+            $stmt->bind_param("is", $equipment_id, $variant_key);
+            $stmt->execute();
+        }
+        $stmt->close();
+    }
+}
+
+/**
+ * Every variant of one product with its stock, ready to display.
+ * Each row carries the decoded choices and a label as well as the raw key,
+ * so the admin grid and the details page do not have to decode it again.
+ */
+function getEquipmentVariants($conn, $equipment_id) {
+    $variants = [];
+
+    $stmt = $conn->prepare(
+        "SELECT variant_id, variant_key, stock
+         FROM equipment_variants
+         WHERE equipment_id = ?
+         ORDER BY variant_key"
+    );
+    $stmt->bind_param("i", $equipment_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $row['stock']   = (int)$row['stock'];
+        $row['options'] = decodeVariantKey($row['variant_key']);
+        $row['label']   = variantLabel($row['variant_key']);
+        $variants[]     = $row;
+    }
+    $stmt->close();
+
+    return $variants;
+}
+
+/**
+ * The one variant matching a set of choices, or null when that combination
+ * is not offered. Casting a posted set of options into a key and looking it
+ * up here is what stops someone inventing a variant that is not for sale.
+ */
+function findVariantByOptions($conn, $equipment_id, array $clean_options) {
+    $variant_key = variantKeyFor($clean_options);
+
+    $stmt = $conn->prepare(
+        "SELECT variant_id, variant_key, stock
+         FROM equipment_variants
+         WHERE equipment_id = ? AND variant_key = ?"
+    );
+    $stmt->bind_param("is", $equipment_id, $variant_key);
+    $stmt->execute();
+    $variant = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    return $variant ?: null;
+}
+
+/**
+ * The stock of every variant of one product as [variant_key => stock].
+ *
+ * This is the shape the details page hands to JavaScript, so the availability
+ * line and the quantity limit can follow the dropdowns without a round trip.
+ */
+function variantStockMap(array $variants) {
+    $map = [];
+    foreach ($variants as $variant) {
+        $map[$variant['variant_key']] = (int)$variant['stock'];
+    }
+    return $map;
+}
+
+/**
+ * The same map for a whole page of products at once:
+ *   [equipment_id => ['Grip Color=Red|Grip Size=G4' => 4, ...], ...]
+ *
+ * The listing page shows up to fourteen cards, each with its own dropdowns,
+ * so one query here beats fourteen. Written to match getOptionGroupsForMany()
+ * which does the same thing for the choices themselves.
+ */
+function getVariantStockForMany($conn, $equipment_ids) {
+    $stock = [];
+    if (empty($equipment_ids)) {
+        return $stock;
+    }
+
+    $placeholders = implode(',', array_fill(0, count($equipment_ids), '?'));
+    $stmt = $conn->prepare(
+        "SELECT equipment_id, variant_key, stock
+         FROM equipment_variants
+         WHERE equipment_id IN (" . $placeholders . ")
+         ORDER BY equipment_id, variant_key"
+    );
+    bindParams($stmt, str_repeat('i', count($equipment_ids)), $equipment_ids);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $stock[(int)$row['equipment_id']][$row['variant_key']] = (int)$row['stock'];
+    }
+    $stmt->close();
+
+    return $stock;
+}
+
+/**
+ * How many units of one option value are left across every combination that
+ * contains it, as [option_name => [option_value => stock]].
+ *
+ * A value whose total comes to 0 cannot be bought in any combination, so the
+ * dropdowns mark it "sold out" instead of letting the customer pick it and
+ * only then be told no.
+ */
+function optionValueStock(array $option_groups, array $variants) {
+    $totals = [];
+
+    foreach ($option_groups as $option_name => $values) {
+        foreach ($values as $value) {
+            $totals[$option_name][$value] = 0;
+        }
+    }
+
+    foreach ($variants as $variant) {
+        foreach ($variant['options'] as $option_name => $value) {
+            if (isset($totals[$option_name][$value])) {
+                $totals[$option_name][$value] += (int)$variant['stock'];
+            }
+        }
+    }
+
+    return $totals;
+}
+
+/** A product's total stock, added up from its variants. */
+function totalVariantStock(array $variants) {
+    $total = 0;
+    foreach ($variants as $variant) {
+        $total += (int)$variant['stock'];
+    }
+    return $total;
+}
+
+/**
+ * Writes the stock numbers from the admin grid.
+ *
+ * $posted arrives as [variant_id => quantity] straight from the form, so
+ * every id is checked against the variants this product actually owns before
+ * anything is written. Without that check, editing the hidden field on one
+ * product's page would let an admin set the stock of another product's
+ * variant. Returns a list of error messages; empty means it was saved.
+ */
+function saveVariantStock($conn, $equipment_id, array $posted) {
+    $errors = [];
+
+    $owned = [];
+    foreach (getEquipmentVariants($conn, $equipment_id) as $variant) {
+        $owned[(int)$variant['variant_id']] = $variant['label'];
+    }
+
+    $updates = [];
+    foreach ($posted as $variant_id => $quantity) {
+        $variant_id = (int)$variant_id;
+        if (!isset($owned[$variant_id])) {
+            continue;
+        }
+        // A blank box is a slip rather than an instruction, so it is left
+        // alone instead of being read as zero and wiping the stock.
+        if (trim((string)$quantity) === '') {
+            continue;
+        }
+        if (!ctype_digit(ltrim((string)$quantity, '-')) || (int)$quantity < 0) {
+            $errors[] = "Stock for " . $owned[$variant_id] . " must be zero or a positive whole number.";
+            continue;
+        }
+        $updates[$variant_id] = (int)$quantity;
+    }
+
+    if (!empty($errors)) {
+        return $errors;
+    }
+
+    $stmt = $conn->prepare(
+        "UPDATE equipment_variants SET stock = ? WHERE variant_id = ? AND equipment_id = ?"
+    );
+    foreach ($updates as $variant_id => $quantity) {
+        $stmt->bind_param("iii", $quantity, $variant_id, $equipment_id);
+        $stmt->execute();
+    }
+    $stmt->close();
+
+    return [];
+}
+
 /**
  * All reviews for one product, newest first.
  * The reviews table only stores user_id, so the JOIN on users is what turns
@@ -200,19 +564,23 @@ function validateReviewInput($rating, $comment) {
 }
 
 /**
- * How many units of one product the user already has sitting in their cart.
+ * How many units of one variant the user already has sitting in their cart.
  *
  * Without this, the stock check only compares the new quantity against stock,
- * so a customer could add 20 of a 20-stock item twice and only discover the
+ * so a customer could add 4 of a 4-stock variant twice and only discover the
  * problem at checkout.
+ *
+ * It counts one variant rather than the whole product on purpose. Having 4
+ * red racquets in the cart says nothing about how many blue ones are left,
+ * so counting the product would refuse a sale the shop can actually make.
  */
-function cartQuantityFor($conn, $user_id, $equipment_id) {
+function cartQuantityForVariant($conn, $user_id, $variant_id) {
     $stmt = $conn->prepare(
         "SELECT COALESCE(SUM(quantity), 0) AS total
          FROM cart_items
-         WHERE user_id = ? AND equipment_id = ?"
+         WHERE user_id = ? AND variant_id = ?"
     );
-    $stmt->bind_param("ii", $user_id, $equipment_id);
+    $stmt->bind_param("ii", $user_id, $variant_id);
     $stmt->execute();
     $total = (int)$stmt->get_result()->fetch_assoc()['total'];
     $stmt->close();
@@ -220,11 +588,14 @@ function cartQuantityFor($conn, $user_id, $equipment_id) {
 }
 
 /**
- * Adds a product to the cart, or tops up the quantity when the exact same
- * product with the exact same variant choices is already in there.
+ * Adds one variant of a product to the cart, or tops up the quantity when
+ * that exact combination is already in there.
  *
- * Merging matters because the cart page lists one row per cart_items record -
- * without this, adding the same racquet twice produced two separate lines.
+ * The choices posted from the page are turned into a variant, and it is the
+ * variant's own stock that decides whether the sale can be made. Asking the
+ * product would be wrong twice over: it would sell a colour that ran out
+ * while another one still had stock, and it would refuse a colour that is on
+ * the shelf because a different one is empty.
  *
  * Returns an array of error messages; an empty array means it worked.
  */
@@ -232,7 +603,7 @@ function addToCart($conn, $user_id, $equipment_id, $quantity, $selected_options)
     $errors = [];
 
     $stmt = $conn->prepare(
-        "SELECT equipment_id, name, stock, status FROM equipment WHERE equipment_id = ?"
+        "SELECT equipment_id, name, status FROM equipment WHERE equipment_id = ?"
     );
     $stmt->bind_param("i", $equipment_id);
     $stmt->execute();
@@ -260,79 +631,65 @@ function addToCart($conn, $user_id, $equipment_id, $quantity, $selected_options)
         }
     }
 
-    $stock = (int)$product['stock'];
-    $already_in_cart = cartQuantityFor($conn, $user_id, $equipment_id);
+    if (!empty($errors)) {
+        return $errors;
+    }
+
+    // Every choice is valid on its own, so the combination they add up to has
+    // to exist as a variant. It normally will; it can be missing if the admin
+    // stopped offering that combination between the page loading and the form
+    // being sent.
+    $variant = findVariantByOptions($conn, $equipment_id, $clean_options);
+    if (!$variant) {
+        return ["That combination of " . $product['name'] . " is no longer available."];
+    }
+
+    $variant_id = (int)$variant['variant_id'];
+    $stock      = (int)$variant['stock'];
+    // What the messages below call the item. Products with no options keep
+    // their plain name rather than gaining a pointless "(Standard)".
+    $item_name = $variant['variant_key'] === ''
+        ? $product['name']
+        : $product['name'] . " (" . variantLabel($variant['variant_key']) . ")";
+
+    $already_in_cart = cartQuantityForVariant($conn, $user_id, $variant_id);
 
     if ($quantity < 1) {
         $errors[] = "Quantity must be at least 1.";
     } elseif ($stock <= 0) {
-        // Checked before the cart maths, otherwise a product with no stock at
+        // Checked before the cart maths, otherwise a variant with no stock at
         // all would be reported as "you already have all of it in your cart"
         // even when the cart is empty.
-        $errors[] = $product['name'] . " is out of stock.";
+        $errors[] = $item_name . " is out of stock.";
     } elseif (($already_in_cart + $quantity) > $stock) {
         $remaining = $stock - $already_in_cart;
         $errors[] = $remaining > 0
-            ? "Only " . $remaining . " more of " . $product['name'] . " can be added; you already have " . $already_in_cart . " in your cart."
-            : "You already have all " . $stock . " available of " . $product['name'] . " in your cart.";
+            ? "Only " . $remaining . " more of " . $item_name . " can be added; you already have " . $already_in_cart . " in your cart."
+            : "You already have all " . $stock . " available of " . $item_name . " in your cart.";
     }
 
     if (!empty($errors)) {
         return $errors;
     }
 
-    // ksort puts the choices in a fixed order so two identical selections
-    // always look identical when they are compared below.
-    ksort($clean_options);
-    $options_json = json_encode($clean_options);
-
     /*
-     * Look for a cart line holding this same product with these same choices.
+     * Insert the line, or add to it when it is already there.
      *
-     * The comparison is done in PHP, not in the SQL WHERE clause, because
-     * selected_options is a JSON column and MySQL rewrites JSON into its own
-     * normalised form when it stores it - {"Speed": "77"} with a space, where
-     * json_encode() produces {"Speed":"77"} without one. Matching on the raw
-     * text therefore never succeeds. Decoding both sides back into arrays
-     * compares the actual choices rather than how they happen to be spelled.
+     * UNIQUE (user_id, variant_id) on cart_items is what makes this one
+     * statement: the same combination cannot occupy two rows, so MySQL knows
+     * a clash means "top this line up". Before cart lines pointed at variants
+     * this needed a SELECT, a JSON decode of every row in PHP and then a
+     * choice between UPDATE and INSERT, because the stored JSON text never
+     * matched what json_encode() produced.
      */
-    $existing = null;
     $stmt = $conn->prepare(
-        "SELECT cart_id, quantity, selected_options
-         FROM cart_items
-         WHERE user_id = ? AND equipment_id = ?"
+        "INSERT INTO cart_items (user_id, variant_id, quantity)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE quantity = quantity + ?"
     );
-    $stmt->bind_param("ii", $user_id, $equipment_id);
+    $stmt->bind_param("iiii", $user_id, $variant_id, $quantity, $quantity);
     $stmt->execute();
-    $result = $stmt->get_result();
-    while ($row = $result->fetch_assoc()) {
-        $saved = json_decode($row['selected_options'] ?? '', true);
-        if (!is_array($saved)) {
-            $saved = [];
-        }
-        ksort($saved);
-        if ($saved == $clean_options) {
-            $existing = $row;
-            break;
-        }
-    }
     $stmt->close();
-
-    if ($existing) {
-        $new_quantity = (int)$existing['quantity'] + $quantity;
-        $stmt = $conn->prepare("UPDATE cart_items SET quantity = ? WHERE cart_id = ? AND user_id = ?");
-        $stmt->bind_param("iii", $new_quantity, $existing['cart_id'], $user_id);
-        $stmt->execute();
-        $stmt->close();
-    } else {
-        $stmt = $conn->prepare(
-            "INSERT INTO cart_items (user_id, equipment_id, quantity, selected_options)
-             VALUES (?, ?, ?, ?)"
-        );
-        $stmt->bind_param("iiis", $user_id, $equipment_id, $quantity, $options_json);
-        $stmt->execute();
-        $stmt->close();
-    }
 
     return [];
 }
@@ -391,10 +748,12 @@ function purchaserIdsFor($conn, $equipment_id) {
 function getCartItems($conn, $user_id) {
     $items = [];
     $stmt = $conn->prepare(
-        "SELECT ci.cart_id, ci.quantity, ci.selected_options,
-                e.equipment_id, e.name, e.price, e.stock, e.status
+        "SELECT ci.cart_id, ci.quantity,
+                v.variant_id, v.variant_key, v.stock,
+                e.equipment_id, e.name, e.price, e.status
          FROM cart_items ci
-         JOIN equipment e ON ci.equipment_id = e.equipment_id
+         JOIN equipment_variants v ON ci.variant_id = v.variant_id
+         JOIN equipment e          ON v.equipment_id = e.equipment_id
          WHERE ci.user_id = ?
          ORDER BY ci.added_at"
     );
@@ -403,11 +762,56 @@ function getCartItems($conn, $user_id) {
     $result = $stmt->get_result();
     while ($row = $result->fetch_assoc()) {
         $row['line_total'] = (float)$row['price'] * (int)$row['quantity'];
+        $row['options']    = decodeVariantKey($row['variant_key']);
+        $row['label']      = variantLabel($row['variant_key']);
+        // The choices in the shape the order line will snapshot them in. The
+        // cart itself has no need of this - the variant already says what was
+        // chosen - but equipment_order_items keeps its own copy so a receipt
+        // still reads correctly after the variant is retired.
+        $row['selected_options'] = json_encode($row['options']);
         $items[] = $row;
     }
     $stmt->close();
 
     return $items;
+}
+
+/**
+ * Why one cart line cannot be paid for, or '' when there is nothing wrong.
+ *
+ * The cart page and the checkout page both have to answer this, and they used
+ * to answer it separately - which is how a cart could look fine and then be
+ * refused a screen later, in different words. One function, called by both,
+ * means the sentence the shopper reads on the cart is the same sentence that
+ * would stop the payment.
+ *
+ * $item is a row from getCartItems(), so it carries the variant's own stock
+ * rather than the product's. That is the whole point: a racquet with twenty
+ * in the building is still unbuyable if the colour in this cart is at zero.
+ */
+function cartLineProblem($item) {
+    $item_name = ($item['variant_key'] ?? '') === ''
+        ? $item['name']
+        : $item['name'] . " (" . variantLabel($item['variant_key']) . ")";
+
+    if (($item['status'] ?? 'active') !== 'active') {
+        return $item_name . " is no longer available.";
+    }
+
+    $stock    = (int)$item['stock'];
+    $quantity = (int)$item['quantity'];
+
+    // Nothing left at all reads better as its own sentence. "only has 0 left
+    // in stock, but your cart has 2" is technically true and horrible.
+    if ($stock <= 0) {
+        return $item_name . " is out of stock.";
+    }
+    if ($quantity > $stock) {
+        return $item_name . " only has " . $stock . " left in stock, but your cart has "
+             . $quantity . ".";
+    }
+
+    return '';
 }
 
 /**
@@ -433,11 +837,13 @@ function reviewPendingEquipmentOrder($conn, $user_id) {
     }
 
     foreach ($review['items'] as $item) {
-        if ($item['status'] !== 'active') {
-            $review['errors'][] = $item['name'] . " is no longer available.";
-        } elseif ((int)$item['quantity'] > (int)$item['stock']) {
-            $review['errors'][] = $item['name'] . " only has " . (int)$item['stock']
-                . " left in stock, but your cart has " . (int)$item['quantity'] . ".";
+        // Each line is named with its combination, because "only 2 left" is
+        // confusing on a product the customer can see plenty of in other
+        // colours. cartLineProblem() is what the cart page shows too, so the
+        // two screens cannot word the same refusal differently.
+        $problem = cartLineProblem($item);
+        if ($problem !== '') {
+            $review['errors'][] = $problem;
         }
         $review['item_count'] += (int)$item['quantity'];
         $review['total_amount'] += $item['line_total'];
@@ -449,6 +855,9 @@ function reviewPendingEquipmentOrder($conn, $user_id) {
 /**
  * Takes payment for the cart: writes the order and its lines, removes the
  * stock, and empties the cart, all in one transaction.
+ *
+ * The stock comes off the variant, not the product, so buying the last red
+ * racquet leaves the blue ones untouched.
  *
  * The stock UPDATE carries its own "AND stock >= ?" and the affected-rows
  * check is what enforces it. Reading the stock and then subtracting it would
@@ -480,28 +889,32 @@ function payForEquipmentOrder($conn, $user_id, $payment_method) {
 
         $item_stmt = $conn->prepare(
             "INSERT INTO equipment_order_items
-             (equipment_order_id, equipment_id, quantity, price_at_purchase, selected_options)
-             VALUES (?, ?, ?, ?, ?)"
+             (equipment_order_id, equipment_id, variant_id, quantity, price_at_purchase, selected_options)
+             VALUES (?, ?, ?, ?, ?, ?)"
         );
         $stock_stmt = $conn->prepare(
-            "UPDATE equipment
+            "UPDATE equipment_variants
              SET stock = stock - ?
-             WHERE equipment_id = ? AND stock >= ?"
+             WHERE variant_id = ? AND stock >= ?"
         );
 
         foreach ($review['items'] as $item) {
             $equipment_id = (int)$item['equipment_id'];
+            $variant_id = (int)$item['variant_id'];
             $quantity = (int)$item['quantity'];
             $price = (float)$item['price'];
             $selected_options = $item['selected_options'];
 
-            $stock_stmt->bind_param("iii", $quantity, $equipment_id, $quantity);
+            $stock_stmt->bind_param("iii", $quantity, $variant_id, $quantity);
             $stock_stmt->execute();
             if ($stock_stmt->affected_rows !== 1) {
                 throw new RuntimeException("Stock changed during checkout.");
             }
 
-            $item_stmt->bind_param("iiids", $equipment_order_id, $equipment_id, $quantity, $price, $selected_options);
+            $item_stmt->bind_param(
+                "iiiids",
+                $equipment_order_id, $equipment_id, $variant_id, $quantity, $price, $selected_options
+            );
             $item_stmt->execute();
         }
 

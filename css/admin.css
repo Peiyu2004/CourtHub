@@ -1,4 +1,15 @@
 /* Admin Dashboard & Panel */
+
+/* Wider page container for the admin pages, switched on by $wide_layout in
+   includes/header.php.
+
+   Written as .site-main.site-main-wide rather than .site-main-wide on its own
+   so it beats the 1100px in style.css on specificity, not on which stylesheet
+   happens to be linked last. */
+.site-main.site-main-wide {
+    max-width: 1400px;
+}
+
 /* Layout Wrapper */
 .dashboard-layout {
     display: flex;

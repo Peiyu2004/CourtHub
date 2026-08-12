@@ -302,19 +302,11 @@ a {
     overflow: hidden;
 }
 
-.pic {
-    width: 1000px;
-    height: 400px;
-    object-fit: contain;
-    display: block;
-    overflow: hidden;
-}
-
-.pic img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
+/* .pic / .pic img lived here. They styled the floor plan picture on
+   booking/search.php, which was removed because a fixed drawing cannot follow
+   courts being added or retired in admin/courts.php. Nothing else used either
+   rule, and the fixed 1000px width was the last thing on the page that could
+   not shrink to fit a narrow window. */
 
 .btn {
     display: inline-block;
@@ -711,6 +703,34 @@ th {
     margin-top: 18px;
     padding-top: 18px;
     border-top: 1px solid #e5e8ef;
+}
+
+/* ---------- Cart lines that cannot be paid for (shop/cart.php) ---------- */
+
+/* Proceed to Payment while something in the cart is unbuyable. It stays a
+   real link so a browser with JavaScript off still reaches checkout.php and
+   is turned away there; this only makes it look as dead as it behaves. */
+.btn.is-blocked {
+    background-color: #9aa3b2;
+    cursor: not-allowed;
+}
+
+/* The offending row, so the message at the top of the page has something to
+   point at. The tint is deliberately light - the row is still readable, and
+   the Remove button in it is the thing the shopper needs to reach. */
+.js-cart-row.is-unbuyable > td {
+    background-color: #fdf2f2;
+}
+
+/* An empty note leaves no gap behind it. */
+.js-cart-line-note:empty {
+    display: none;
+}
+
+.js-cart-line-note {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 0.85rem;
 }
 
 .checkout-form {

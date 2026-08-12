@@ -117,14 +117,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $court = $stmt->get_result()->fetch_assoc();
         $stmt->close();
 
+        /*
+         * A court with a reservation still to come cannot be deleted at all.
+         *
+         * It used to be accepted and turned into a 'pending_deletion' court,
+         * which stopped taking new bookings and vanished once the old ones had
+         * been played. That quietly retired a court the customers holding
+         * those bookings could no longer see, on an admin click that read like
+         * an ordinary delete. Refusing outright keeps the court and the people
+         * booked on it visible, and says when it can be removed instead.
+         *
+         * This check is the one that decides. The Delete button is already
+         * hidden for these courts further down the page, but that state was
+         * worked out when the page was drawn, and somebody can pay for a
+         * booking in between - so the answer is asked for again here, at the
+         * moment it is acted on.
+         */
+        $block = $court ? courtBookingBlock($conn, $court_id) : ['count' => 0, 'last_ends_at' => null];
+
         if (!$court) {
             $errors[] = "Court could not be found.";
-        } elseif (courtHasCurrentOrFutureBookings($conn, $court_id)) {
-            $stmt = $conn->prepare("UPDATE courts SET status = 'pending_deletion' WHERE court_id = ?");
-            $stmt->bind_param("i", $court_id);
-            $stmt->execute();
-            $stmt->close();
-            $notice = $court['court_number'] . " is reserved by users. They can still use it, but it is now disabled for new reservations and will disappear after the reservations are complete.";
+        } elseif ($block['count'] > 0) {
+            $errors[] = $court['court_number'] . " cannot be deleted: "
+                      . $block['count'] . " paid reservation"
+                      . ($block['count'] === 1 ? '' : 's')
+                      . " on it "
+                      . ($block['count'] === 1 ? 'has' : 'have')
+                      . " not finished yet. The last one ends on "
+                      . date('j M Y, g:i A', strtotime($block['last_ends_at']))
+                      . ". You can delete this court once it has passed.";
         } else {
             $stmt = $conn->prepare("UPDATE courts SET status = 'deleted' WHERE court_id = ?");
             $stmt->bind_param("i", $court_id);
@@ -147,13 +168,20 @@ while ($row = $result->fetch_assoc()) {
     $courts[] = $row;
 }
 
+// How many unfinished reservations each court is carrying, for the whole table
+// in one query. A court that appears here cannot be deleted, so its Delete
+// button is replaced with the reason.
+$courts_with_bookings = courtsWithUnfinishedBookings($conn);
+
 // Get order count for sidebar badge indicator
 $order_counts = function_exists('equipmentOrderStatusCounts') ? equipmentOrderStatusCounts($conn) : ['pending' => 0];
 
+// Admin pages use the wider container - see includes/header.php.
+$wide_layout = true;
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<link rel="stylesheet" href="<?= h(app_url('/css/admin.css')) ?>">
+<link rel="stylesheet" href="<?= h(asset_url('/css/admin.css')) ?>">
 
 <section class="card">
     <h1>Admin Dashboard</h1>
@@ -168,7 +196,11 @@ require_once __DIR__ . '/../includes/header.php';
     <main class="dashboard-main-content">
         <section class="card">
             <h1>Manage Courts</h1>
-            <p class="muted">Deleted reserved courts stop accepting new reservations immediately, then disappear after their existing reservations are complete.</p>
+            <p class="muted">
+                A court that still has reservations to come cannot be deleted.
+                Its Delete button stays off until the last booking on it has
+                been played, so nobody loses a court they have paid for.
+            </p>
         </section>
 
         <?php if ($notice): ?>
@@ -265,11 +297,29 @@ require_once __DIR__ . '/../includes/header.php';
                                         <td>
                                             <?php if ($court['status'] !== 'pending_deletion'): ?>
                                                 <button type="submit" class="btn btn-secondary" form="<?= h($court_form_id) ?>">Save</button>
-                                                <form method="POST" action="<?= h(app_url('/admin/courts.php')) ?>">
-                                                    <input type="hidden" name="action" value="delete">
-                                                    <input type="hidden" name="court_id" value="<?= (int)$court['court_id'] ?>">
-                                                    <button type="submit" class="btn btn-danger">Delete</button>
-                                                </form>
+
+                                                <?php
+                                                    // Courts carrying a reservation that has not been
+                                                    // played cannot be deleted, so the button is not
+                                                    // offered. Saying why here beats letting the admin
+                                                    // click and be refused. The POST is checked again
+                                                    // regardless - see the delete action above.
+                                                    $pending_bookings = (int)($courts_with_bookings[(int)$court['court_id']] ?? 0);
+                                                ?>
+
+                                                <?php if ($pending_bookings > 0): ?>
+                                                    <button type="button" class="btn btn-danger" disabled
+                                                            title="This court has <?= $pending_bookings ?> reservation<?= $pending_bookings === 1 ? '' : 's' ?> that <?= $pending_bookings === 1 ? 'has' : 'have' ?> not finished yet.">Delete</button>
+                                                    <span class="muted">
+                                                        Booked &mdash; <?= $pending_bookings ?> reservation<?= $pending_bookings === 1 ? '' : 's' ?> still to come
+                                                    </span>
+                                                <?php else: ?>
+                                                    <form method="POST" action="<?= h(app_url('/admin/courts.php')) ?>">
+                                                        <input type="hidden" name="action" value="delete">
+                                                        <input type="hidden" name="court_id" value="<?= (int)$court['court_id'] ?>">
+                                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                                    </form>
+                                                <?php endif; ?>
                                             <?php else: ?>
                                                 <span class="muted">Disabled</span>
                                             <?php endif; ?>

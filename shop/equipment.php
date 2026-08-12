@@ -192,10 +192,17 @@ if ($sort === 'price_asc') {
     $order_by = "avg_rating DESC, e.name ASC";
 }
 
+// The stock a card shows is the product's variants added up, because that
+// total is not stored on the product - the variants are the only place it
+// lives. It answers "is this product worth opening", and nothing more: which
+// size or colour is actually available is decided per combination, on the
+// details page and again in addToCart().
 $sql =
     "SELECT e.*,
             st.name AS sport_name,
             c.name  AS category_name,
+            (SELECT COALESCE(SUM(v.stock), 0) FROM equipment_variants v
+              WHERE v.equipment_id = e.equipment_id) AS stock,
             (SELECT COUNT(*)    FROM equipment_reviews r WHERE r.equipment_id = e.equipment_id) AS review_count,
             (SELECT AVG(rating) FROM equipment_reviews r WHERE r.equipment_id = e.equipment_id) AS avg_rating
      FROM equipment e
@@ -218,6 +225,11 @@ foreach ($equipment as $item) {
 }
 $options_by_equipment = getOptionGroupsForMany($conn, $listing_ids);
 
+// The stock of every combination on the page, so a card can tell the shopper
+// that the colour they just picked is empty without waiting for the POST to
+// come back and say so.
+$variant_stock_by_equipment = getVariantStockForMany($conn, $listing_ids);
+
 // POSTing back to the same URL keeps the current filters after adding to the
 // cart, instead of dumping the shopper back at the unfiltered list.
 $post_target = app_url('/shop/equipment.php' . (!empty($_GET) ? '?' . http_build_query($_GET) : ''));
@@ -227,7 +239,7 @@ $has_filters =$q !== '' || $category_filter > 0 || !empty($sport_filter)
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="<?= h(app_url('/css/shop.css')) ?>?v=1.1">
+<link rel="stylesheet" href="<?= h(asset_url('/css/shop.css')) ?>">
 
 <section class="card">
     <h1>Equipment Store</h1>
@@ -424,19 +436,38 @@ renderToast($cart_notice);
                             <p class="product-desc"><?= h($item['description']) ?></p>
                         </div>
 
+                        <?php
+                            $item_options  = $options_by_equipment[(int)$item['equipment_id']] ?? [];
+                            $item_variants = $variant_stock_by_equipment[(int)$item['equipment_id']] ?? [];
+                            $in_stock = (int)$item['stock'] > 0;
+
+                            // The combination the card's dropdowns start on, and the
+                            // stock its note reports. Like the details page, they open
+                            // on the first combination that has stock rather than on
+                            // whichever one sorts first, so a card does not greet the
+                            // shopper with a sold-out size on a product that has three
+                            // other sizes on the shelf.
+                            $card_initial = [];
+                            foreach ($item_options as $option_name => $values) {
+                                $card_initial[$option_name] = $values[0];
+                            }
+                            foreach ($item_variants as $variant_key => $variant_stock_left) {
+                                if ($variant_stock_left > 0 && $variant_key !== '') {
+                                    $card_initial = decodeVariantKey($variant_key);
+                                    break;
+                                }
+                            }
+                            $card_stock = $item_variants[variantKeyFor($card_initial)] ?? 0;
+                        ?>
+
                         <div class="product-meta">
                             <strong><?= money($item['price']) ?></strong>
-                            <?php if ((int)$item['stock'] > 0): ?>
+                            <?php if ($in_stock): ?>
                                 <span class="stock-ok"><?= (int)$item['stock'] ?> in stock</span>
                             <?php else: ?>
                                 <span class="stock-out">Out of stock</span>
                             <?php endif; ?>
                         </div>
-
-                        <?php
-                            $item_options = $options_by_equipment[(int)$item['equipment_id']] ?? [];
-                            $in_stock = (int)$item['stock'] > 0;
-                        ?>
 
                         <?php if (!$in_stock): ?>
                             <button type="button" class="btn btn-block" disabled>Out of Stock</button>
@@ -453,7 +484,8 @@ renderToast($cart_notice);
                                  opens them, so the grid stays tidy. With JavaScript
                                  off the dropdowns are simply already visible and the
                                  form works in one click. -->
-                            <form method="POST" action="<?= h($post_target) ?>" class="card-cart-form">
+                            <form method="POST" action="<?= h($post_target) ?>" class="card-cart-form"
+                                  data-variants="<?= h(json_encode($item_variants)) ?>">
                                 <input type="hidden" name="action" value="add_to_cart">
                                 <input type="hidden" name="equipment_id" value="<?= (int)$item['equipment_id'] ?>">
                                 <input type="hidden" name="quantity" value="1">
@@ -463,16 +495,35 @@ renderToast($cart_notice);
                                         <?php foreach ($item_options as $option_name => $values): ?>
                                             <div class="form-group compact">
                                                 <label><?= h($option_name) ?></label>
-                                                <select name="options[<?= h($option_name) ?>]" required>
+                                                <select name="options[<?= h($option_name) ?>]"
+                                                        class="js-variant-option"
+                                                        data-option-name="<?= h($option_name) ?>" required>
                                                     <?php foreach ($values as $value): ?>
-                                                        <option value="<?= h($value) ?>"><?= h($value) ?></option>
+                                                        <option value="<?= h($value) ?>"
+                                                            <?= ($card_initial[$option_name] ?? null) === $value ? 'selected' : '' ?>>
+                                                            <?= h($value) ?>
+                                                        </option>
                                                     <?php endforeach; ?>
                                                 </select>
                                             </div>
                                         <?php endforeach; ?>
+                                        <p class="<?= $card_stock > 0 ? 'stock-ok' : 'stock-out' ?> js-variant-stock-note">
+                                            <?= $card_stock > 0
+                                                    ? (int)$card_stock . ' left in this combination'
+                                                    : 'This combination is out of stock' ?>
+                                        </p>
                                     </div>
                                 <?php endif; ?>
 
+                                <!-- Never disabled here even when the starting
+                                     combination is empty. On a card the dropdowns
+                                     are folded away and it is this button that
+                                     opens them, so disabling it would leave the
+                                     shopper unable to reach the colour that is in
+                                     stock. js/equipment.js takes over once they
+                                     are open; with JavaScript off the choices are
+                                     visible from the start and addToCart() is what
+                                     turns an empty combination away. -->
                                 <button type="submit" class="btn btn-block">Add to Cart</button>
                             </form>
                         <?php endif; ?>
@@ -486,6 +537,6 @@ renderToast($cart_notice);
 
 </div>
 
-<script src="<?= h(app_url('/js/equipment.js')) ?>?v=1.2"></script>
+<script src="<?= h(asset_url('/js/equipment.js')) ?>"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

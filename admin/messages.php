@@ -2,6 +2,8 @@
 
 session_start();
 
+// Admin pages use the wider container - see includes/header.php.
+$wide_layout = true;
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../config/db_connect.php';
 
@@ -75,6 +77,8 @@ if ($filter === 'All') {
 
 
 // Load header AFTER processing POST
+// Admin pages use the wider container - see includes/header.php.
+$wide_layout = true;
 require_once __DIR__ . '/../includes/header.php';
 
 ?>

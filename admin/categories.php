@@ -133,11 +133,13 @@ if (isset($_GET['edit'])) {
     }
 }
 
+// Admin pages use the wider container - see includes/header.php.
+$wide_layout = true;
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<link rel="stylesheet" href="<?= h(app_url('/css/shop.css')) ?>?v=1.0">
-<link rel="stylesheet" href="<?= h(app_url('/css/admin.css')) ?>">
+<link rel="stylesheet" href="<?= h(asset_url('/css/shop.css')) ?>">
+<link rel="stylesheet" href="<?= h(asset_url('/css/admin.css')) ?>">
 
 <section class="card">
     <h1>Admin Dashboard</h1>
@@ -259,6 +261,6 @@ require_once __DIR__ . '/../includes/header.php';
     </main>
 </div>
 
-<script src="<?= h(app_url('/js/equipment.js')) ?>?v=1.0"></script>
+<script src="<?= h(asset_url('/js/equipment.js')) ?>"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

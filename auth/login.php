@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<link rel="stylesheet" href="<?= h(app_url('/css/auth.css')) ?>?v=1.0">
+<link rel="stylesheet" href="<?= h(asset_url('/css/auth.css')) ?>">
 
 <div class="auth-page-wrapper">
     <div class="auth-card-container">
@@ -118,5 +118,5 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<script src="<?= h(app_url('/js/auth.js')) ?>?v=1.0"></script>
+<script src="<?= h(asset_url('/js/auth.js')) ?>"></script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

@@ -23,9 +23,11 @@ document.addEventListener('DOMContentLoaded', function () {
     setUpStarPicker();
     setUpCharCounter();
     setUpQuantityStepper();
+    setUpCartGuard();
     setUpReviewValidation();
     setUpStoreFilters();
     setUpEquipmentAdminForm();
+    setUpVariantStockForm();
     setUpImagePreview();
     setUpCategoryForm();
     setUpCardCartForms();
@@ -230,8 +232,91 @@ function setUpCharCounter() {
 
 
 /* ---------------------------------------------------------------------
-   4. Quantity stepper and live line total (product details page)
+   4. Variant availability, quantity stepper and live line total
+   ---------------------------------------------------------------------
+   Stock belongs to a combination, not to a product, so how many the customer
+   may buy changes every time they touch a dropdown. Rather than ask the
+   server again for each change, the page carries the stock of every
+   combination in a data-variants attribute and the answer is looked up here.
+
+   None of this is a check. The same choices are turned into a variant again
+   in addToCart(), and the stock is taken with an atomic UPDATE at checkout -
+   this only saves the customer from filling in a form that was never going
+   to be accepted.
    --------------------------------------------------------------------- */
+
+/**
+ * Builds the key of the combination currently selected in one form.
+ *
+ * It has to spell the key exactly the way PHP's variantKeyFor() does, or the
+ * lookup finds nothing: pairs joined by '|', name and value joined by '=',
+ * and the pairs sorted by option name so the order the dropdowns appear in
+ * cannot change the result.
+ */
+function variantKeyFromForm(form) {
+    var selects = form.querySelectorAll('.js-variant-option');
+    var pairs = [];
+
+    for (var i = 0; i < selects.length; i++) {
+        pairs.push({
+            name: selects[i].getAttribute('data-option-name') || '',
+            value: selects[i].value
+        });
+    }
+
+    pairs.sort(function (a, b) {
+        if (a.name === b.name) {
+            return 0;
+        }
+        return a.name < b.name ? -1 : 1;
+    });
+
+    var parts = [];
+    for (var j = 0; j < pairs.length; j++) {
+        parts.push(pairs[j].name + '=' + pairs[j].value);
+    }
+
+    // A product with no options produces '', which is exactly the key its
+    // single variant is stored under.
+    return parts.join('|');
+}
+
+/**
+ * How many of the currently selected combination are left.
+ * Anything unreadable answers 0, so a broken attribute closes the form rather
+ * than quietly letting an unlimited quantity through.
+ */
+function selectedVariantStock(form) {
+    var raw = form.getAttribute('data-variants');
+    if (!raw) {
+        return 0;
+    }
+
+    var map;
+    try {
+        map = JSON.parse(raw);
+    } catch (error) {
+        return 0;
+    }
+    if (!map || typeof map !== 'object') {
+        return 0;
+    }
+
+    var stock = map[variantKeyFromForm(form)];
+    return typeof stock === 'number' ? stock : 0;
+}
+
+/** Writes the "n left in this combination" line and colours it. */
+function paintVariantNote(note, stock, extraClass) {
+    if (!note) {
+        return;
+    }
+    note.textContent = stock > 0
+        ? stock + ' left in this combination'
+        : 'This combination is out of stock';
+    note.className = (stock > 0 ? 'stock-ok' : 'stock-out') + (extraClass ? ' ' + extraClass : '');
+}
+
 function setUpQuantityStepper() {
     var form = document.getElementById('addToCartForm');
     if (!form) {
@@ -247,8 +332,10 @@ function setUpQuantityStepper() {
         return;
     }
 
-    var stock = Number(form.getAttribute('data-stock'));
     var price = Number(form.getAttribute('data-price'));
+    var note = document.getElementById('variantStock');
+    var button = document.getElementById('addToCartButton');
+    var selects = form.querySelectorAll('.js-variant-option');
 
     function currentQuantity() {
         var value = Number(input.value);
@@ -261,19 +348,34 @@ function setUpQuantityStepper() {
     }
 
     function update() {
+        var stock = selectedVariantStock(form);
         var quantity = currentQuantity();
 
         if (quantity > stock) {
             quantity = stock;
         }
+        // The box keeps showing 1 on a sold-out combination rather than 0,
+        // because the button beside it is what says no, and a 0 in a quantity
+        // field just looks like a bug.
+        if (quantity < 1) {
+            quantity = 1;
+        }
         input.value = quantity;
+        input.max = stock > 0 ? stock : 1;
 
         // toFixed(2) keeps the running total looking like money.
         total.textContent = 'RM' + (quantity * price).toFixed(2);
 
         // Grey out the buttons at the ends of the range.
         down.disabled = quantity <= 1;
-        up.disabled = quantity >= stock;
+        up.disabled = stock <= 0 || quantity >= stock;
+
+        paintVariantNote(note, stock);
+
+        if (button) {
+            button.disabled = stock <= 0;
+            button.textContent = stock > 0 ? 'Add to Cart' : 'Out of Stock';
+        }
     }
 
     down.addEventListener('click', function () {
@@ -286,8 +388,161 @@ function setUpQuantityStepper() {
         update();
     });
 
+    // Changing a choice changes which stock applies, so the quantity starts
+    // again at 1 instead of carrying a number the new combination cannot meet.
+    for (var i = 0; i < selects.length; i++) {
+        selects[i].addEventListener('change', function () {
+            input.value = 1;
+            update();
+        });
+    }
+
     input.addEventListener('input', update);
     update();
+}
+
+
+/* ---------------------------------------------------------------------
+   4b. Cart guard (shop/cart.php)
+   ---------------------------------------------------------------------
+   Stops the shopper being sent to a payment screen that was always going
+   to turn them away, and says why on the page they are already looking at.
+
+   A cart can go bad while it sits open: somebody else buys the last one of
+   a colour, or an admin retires the product. The cart is then holding
+   something that cannot be sold, and the old behaviour was to let the
+   shopper click Proceed to Payment and find that out on the next screen.
+
+   Every rule here is applied again in PHP - cartLineProblem() decides the
+   same thing for the cart page and the checkout page, and the stock is
+   taken with an atomic UPDATE inside the payment transaction. This is the
+   quick answer, not the protection.
+   --------------------------------------------------------------------- */
+function setUpCartGuard() {
+    var link = document.querySelector('.js-checkout-link');
+    var blocker = document.getElementById('cartBlocker');
+    var rows = document.querySelectorAll('.js-cart-row');
+
+    if (!link || !blocker || rows.length === 0) {
+        return;
+    }
+
+    var list = blocker.querySelector('.js-cart-blocker-list');
+
+    /**
+     * Why this row cannot be paid for, or '' when it is fine.
+     *
+     * The wording matches cartLineProblem() in equipment_functions.php on
+     * purpose. Two copies of a sentence is a real cost, but the alternative
+     * is asking the server on every keystroke, and the PHP copy stays the
+     * one that actually decides.
+     *
+     * $savedQuantity, not what is currently typed in the box: until Update
+     * is pressed the database still holds the old number, and that is the
+     * number the payment would be checked against. Typing 1 into a box does
+     * not make the cart payable.
+     */
+    function problemWith(row) {
+        var label = row.getAttribute('data-item-label') || 'This item';
+        var stock = Number(row.getAttribute('data-stock'));
+        var saved = Number(row.getAttribute('data-saved-quantity'));
+
+        if (row.getAttribute('data-status') !== 'active') {
+            return label + ' is no longer available.';
+        }
+        if (!(stock > 0)) {
+            return label + ' is out of stock.';
+        }
+        if (saved > stock) {
+            return label + ' only has ' + stock + ' left in stock, but your cart has '
+                 + saved + '.';
+        }
+        return '';
+    }
+
+    /** The note under one quantity box, following what is being typed. */
+    function paintLineNote(row) {
+        var note = row.querySelector('.js-cart-line-note');
+        if (!note) {
+            return;
+        }
+
+        var stock = Number(row.getAttribute('data-stock'));
+        var input = row.querySelector('.js-cart-qty');
+        var typed = input ? Number(input.value) : 0;
+
+        var text = '';
+        var className = 'muted';
+
+        if (!(stock > 0)) {
+            text = 'Out of stock';
+            className = 'stock-out';
+        } else if (typed > stock) {
+            text = 'Only ' + stock + ' left';
+            className = 'stock-out';
+        } else if (stock <= 5) {
+            text = 'Only ' + stock + ' left';
+        }
+
+        note.textContent = text;
+        note.className = 'js-cart-line-note ' + className;
+    }
+
+    /** Rebuilds the message box and the state of the payment button. */
+    function refresh() {
+        var problems = [];
+
+        for (var i = 0; i < rows.length; i++) {
+            var problem = problemWith(rows[i]);
+            if (problem !== '') {
+                problems.push(problem);
+                rows[i].classList.add('is-unbuyable');
+            } else {
+                rows[i].classList.remove('is-unbuyable');
+            }
+            paintLineNote(rows[i]);
+        }
+
+        if (list) {
+            list.textContent = '';
+            for (var j = 0; j < problems.length; j++) {
+                var line = document.createElement('p');
+                // textContent, not innerHTML - a product name is typed by an
+                // admin and must never be run as markup.
+                line.textContent = problems[j];
+                list.appendChild(line);
+            }
+        }
+
+        var blocked = problems.length > 0;
+        blocker.hidden = !blocked;
+        link.setAttribute('data-blocked', blocked ? '1' : '0');
+        link.classList.toggle('is-blocked', blocked);
+    }
+
+    link.addEventListener('click', function (event) {
+        if (link.getAttribute('data-blocked') !== '1') {
+            return;
+        }
+
+        event.preventDefault();
+
+        // The reason may well be above the fold the shopper is looking at, so
+        // bring it to them rather than leaving the click feeling broken.
+        blocker.hidden = false;
+        blocker.scrollIntoView({block: 'center', behavior: 'smooth'});
+    });
+
+    for (var k = 0; k < rows.length; k++) {
+        var input = rows[k].querySelector('.js-cart-qty');
+        if (input) {
+            input.addEventListener('input', (function (row) {
+                return function () { paintLineNote(row); };
+            })(rows[k]));
+        }
+    }
+
+    refresh();
 }
 
 
@@ -621,9 +876,13 @@ function setUpEquipmentAdminForm() {
 
             var name = form.querySelector('[name="name"]');
             var price = form.querySelector('[name="price"]');
-            var stock = form.querySelector('[name="stock"]');
             var categoryId = form.querySelector('[name="category_id"]');
             var problems = 0;
+
+            // Stock is deliberately not checked here. It is not on this form
+            // any more: a product does not have one stock number, each of its
+            // combinations does, and those are typed into the separate grid
+            // handled by setUpVariantStockForm() below.
 
             if (name && isBlank(name.value)) {
                 showFieldError(name, 'Equipment name is required.');
@@ -634,17 +893,6 @@ function setUpEquipmentAdminForm() {
                 var priceValue = Number(price.value);
                 if (isBlank(price.value) || !(priceValue > 0)) {
                     showFieldError(price, 'Price must be a number greater than zero.');
-                    problems++;
-                }
-            }
-
-            if (stock) {
-                var stockValue = Number(stock.value);
-                if (isBlank(stock.value) || !(stockValue >= 0)) {
-                    showFieldError(stock, 'Stock cannot be negative.');
-                    problems++;
-                } else if (Math.floor(stockValue) !== stockValue) {
-                    showFieldError(stock, 'Stock must be a whole number.');
                     problems++;
                 }
             }
@@ -660,6 +908,84 @@ function setUpEquipmentAdminForm() {
             }
         });
     }
+}
+
+
+/* ---------------------------------------------------------------------
+   7b. Per-variation stock grid (admin/equipment.php)
+   Adds the boxes up as they are typed so the admin can see the product
+   total without saving first, and refuses obviously wrong numbers before
+   the form is sent. saveVariantStock() checks all of it again in PHP.
+   --------------------------------------------------------------------- */
+function setUpVariantStockForm() {
+    var form = document.querySelector('form.js-variant-stock-form');
+    if (!form) {
+        return;
+    }
+
+    var boxes = form.querySelectorAll('.js-variant-stock');
+    var total = document.getElementById('variantStockTotal');
+
+    /** A stock box holds a whole number of zero or more, or nothing at all. */
+    function problemWith(box) {
+        if (isBlank(box.value)) {
+            // Left empty on purpose keeps whatever is already saved, so it is
+            // not an error - PHP skips a blank box rather than reading it as 0.
+            return '';
+        }
+        var value = Number(box.value);
+        if (!(value >= 0)) {
+            return 'Stock cannot be negative.';
+        }
+        if (Math.floor(value) !== value) {
+            return 'Stock must be a whole number.';
+        }
+        return '';
+    }
+
+    function update() {
+        var sum = 0;
+        var readable = true;
+
+        for (var i = 0; i < boxes.length; i++) {
+            if (problemWith(boxes[i]) !== '') {
+                readable = false;
+                continue;
+            }
+            if (!isBlank(boxes[i].value)) {
+                sum += Number(boxes[i].value);
+            }
+        }
+
+        if (total) {
+            // A dash rather than a wrong number while something is unreadable.
+            total.textContent = readable ? String(sum) : '—';
+        }
+    }
+
+    for (var i = 0; i < boxes.length; i++) {
+        boxes[i].addEventListener('input', update);
+    }
+
+    form.addEventListener('submit', function (event) {
+        clearAllErrors(form);
+        var problems = 0;
+
+        for (var j = 0; j < boxes.length; j++) {
+            var message = problemWith(boxes[j]);
+            if (message !== '') {
+                showFieldError(boxes[j], message);
+                problems++;
+            }
+        }
+
+        if (problems > 0) {
+            event.preventDefault();
+            alert('Please fix ' + problems + ' problem(s) before saving.');
+        }
+    });
+
+    update();
 }
 
 
@@ -761,35 +1087,66 @@ function setUpCardCartForms() {
     var forms = document.querySelectorAll('form.card-cart-form');
 
     for (var i = 0; i < forms.length; i++) {
-        var options = forms[i].querySelector('.card-options');
-
-        // Products with no choices to make are left alone - one click adds them.
-        if (!options) {
-            continue;
-        }
-
-        // Folding happens here rather than in the CSS, so that a browser with
-        // JavaScript turned off shows the dropdowns straight away.
-        options.classList.add('is-folded');
-
-        forms[i].addEventListener('submit', function (event) {
-            var panel = this.querySelector('.card-options');
-            if (panel && panel.classList.contains('is-folded')) {
-                event.preventDefault();
-                panel.classList.remove('is-folded');
-
-                var button = this.querySelector('button[type="submit"]');
-                if (button) {
-                    button.textContent = 'Confirm Add to Cart';
-                }
-
-                var firstChoice = panel.querySelector('select');
-                if (firstChoice) {
-                    firstChoice.focus();
-                }
-            }
-        });
+        setUpOneCardCartForm(forms[i]);
     }
+}
+
+/**
+ * One product card's add-to-cart form.
+ *
+ * Written as its own function so each card keeps its own options panel,
+ * button and stock note in a closure. Sharing one handler across every card
+ * would mean looking all three up again from `this` on every event.
+ */
+function setUpOneCardCartForm(form) {
+    var options = form.querySelector('.card-options');
+
+    // Products with no choices to make are left alone - one click adds them.
+    if (!options) {
+        return;
+    }
+
+    // Folding happens here rather than in the CSS, so that a browser with
+    // JavaScript turned off shows the dropdowns straight away.
+    options.classList.add('is-folded');
+
+    var button = form.querySelector('button[type="submit"]');
+    var note = form.querySelector('.js-variant-stock-note');
+    var selects = form.querySelectorAll('.js-variant-option');
+
+    function update() {
+        var stock = selectedVariantStock(form);
+        paintVariantNote(note, stock, 'js-variant-stock-note');
+
+        // The button is only allowed to go dead once the choices are open.
+        // While they are folded away this button is what opens them, so
+        // disabling it would strand the shopper on a sold-out colour with no
+        // way to reach the ones that are in stock.
+        if (button && !options.classList.contains('is-folded')) {
+            button.disabled = stock <= 0;
+            button.textContent = stock > 0 ? 'Confirm Add to Cart' : 'Out of Stock';
+        }
+    }
+
+    for (var i = 0; i < selects.length; i++) {
+        selects[i].addEventListener('change', update);
+    }
+
+    form.addEventListener('submit', function (event) {
+        if (options.classList.contains('is-folded')) {
+            event.preventDefault();
+            options.classList.remove('is-folded');
+
+            var firstChoice = options.querySelector('select');
+            if (firstChoice) {
+                firstChoice.focus();
+            }
+
+            // Now that the panel is open the button may take its real state,
+            // which update() sets along with the stock note.
+            update();
+        }
+    });
 }
 
 

@@ -137,66 +137,57 @@ require_once __DIR__ . '/../includes/header.php';
             <?= money($price_per_court) ?> per court.
         </p>
 
-        <div class="court-layout">
-            <!-- Floor Plan -->
-            <div class="pic">
+        <?php
+        /*
+         * There was a floor plan picture here, one PNG per sport, drawn with a
+         * fixed set of courts on it.
+         *
+         * It has been removed because it could only ever be a drawing of one
+         * moment in time. Courts are managed by the admin in admin/courts.php -
+         * a new one can be added and an existing one retired at any point - and
+         * a PNG cannot follow that. The picture would keep showing six
+         * badminton courts after a seventh was built, or keep showing a court
+         * that had been taken out of service, while the checkboxes underneath
+         * it said something different. Two sources of truth on the same screen,
+         * and the wrong one is the more eye-catching.
+         *
+         * The list of courts below is generated from the courts table, so it is
+         * right by construction. That is the only picture of the hall this page
+         * needs.
+         */
+        ?>
 
-                <?php if (strtolower($selected_sport['name']) === 'badminton'): ?>
+        <!-- Amenities -->
+        <div class="amenities-card">
 
-                    <img 
-                        src="<?= h(app_url('/images/Badminton Floor Plan.png')) ?>" 
-                        alt="Badminton Hall"
-                    >
+            <h2>Amenities</h2>
 
-                <?php elseif (strtolower($selected_sport['name']) === 'pickleball'): ?>
+            <div class="amenities-list">
 
-                    <img 
-                        src="<?= h(app_url('/images/Pickleball Floor Plan.png')) ?>" 
-                        alt="Pickleball Hall"
-                    >
+                <div class="amenity">
+                    <span>Ⓟ Parking</span>
+                </div>
 
-                <?php elseif (strtolower($selected_sport['name']) === 'futsal'): ?>
+                <div class="amenity">
+                    <span>🚿 Shower</span>
+                </div>
 
-                    <img 
-                        src="<?= h(app_url('/images/Futsal Floor Plan.png')) ?>" 
-                        alt="Futsal Hall"
-                    >
+                <div class="amenity">
+                    <span>🛍 Pro Shop</span>
+                </div>
 
-                <?php endif; ?>
+                <div class="amenity">
+                    <span>🥤 Drinks</span>
+                </div>
 
-            </div>
-
-            <!-- Amenities -->
-            <div class="amenities-card">
-
-                <h2>Amenities</h2>
-
-                <div class="amenities-list">
-
-                    <div class="amenity">
-                        <span>Ⓟ Parking</span>
-                    </div>
-
-                    <div class="amenity">
-                        <span>🚿 Shower</span>
-                    </div>
-
-                    <div class="amenity">
-                        <span>🛍 Pro Shop</span>
-                    </div>
-
-                    <div class="amenity">
-                        <span>🥤 Drinks</span>
-                    </div>
-
-                    <div class="amenity">
-                        <span>🕌 Surau</span>
-                    </div>
-
+                <div class="amenity">
+                    <span>🕌 Surau</span>
                 </div>
 
             </div>
-        <div>
+
+        </div>
+
         <?php if (empty($available_courts)): ?>
             <div class="empty-state">
                 Every <?= h($selected_sport['name']) ?> court is taken for this slot. Try another time or date.
@@ -243,6 +234,6 @@ require_once __DIR__ . '/../includes/header.php';
     </section>
 <?php endif; ?>
 
-<script src="<?= h(app_url('/js/booking.js')) ?>?v=1.1"></script>
+<script src="<?= h(asset_url('/js/booking.js')) ?>"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

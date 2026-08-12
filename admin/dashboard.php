@@ -56,10 +56,12 @@ foreach (array_reverse($monthly_revenue) as $m) {
     $chart_data[] = (float)$m['revenue'];
 }
 
+// Admin pages use the wider container - see includes/header.php.
+$wide_layout = true;
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<link rel="stylesheet" href="<?= h(app_url('/css/admin.css')) ?>">
+<link rel="stylesheet" href="<?= h(asset_url('/css/admin.css')) ?>">
 
 <section class="card">
     <h1>Admin Dashboard</h1>
@@ -156,6 +158,6 @@ require_once __DIR__ . '/../includes/header.php';
     window.chartMonths = <?= json_encode($chart_months) ?>;
     window.chartData = <?= json_encode($chart_data) ?>;
 </script>
-<script src="<?= h(app_url('/js/dashboard.js')) ?>"></script>
+<script src="<?= h(asset_url('/js/dashboard.js')) ?>"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

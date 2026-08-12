@@ -89,6 +89,6 @@ require_once __DIR__ . '/../includes/gatewayHeader.php';
 
 </div>
 
-<script src="<?= h(app_url('/js/payment.js')) ?>?v=1.0"></script>
+<script src="<?= h(asset_url('/js/payment.js')) ?>"></script>
 
 <?php require_once __DIR__ . '/../includes/gatewayFooter.php'; ?>

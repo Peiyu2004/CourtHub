@@ -32,6 +32,18 @@ $payment_method = $_POST['payment_method'] ?? '';
 $review = reviewPendingEquipmentOrder($conn, $user_id);
 
 /*
+ * Anything wrong with the cart is shown straight away, not only after a
+ * payment method has been picked.
+ *
+ * The page already refused to offer the payment methods when the review came
+ * back with errors, and told the customer to "fix the problems above" - but
+ * the problems were only ever copied into $errors on POST, so arriving here
+ * from the cart showed that sentence with nothing above it to fix. The
+ * customer was told they had a problem and not what it was.
+ */
+$errors = $review['errors'];
+
+/*
  * The customer picked how they want to pay.
  *
  * The choice is written into the session before forwarding, so the provider
@@ -40,8 +52,6 @@ $review = reviewPendingEquipmentOrder($conn, $user_id);
  * shown for an order that could not go through anyway.
  */
 if (($_POST['action'] ?? '') === 'choose') {
-    $errors = $review['errors'];
-
     $payment_page = paymentPageFor($payment_method);
     if (!$payment_page) {
         $errors[] = "Please choose a payment method.";

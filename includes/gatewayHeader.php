@@ -30,7 +30,7 @@ require_once __DIR__ . '/../config/functions.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($gateway_title ?? 'Payment') ?></title>
-    <link rel="stylesheet" href="<?= h(app_url('/css/style.css')) ?>?v=1.0">
+    <link rel="stylesheet" href="<?= h(asset_url('/css/style.css')) ?>">
     <?php if (!empty($gateway_refresh)): ?>
         <!-- The plain-HTML way back to the merchant. js/booking.js also counts
              down on screen, but this is what runs when JavaScript does not, so

@@ -9,6 +9,13 @@
  *   Update - edit a product, replacing its variant options
  *   Delete - remove a product, or discontinue it when removing would damage
  *            somebody's cart or an existing order
+ *
+ * Stock is not edited on the product form, because a product does not have
+ * one stock number any more - each combination of its options has its own.
+ * Saving the options builds those combinations, and the grid further down the
+ * edit page is where their quantities are typed in. The two are separate
+ * forms on purpose: the options decide which boxes the grid shows, so they
+ * have to be saved before there is a grid to fill in.
  */
 
 require_once __DIR__ . '/../config/db_connect.php';
@@ -21,13 +28,21 @@ $sports     = getSportTypes($conn);
 $categories = getCategories($conn);
 $errors     = [];
 $notice     = '';
+// Set by an action that wants the page to stay on one product afterwards,
+// so the stock grid for it is on screen without the admin navigating back.
+$reopen_id  = 0;
 
 /**
  * Turns the textarea into rows for equipment_options.
  * One option group per line:  Grip Color: Red, Blue, Black
+ *
+ * Duplicates within a group are dropped rather than saved. equipment_options
+ * has a UNIQUE key on (equipment_id, option_name, option_value), so "Red,
+ * Red" would otherwise fail the whole save over what is only a typing slip.
  */
 function parseOptionLines($text) {
     $options = [];
+    $seen = [];
     $lines = preg_split('/\r\n|\r|\n/', trim($text));
     foreach ($lines as $line) {
         $line = trim($line);
@@ -41,12 +56,47 @@ function parseOptionLines($text) {
         $name = trim($parts[0]);
         $values = array_filter(array_map('trim', explode(',', $parts[1])));
         foreach ($values as $value) {
-            if ($name !== '' && $value !== '') {
-                $options[] = [$name, $value];
+            if ($name === '' || $value === '') {
+                continue;
             }
+            $fingerprint = $name . "\0" . $value;
+            if (isset($seen[$fingerprint])) {
+                continue;
+            }
+            $seen[$fingerprint] = true;
+            $options[] = [$name, $value];
         }
     }
     return $options;
+}
+
+/**
+ * Checks the option names and values before they are saved.
+ *
+ * '=' and '|' are refused because those two characters are what join a
+ * combination into its variant_key - 'Grip Color=Red|Grip Size=G4'. A value
+ * containing either of them would produce a key that decodes back into
+ * something other than what was typed, and the variant would no longer be
+ * findable from the customer's choices.
+ */
+function validateOptionRows($option_rows) {
+    $errors = [];
+
+    foreach ($option_rows as $row) {
+        [$option_name, $option_value] = $row;
+        foreach ([$option_name, $option_value] as $text) {
+            if (strpos($text, VARIANT_VALUE_SEPARATOR) !== false ||
+                strpos($text, VARIANT_PAIR_SEPARATOR) !== false) {
+                $errors[] = "Variant options cannot contain the characters "
+                          . VARIANT_VALUE_SEPARATOR . " or " . VARIANT_PAIR_SEPARATOR
+                          . ", but \"" . $text . "\" does.";
+                // One message is enough to send the admin back to the box.
+                return $errors;
+            }
+        }
+    }
+
+    return $errors;
 }
 
 /**
@@ -63,8 +113,18 @@ function optionsToText($conn, $equipment_id) {
 }
 
 /**
- * Writes the variant options for a product, replacing whatever was there.
+ * Writes the variant options for a product, replacing whatever was there,
+ * and then brings its stock-holding combinations back in line with them.
  * Used by both add and edit so the two paths cannot drift apart.
+ *
+ * The option rows are rewritten from scratch, but syncEquipmentVariants()
+ * is careful not to: a combination that survives the edit keeps its row, and
+ * so keeps the stock somebody counted onto it. Only combinations that are no
+ * longer offered go, and only new ones arrive, starting at zero.
+ *
+ * The groups handed to the sync are read back out of the database rather than
+ * built from $option_rows, so the combinations are always generated from what
+ * was actually stored.
  */
 function saveOptions($conn, $equipment_id, $option_rows) {
     $stmt = $conn->prepare("DELETE FROM equipment_options WHERE equipment_id = ?");
@@ -72,19 +132,21 @@ function saveOptions($conn, $equipment_id, $option_rows) {
     $stmt->execute();
     $stmt->close();
 
-    if (empty($option_rows)) {
-        return;
+    if (!empty($option_rows)) {
+        $stmt = $conn->prepare(
+            "INSERT INTO equipment_options (equipment_id, option_name, option_value) VALUES (?, ?, ?)"
+        );
+        foreach ($option_rows as $row) {
+            [$option_name, $option_value] = $row;
+            $stmt->bind_param("iss", $equipment_id, $option_name, $option_value);
+            $stmt->execute();
+        }
+        $stmt->close();
     }
 
-    $stmt = $conn->prepare(
-        "INSERT INTO equipment_options (equipment_id, option_name, option_value) VALUES (?, ?, ?)"
-    );
-    foreach ($option_rows as $row) {
-        [$option_name, $option_value] = $row;
-        $stmt->bind_param("iss", $equipment_id, $option_name, $option_value);
-        $stmt->execute();
-    }
-    $stmt->close();
+    // Runs even when there are no options at all: a product with no choices
+    // still needs its single '' variant, because that is where its stock goes.
+    syncEquipmentVariants($conn, $equipment_id, getEquipmentOptionGroups($conn, $equipment_id));
 }
 
 /**
@@ -100,9 +162,6 @@ function validateEquipmentInput($fields, $sports, $categories) {
     }
     if ($fields['price'] <= 0) {
         $errors[] = "Price must be more than zero.";
-    }
-    if ($fields['stock'] < 0) {
-        $errors[] = "Stock cannot be negative.";
     }
 
     $sport_exists = false;
@@ -140,7 +199,6 @@ function equipmentFieldsFromPost() {
         'category_id'   => (int)($_POST['category_id'] ?? 0),
         'brand'         => trim($_POST['brand'] ?? ''),
         'price'         => (float)($_POST['price'] ?? 0),
-        'stock'         => (int)($_POST['stock'] ?? 0),
         'description'   => trim($_POST['description'] ?? ''),
         'image_url'     => trim($_POST['image_url'] ?? ''),
     ];
@@ -164,7 +222,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add') {
         $fields      = equipmentFieldsFromPost();
         $option_rows = parseOptionLines($_POST['options_text'] ?? '');
-        $errors      = validateEquipmentInput($fields, $sports, $categories);
+        $errors      = array_merge(
+            validateEquipmentInput($fields, $sports, $categories),
+            validateOptionRows($option_rows)
+        );
 
         if (empty($errors)) {
             // The product row and its option rows must either both be written
@@ -175,13 +236,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $stmt = $conn->prepare(
                     "INSERT INTO equipment
-                     (name, sport_type_id, category_id, category, brand, price, stock, description, image_url)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                     (name, sport_type_id, category_id, category, brand, price, description, image_url)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
                 );
                 $stmt->bind_param(
-                    "siissdiss",
+                    "siissdss",
                     $fields['name'], $fields['sport_type_id'], $fields['category_id'], $category_name,
-                    $fields['brand'], $fields['price'], $fields['stock'],
+                    $fields['brand'], $fields['price'],
                     $fields['description'], $fields['image_url']
                 );
                 $stmt->execute();
@@ -191,7 +252,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 saveOptions($conn, $equipment_id, $option_rows);
 
                 $conn->commit();
-                $notice = "\"" . $fields['name'] . "\" has been added to the store.";
+
+                // A new product's combinations all start at zero, so it is not
+                // finished yet. Reopening it for editing puts the stock grid on
+                // screen straight away rather than leaving the admin to work
+                // out that a second step exists.
+                $reopen_id = $equipment_id;
+                $notice = "\"" . $fields['name'] . "\" has been added to the store. "
+                        . "Set how many of each variation you have below - it is not on sale until you do.";
             } catch (Throwable $e) {
                 $conn->rollback();
                 $errors[] = "The equipment could not be added.";
@@ -204,7 +272,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $equipment_id = (int)($_POST['equipment_id'] ?? 0);
         $fields       = equipmentFieldsFromPost();
         $option_rows  = parseOptionLines($_POST['options_text'] ?? '');
-        $errors       = validateEquipmentInput($fields, $sports, $categories);
+        $errors       = array_merge(
+            validateEquipmentInput($fields, $sports, $categories),
+            validateOptionRows($option_rows)
+        );
 
         $stmt = $conn->prepare("SELECT equipment_id FROM equipment WHERE equipment_id = ?");
         $stmt->bind_param("i", $equipment_id);
@@ -224,13 +295,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $conn->prepare(
                     "UPDATE equipment
                      SET name = ?, sport_type_id = ?, category_id = ?, category = ?,
-                         brand = ?, price = ?, stock = ?, description = ?, image_url = ?
+                         brand = ?, price = ?, description = ?, image_url = ?
                      WHERE equipment_id = ?"
                 );
                 $stmt->bind_param(
-                    "siissdissi",
+                    "siissdssi",
                     $fields['name'], $fields['sport_type_id'], $fields['category_id'], $category_name,
-                    $fields['brand'], $fields['price'], $fields['stock'],
+                    $fields['brand'], $fields['price'],
                     $fields['description'], $fields['image_url'], $equipment_id
                 );
                 $stmt->execute();
@@ -239,10 +310,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 saveOptions($conn, $equipment_id, $option_rows);
 
                 $conn->commit();
-                $notice = "\"" . $fields['name'] . "\" has been updated.";
+
+                // Changing the options changes the grid, so the page stays on
+                // this product to show what the combinations now look like.
+                $reopen_id = $equipment_id;
+                $notice = "\"" . $fields['name'] . "\" has been updated. "
+                        . "Check the stock for each variation below - any new combination starts at zero.";
             } catch (Throwable $e) {
                 $conn->rollback();
                 $errors[] = "The equipment could not be updated.";
+            }
+        }
+    }
+
+    // -------------------------- Stock grid ----------------------------
+    // The second half of editing a product: one quantity per combination.
+    // Kept apart from the product form because the options saved there are
+    // what decide which boxes appear here.
+    if ($action === 'save_stock') {
+        $equipment_id = (int)($_POST['equipment_id'] ?? 0);
+        $reopen_id    = $equipment_id;
+
+        $stmt = $conn->prepare("SELECT name FROM equipment WHERE equipment_id = ?");
+        $stmt->bind_param("i", $equipment_id);
+        $stmt->execute();
+        $product = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$product) {
+            $errors[] = "That product could not be found.";
+        } else {
+            $errors = saveVariantStock($conn, $equipment_id, $_POST['stock'] ?? []);
+            if (empty($errors)) {
+                $notice = "Stock for \"" . $product['name'] . "\" has been updated.";
             }
         }
     }
@@ -261,16 +361,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "That product could not be found.";
         } else {
             /*
-             * cart_items has ON DELETE CASCADE, so deleting a product would
-             * quietly empty it out of every customer's cart, and past orders
-             * would lose the link to what was bought. So the references are
-             * counted first: if anything points at this product it is marked
-             * discontinued (hidden from the store, row kept) instead of
-             * deleted. This mirrors how admin/courts.php retires a court.
+             * Deleting a product cascades into its variants, and cart_items
+             * cascades from there, so it would quietly empty the product out
+             * of every customer's cart; past orders would lose the link to
+             * what was bought. So the references are counted first: if
+             * anything points at this product it is marked discontinued
+             * (hidden from the store, row kept) instead of deleted. This
+             * mirrors how admin/courts.php retires a court.
+             *
+             * The cart side is counted through equipment_variants, because a
+             * cart line names a variant and not a product.
              */
             $stmt = $conn->prepare(
                 "SELECT
-                    (SELECT COUNT(*) FROM cart_items            WHERE equipment_id = ?) AS in_carts,
+                    (SELECT COUNT(*) FROM cart_items ci
+                       JOIN equipment_variants v ON ci.variant_id = v.variant_id
+                      WHERE v.equipment_id = ?)                            AS in_carts,
                     (SELECT COUNT(*) FROM equipment_order_items WHERE equipment_id = ?) AS in_orders"
             );
             $stmt->bind_param("ii", $equipment_id, $equipment_id);
@@ -312,10 +418,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $categories = getCategories($conn);
 }
 
-// ?edit=5 loads that product into the form at the top of the page.
+// ?edit=5 loads that product into the form at the top of the page. An action
+// that just saved a product asks for the same thing through $reopen_id, so
+// its stock grid is waiting when the page comes back.
 $editing = null;
-if (isset($_GET['edit'])) {
-    $edit_id = (int)$_GET['edit'];
+$edit_id = $reopen_id > 0 ? $reopen_id : (int)($_GET['edit'] ?? 0);
+
+if ($edit_id > 0) {
     $stmt = $conn->prepare("SELECT * FROM equipment WHERE equipment_id = ?");
     $stmt->bind_param("i", $edit_id);
     $stmt->execute();
@@ -327,12 +436,29 @@ if (isset($_GET['edit'])) {
     }
 }
 
+// The combinations of the product being edited, with the stock of each. This
+// is what the grid under the form is built from.
+$editing_variants = $editing ? getEquipmentVariants($conn, (int)$editing['equipment_id']) : [];
+
 // Read: every product, with its options rolled into one string and a count of
 // how many reviews it has.
+//
+// The stock column is added up from the product's variants rather than read
+// from the product, because that total is not stored anywhere - the variants
+// are the only place it exists. variant_count goes with it so the list can say
+// how many combinations the total is spread across, and out_of_stock_count
+// flags a product that still has stock overall but has run out in one of its
+// sizes or colours, which is exactly the case a single number would hide.
 $equipment = [];
 $result = $conn->query(
-    "SELECT e.equipment_id, e.name, e.category, e.brand, e.price, e.stock, e.status, e.image_url,
+    "SELECT e.equipment_id, e.name, e.category, e.brand, e.price, e.status, e.image_url,
             st.name AS sport_name,
+            (SELECT COALESCE(SUM(v.stock), 0) FROM equipment_variants v
+              WHERE v.equipment_id = e.equipment_id) AS stock,
+            (SELECT COUNT(*) FROM equipment_variants v
+              WHERE v.equipment_id = e.equipment_id) AS variant_count,
+            (SELECT COUNT(*) FROM equipment_variants v
+              WHERE v.equipment_id = e.equipment_id AND v.stock = 0) AS out_of_stock_count,
             (SELECT GROUP_CONCAT(CONCAT(eo.option_name, ': ', eo.option_value)
                                  ORDER BY eo.option_name, eo.option_value SEPARATOR '; ')
              FROM equipment_options eo WHERE eo.equipment_id = e.equipment_id) AS options_summary,
@@ -346,10 +472,12 @@ while ($row = $result->fetch_assoc()) {
 }
 $result->close();
 
+// Admin pages use the wider container - see includes/header.php.
+$wide_layout = true;
 require_once __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="<?= h(app_url('/css/shop.css')) ?>?v=1.0">
-<link rel="stylesheet" href="<?= h(app_url('/css/admin.css')) ?>">
+<link rel="stylesheet" href="<?= h(asset_url('/css/shop.css')) ?>">
+<link rel="stylesheet" href="<?= h(asset_url('/css/admin.css')) ?>">
 
 <section class="card">
     <h1>Admin Dashboard</h1>
@@ -438,12 +566,6 @@ require_once __DIR__ . '/../includes/header.php';
                             value="<?= h($editing['price'] ?? '') ?>">
                     </div>
 
-                    <div class="form-group">
-                        <label for="stock">Stock</label>
-                        <input type="number" id="stock" name="stock" min="0" required
-                            value="<?= h($editing['stock'] ?? '') ?>">
-                    </div>
-
                     <div class="form-group full-span">
                         <label for="description">Description</label>
                         <textarea id="description" name="description" rows="3"><?= h($editing['description'] ?? '') ?></textarea>
@@ -465,7 +587,12 @@ require_once __DIR__ . '/../includes/header.php';
                         <label for="options_text">Variant Options</label>
                         <textarea id="options_text" name="options_text" rows="4"
                                 placeholder="Grip Size: G4, G5&#10;Grip Color: Red, Blue, Black"><?= h($editing ? optionsToText($conn, (int)$editing['equipment_id']) : '') ?></textarea>
-                        <p class="muted">One option group per line: Option Name: Value 1, Value 2</p>
+                        <p class="muted">
+                            One option group per line: Option Name: Value 1, Value 2<br>
+                            Saving builds one stock box per combination below &mdash;
+                            two sizes and three colours make six. Combinations that
+                            already exist keep the stock you gave them.
+                        </p>
                     </div>
 
                     <div class="form-actions">
@@ -480,6 +607,93 @@ require_once __DIR__ . '/../includes/header.php';
                 </form>
             <?php endif; ?>
         </section>
+
+        <?php if ($editing): ?>
+            <?php
+                // The grid is generated from the product's combinations, so the
+                // admin never types a combination out by hand and cannot invent
+                // one that is not offered.
+                $editing_total = totalVariantStock($editing_variants);
+                $editing_empty = 0;
+                foreach ($editing_variants as $variant) {
+                    if ($variant['stock'] === 0) {
+                        $editing_empty++;
+                    }
+                }
+            ?>
+            <section class="card">
+                <h2>Stock per Variation</h2>
+                <p class="muted">
+                    Every combination of <strong><?= h($editing['name']) ?></strong> holds its own stock,
+                    so running out of one size or colour leaves the rest on sale.
+                </p>
+
+                <?php if (empty($editing_variants)): ?>
+                    <div class="empty-state">
+                        This product has no variations yet. Save the form above to build them.
+                    </div>
+                <?php else: ?>
+                    <?php if ($editing_empty > 0): ?>
+                        <p class="muted">
+                            <?= (int)$editing_empty ?> of <?= count($editing_variants) ?> variations
+                            <?= $editing_empty === 1 ? 'is' : 'are' ?> at zero and cannot be bought.
+                        </p>
+                    <?php endif; ?>
+
+                    <!-- js-variant-stock-form keeps the total at the bottom in
+                         step with the boxes as they are typed in -->
+                    <form method="POST" action="<?= h(app_url('/admin/equipment.php')) ?>"
+                          class="js-variant-stock-form">
+                        <input type="hidden" name="action" value="save_stock">
+                        <input type="hidden" name="equipment_id" value="<?= (int)$editing['equipment_id'] ?>">
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Variation</th>
+                                        <th>Stock</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($editing_variants as $variant): ?>
+                                        <tr>
+                                            <td>
+                                                <?php if (empty($variant['options'])): ?>
+                                                    <strong>Standard</strong>
+                                                    <span class="muted">&mdash; this product has no options</span>
+                                                <?php else: ?>
+                                                    <?php foreach ($variant['options'] as $option_name => $option_value): ?>
+                                                        <span class="mini-pill"><?= h($option_name) ?>: <?= h($option_value) ?></span>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="qty-input js-variant-stock"
+                                                       name="stock[<?= (int)$variant['variant_id'] ?>]"
+                                                       min="0" step="1"
+                                                       value="<?= (int)$variant['stock'] ?>"
+                                                       aria-label="Stock for <?= h($variant['label']) ?>">
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th>Total in stock</th>
+                                        <th id="variantStockTotal"><?= (int)$editing_total ?></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn">Save Stock</button>
+                        </div>
+                    </form>
+                <?php endif; ?>
+            </section>
+        <?php endif; ?>
 
         <section class="card">
             <h2>Equipment List</h2>
@@ -517,7 +731,19 @@ require_once __DIR__ . '/../includes/header.php';
                                     <td><?= h($item['sport_name']) ?></td>
                                     <td><?= h($item['category']) ?></td>
                                     <td><?= money($item['price']) ?></td>
-                                    <td><?= (int)$item['stock'] ?></td>
+                                    <td>
+                                        <?= (int)$item['stock'] ?>
+                                        <?php if ((int)$item['variant_count'] > 1): ?>
+                                            <br>
+                                            <span class="muted">
+                                                across <?= (int)$item['variant_count'] ?> variations<?php
+                                                    // Worth saying out loud: a healthy looking total can
+                                                    // still be sold out in the size somebody wants.
+                                                    if ((int)$item['out_of_stock_count'] > 0): ?>,
+                                                    <?= (int)$item['out_of_stock_count'] ?> empty<?php endif; ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td><?= (int)$item['review_count'] ?></td>
                                     <td>
                                         <span class="status <?= h($item['status']) ?>">
@@ -557,6 +783,6 @@ require_once __DIR__ . '/../includes/header.php';
     </main>
 </div>
 
-<script src="<?= h(app_url('/js/equipment.js')) ?>?v=1.0"></script>
+<script src="<?= h(asset_url('/js/equipment.js')) ?>"></script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

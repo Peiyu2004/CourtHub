@@ -81,8 +81,65 @@ function app_url($path = '') {
     return appBasePath() . ($path === '/' ? '' : $path);
 }
 
+/**
+ * A URL for a CSS or JS file, with a version stamp the browser cannot cache
+ * past: ?v= the file's own last-modified time.
+ *
+ * Pages used to write "?v=1.0" by hand, and the number had to be remembered
+ * and bumped every time the file behind it changed. It was not: the numbers
+ * drifted apart across pages (1.0, 1.1, 1.2 for the same two files), and when
+ * equipment.js was rewritten to read stock per variant the version stayed at
+ * 1.0, so every browser that had already been on the site kept running the
+ * previous script against the new markup. The stock line on the product page
+ * then sat frozen on the first combination, because the old script had no
+ * idea the dropdowns were supposed to change anything.
+ *
+ * filemtime() makes the stamp a fact about the file rather than something a
+ * person has to remember. Edit the file and every page asks for a new URL on
+ * the next load; leave it alone and the browser keeps caching it.
+ *
+ * A file that cannot be read falls back to the current time, which simply
+ * means "do not cache this" - wrong in the safe direction.
+ */
+function asset_url($path) {
+    $relative = '/' . ltrim($path, '/');
+    $full_path = realpath(__DIR__ . '/..' . $relative);
+
+    $version = ($full_path !== false && is_file($full_path))
+        ? filemtime($full_path)
+        : time();
+
+    return app_url($relative) . '?v=' . $version;
+}
+
 function money($amount) {
     return 'RM' . number_format((float)$amount, 2);
+}
+
+/**
+ * The photo for one sport's facility card on booking/courtService.php.
+ *
+ * The files are named after the sport - badmintonCourt.jpg, pickleballCourt.jpg,
+ * futsalCourt.jpg - so the name already in sport_types is enough to find one,
+ * and the page does not need a hardcoded list of images to go with its
+ * hardcoded list of sports. A sport whose file is missing falls back to the
+ * banner rather than showing a broken image icon.
+ *
+ * The name is reduced to letters and digits before it is used, so a name with
+ * a space or a slash in it cannot be turned into a path that points somewhere
+ * other than the images folder.
+ */
+function courtImage($sport_name) {
+    $slug = preg_replace('/[^a-z0-9]/', '', strtolower((string)$sport_name));
+
+    if ($slug !== '') {
+        $candidate = '/images/' . $slug . 'Court.jpg';
+        if (is_file(__DIR__ . '/..' . $candidate)) {
+            return app_url($candidate);
+        }
+    }
+
+    return app_url('/images/banner.png');
 }
 
 function getSportTypes($conn) {
@@ -273,17 +330,88 @@ function finalizePendingCourtDeletions($conn) {
     );
 }
 
-function courtHasCurrentOrFutureBookings($conn, $court_id) {
+/**
+ * The reservations standing in the way of deleting one court.
+ *
+ * Returns ['count' => int, 'last_ends_at' => 'Y-m-d H:i:s'|null]. A count of
+ * zero means the court is free to go; anything above zero is a customer who
+ * has paid for time on that court which has not been played yet, and
+ * admin/courts.php refuses the deletion until it has been.
+ *
+ * Two conditions decide what counts, and both matter:
+ *
+ *   payment_status = 'paid'   A failed payment took no money and holds no
+ *                             court, so it must not stand in the way of
+ *                             anything. getAvailableCourts() has always
+ *                             filtered on this; the deletion check did not,
+ *                             and would have blocked a court over a booking
+ *                             that was never really made.
+ *
+ *   ends in the future        A reservation that has already finished is
+ *                             history. It stays in the database for the
+ *                             customer's records, and the foreign key keeps
+ *                             the court row alive to name it, but it is no
+ *                             reason to keep the court on sale.
+ *
+ * The end of the booking is the moment that matters, not the start: a court
+ * being used right now, from 2pm to 4pm at 3pm, is still in use.
+ */
+function courtBookingBlock($conn, $court_id) {
     $stmt = $conn->prepare(
-        "SELECT COUNT(*) AS total
-         FROM booking_order_items
-         WHERE court_id = ?
-           AND (booking_date > CURDATE()
-                OR (booking_date = CURDATE() AND end_time > CURTIME()))"
+        "SELECT COUNT(*) AS total,
+                MAX(TIMESTAMP(boi.booking_date, boi.end_time)) AS last_ends_at
+         FROM booking_order_items boi
+         JOIN booking_orders bo ON bo.booking_order_id = boi.booking_order_id
+         WHERE boi.court_id = ?
+           AND bo.payment_status = 'paid'
+           AND TIMESTAMP(boi.booking_date, boi.end_time) > NOW()"
     );
     $stmt->bind_param("i", $court_id);
     $stmt->execute();
-    $total = (int)$stmt->get_result()->fetch_assoc()['total'];
+    $row = $stmt->get_result()->fetch_assoc();
     $stmt->close();
-    return $total > 0;
+
+    return [
+        'count' => (int)$row['total'],
+        'last_ends_at' => $row['last_ends_at'],
+    ];
+}
+
+/**
+ * True when a court still has reservations that have not been played.
+ * Kept as the plain yes/no form of courtBookingBlock(), so callers that only
+ * need the answer are not counting rows themselves against a different rule.
+ */
+function courtHasCurrentOrFutureBookings($conn, $court_id) {
+    $block = courtBookingBlock($conn, $court_id);
+    return $block['count'] > 0;
+}
+
+/**
+ * How many unfinished reservations each court has, as [court_id => count].
+ *
+ * The courts table lists every court on one page, and each row needs to know
+ * whether its Delete button can be offered. One query answers that for all of
+ * them rather than running courtBookingBlock() once per row.
+ *
+ * Courts with nothing booked are simply absent from the result, so a caller
+ * reads them with ?? 0.
+ */
+function courtsWithUnfinishedBookings($conn) {
+    $blocked = [];
+
+    $result = $conn->query(
+        "SELECT boi.court_id, COUNT(*) AS total
+         FROM booking_order_items boi
+         JOIN booking_orders bo ON bo.booking_order_id = boi.booking_order_id
+         WHERE bo.payment_status = 'paid'
+           AND TIMESTAMP(boi.booking_date, boi.end_time) > NOW()
+         GROUP BY boi.court_id"
+    );
+    while ($row = $result->fetch_assoc()) {
+        $blocked[(int)$row['court_id']] = (int)$row['total'];
+    }
+    $result->close();
+
+    return $blocked;
 }

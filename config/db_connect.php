@@ -35,16 +35,22 @@ $conn->set_charset("utf8mb4");
 
 /*
  * Schema check.
- * The equipment store needs the categories and equipment_reviews tables. If a
- * group member pulls the latest code but forgets to re-import database.sql,
- * every store page would otherwise die with a raw
- * "Table 'courthub_db.categories' doesn't exist" error, which is not obvious.
- * One cheap SHOW TABLES query turns that into a readable instruction.
+ * The equipment store needs the categories, equipment_reviews and
+ * equipment_variants tables. If a group member pulls the latest code but
+ * forgets to re-import database.sql, every store page would otherwise die
+ * with a raw "Table 'courthub_db.equipment_variants' doesn't exist" error,
+ * which is not obvious. One cheap SHOW TABLES query turns that into a
+ * readable instruction.
+ *
+ * equipment_variants is the table asked about because it is the newest of
+ * the three: a database old enough to be missing it is old enough to still
+ * have stock on the equipment row, and every page that reads stock would be
+ * broken. Checking for an older table would let that database through.
  *
  * This only reports the problem. It never creates or changes any table -
  * importing database.sql stays a manual step, as documented in the README.
  */
-$schema_check = $conn->query("SHOW TABLES LIKE 'equipment_reviews'");
+$schema_check = $conn->query("SHOW TABLES LIKE 'equipment_variants'");
 if ($schema_check->num_rows === 0) {
     die("Database schema is out of date. Please import 'database.sql' again "
         . "through phpMyAdmin (it recreates the database from scratch).");

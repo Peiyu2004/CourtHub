@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CourtHub Sport Center</title>
-    <link rel="stylesheet" href="<?= h(app_url('/css/style.css')) ?>?v=1.0">
+    <link rel="stylesheet" href="<?= h(asset_url('/css/style.css')) ?>">
 </head>
 <body>
 
@@ -68,4 +68,16 @@
     </div>
 </header>
 
-<main class="site-main">
+<?php
+/*
+ * The admin pages set $wide_layout = true before including this file.
+ *
+ * 1100px is a comfortable reading width for the customer-facing pages, which
+ * are mostly one column of text and cards. The admin pages are not: they lose
+ * 240px of it to the sidebar and then put a ten-column table in what is left,
+ * so the equipment list had to be scrolled sideways to reach the Action
+ * buttons even on a 1536px screen. They get a wider container instead of
+ * every admin table growing its own horizontal scrollbar.
+ */
+?>
+<main class="site-main<?= !empty($wide_layout) ? ' site-main-wide' : '' ?>">

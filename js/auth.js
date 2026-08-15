@@ -7,10 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     toggleButtons.forEach(button => {
         button.addEventListener('click', (e) => {
-            // Prevent form submit if button type isn't properly scoped
             e.preventDefault();
 
-            // Find the wrapper parent or previous sibling input
             const wrapper = button.closest('.password-input-wrapper');
             const input = wrapper ? wrapper.querySelector('input') : button.previousElementSibling;
 
@@ -21,6 +19,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    /* =====================================================
+       Profile Page Tab Switcher
+       ===================================================== */
+    const navTabs = document.querySelectorAll('.nav-tab');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    if (navTabs.length > 0) {
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetId = tab.getAttribute('data-target');
+
+                navTabs.forEach(t => t.classList.remove('active'));
+                tabPanes.forEach(pane => pane.classList.remove('active'));
+
+                tab.classList.add('active');
+                const targetPane = document.getElementById(targetId);
+                if (targetPane) {
+                    targetPane.classList.add('active');
+                }
+            });
+        });
+    }
 
     /* =====================================================
        Login Page Enhancements
@@ -52,18 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
         registerForm.addEventListener('submit', (e) => {
             let errors = [];
 
-            // Name check
             if (fullName && fullName.value.trim().length < 2) {
                 errors.push("Full name must be at least 2 characters.");
             }
 
-            // Email check
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (email && !emailRegex.test(email.value.trim())) {
                 errors.push("Please enter a valid email address.");
             }
 
-            // Phone check (optional, check if filled)
             if (phone && phone.value.trim() !== '') {
                 const phoneRegex = /^[0-9+\s\-()]{7,20}$/;
                 if (!phoneRegex.test(phone.value.trim())) {
@@ -71,25 +89,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Password rules (Min 6 chars + 1 letter + 1 number)
             const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
             if (password && !passwordRegex.test(password.value)) {
                 errors.push("Password must be at least 6 characters long and contain both letters and numbers.");
             }
 
-            // Password matching
             if (password && confirmPassword && password.value !== confirmPassword.value) {
                 errors.push("Passwords do not match.");
             }
 
-            // Display errors if any exist
             if (errors.length > 0) {
                 e.preventDefault();
                 alert(errors.join("\n"));
                 return false;
             }
 
-            // Disable submit button on valid submission to prevent double submission
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Creating Account...';

@@ -95,10 +95,6 @@ require_once __DIR__ . '/../includes/header.php';
                     <input type="email" id="email" name="email" value="<?= h($email) ?>" placeholder="Enter your email" required>
                 </div>
 
-                <!-- <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                </div> -->
                 <div class="form-group password-group">
                     <label for="password">Password</label>
                     <div class="password-input-wrapper">

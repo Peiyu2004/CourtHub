@@ -108,8 +108,8 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="dashboard-layout">
 
-    <!-- Persistent Admin Sidebar -->
-    <?php include __DIR__ . '/../includes/sideBar.php'; ?>
+    <!-- Persistent Admin Panel -->
+    <?php include __DIR__ . '/../includes/adminPanel.php'; ?>
 
 
     <!-- Main Content -->

@@ -24,7 +24,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $errors_profile[] = "Please enter a valid email address.";
     }
 
-    // Check if email is taken by another user
     if (empty($errors_profile)) {
         $stmt = $conn->prepare("SELECT user_id FROM users WHERE email = ? AND user_id != ?");
         $stmt->bind_param("si", $email, $user_id);
@@ -36,13 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $stmt->close();
     }
 
-    // Update database
     if (empty($errors_profile)) {
         $stmt = $conn->prepare("UPDATE users SET full_name = ?, email = ?, phone = ? WHERE user_id = ?");
         $stmt->bind_param("sssi", $full_name, $email, $phone, $user_id);
 
         if ($stmt->execute()) {
-            $_SESSION['full_name'] = $full_name; // Sync session name
+            $_SESSION['full_name'] = $full_name;
             $success_profile = "Profile information updated successfully.";
         } else {
             $errors_profile[] = "Failed to update profile. Please try again.";
@@ -64,7 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } elseif ($new_password !== $confirm_password) {
         $errors_password[] = "New passwords do not match.";
     } else {
-        // Verify current password
         $stmt = $conn->prepare("SELECT password_hash FROM users WHERE user_id = ?");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
@@ -74,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         if (!$user || !password_verify($current_password, $user['password_hash'])) {
             $errors_password[] = "Incorrect current password.";
         } else {
-            // Re-hash new password and update
             $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
             $stmt = $conn->prepare("UPDATE users SET password_hash = ? WHERE user_id = ?");
             $stmt->bind_param("si", $new_hash, $user_id);
@@ -89,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// Fetch current user data for pre-filling fields
+// Fetch current user data
 $stmt = $conn->prepare("SELECT full_name, email, phone, role, created_at FROM users WHERE user_id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -99,23 +95,44 @@ $stmt->close();
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<section class="card">
-    <h1>My Profile</h1>
-    <p class="muted">Manage your profile details and account security.</p>
-    <div>
-        <span class="tag">Role: <?= h(ucfirst($current_user['role'])) ?></span>
-    </div>
-</section>
+<link rel="stylesheet" href="<?= h(asset_url('/css/auth.css')) ?>">
 
-    <div class="grid two-col">
+<?php
+$is_security_active = !empty($errors_password) || !empty($success_password);
+?>
+
+<div class="profile-layout">
+    <!-- Sidebar -->
+    <aside class="profile-sidebar card">
+        <div class="user-avatar">
+            <?= h(strtoupper(substr($current_user['full_name'], 0, 1))) ?>
+        </div>
+        <h3 class="user-name"><?= h($current_user['full_name']) ?></h3>
+        <p class="user-email"><?= h($current_user['email']) ?></p>
+        <span class="tag">Role: <?= h(ucfirst($current_user['role'])) ?></span>
+
+        <nav class="profile-nav">
+            <button type="button" class="nav-tab <?= !$is_security_active ? 'active' : '' ?>" data-target="tab-info">
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">Personal Info</span>
+            </button>
+
+            <button type="button" class="nav-tab <?= $is_security_active ? 'active' : '' ?>" data-target="tab-security">
+                <span class="nav-icon">🔒</span>
+                <span class="nav-text">Security Settings</span>
+            </button>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="profile-content">
         <!-- Profile Details Form -->
-        <div class="card">
+        <div class="card tab-pane <?= !$is_security_active ? 'active' : '' ?>" id="tab-info">
             <h2>Personal Information</h2>
+            <p class="muted">Manage your profile details and primary contact information.</p>
 
             <?php if (!empty($success_profile)): ?>
-                <div class="alert alert-success">
-                    <p><?= h($success_profile) ?></p>
-                </div>
+                <div class="alert alert-success"><p><?= h($success_profile) ?></p></div>
             <?php endif; ?>
 
             <?php if (!empty($errors_profile)): ?>
@@ -126,7 +143,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="profile.php">
+            <form method="POST" action="profile.php" class="auth-form">
                 <input type="hidden" name="action" value="update_profile">
 
                 <div class="form-group">
@@ -144,18 +161,17 @@ require_once __DIR__ . '/../includes/header.php';
                     <input type="text" id="phone" name="phone" value="<?= h($current_user['phone']) ?>" placeholder="e.g. 012-3456789">
                 </div>
 
-                <button type="submit" class="btn">Update Information</button>
+                <button type="submit" class="btn btn-auth-submit">Update Information</button>
             </form>
         </div>
 
         <!-- Change Password Form -->
-        <div class="card">
+        <div class="card tab-pane <?= $is_security_active ? 'active' : '' ?>" id="tab-security">
             <h2>Change Password</h2>
+            <p class="muted">Update your account password for enhanced security.</p>
 
             <?php if (!empty($success_password)): ?>
-                <div class="alert alert-success">
-                    <p><?= h($success_password) ?></p>
-                </div>
+                <div class="alert alert-success"><p><?= h($success_password) ?></p></div>
             <?php endif; ?>
 
             <?php if (!empty($errors_password)): ?>
@@ -166,28 +182,37 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="profile.php" id="passwordForm">
+            <form method="POST" action="profile.php" id="passwordForm" class="auth-form">
                 <input type="hidden" name="action" value="change_password">
 
-                <div class="form-group">
+                <div class="form-group password-group">
                     <label for="current_password">Current Password</label>
-                    <input type="password" id="current_password" name="current_password" required>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="current_password" name="current_password" placeholder="Enter your current password" required>
+                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">👁️</button>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="new_password">New Password</label>
-                    <input type="password" id="new_password" name="new_password" required minlength="6">
+                    <div class="password-input-wrapper">
+                        <input type="password" id="new_password" name="new_password" placeholder="Enter your new password" required minlength="6">
+                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">👁️</button>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="confirm_password">Confirm New Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required minlength="6">
+                    <div class="password-input-wrapper">
+                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Re-enter your new password" required minlength="6">
+                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">👁️</button>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-secondary">Update Password</button>
+                <button type="submit" class="btn btn-auth-submit">Update Password</button>
             </form>
         </div>
-    </div>
+    </main>
 </div>
 
 <script src="<?= h(asset_url('/js/auth.js')) ?>"></script>

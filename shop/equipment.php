@@ -280,8 +280,21 @@ renderToast($cart_notice);
     <aside class="filter-sidebar">
     <form method="GET" action="<?= h(app_url('/shop/equipment.php')) ?>" id="filterForm">
 
+        <!-- Each section can be folded away by clicking its heading. They all
+             start open, and the folding is done by js/equipment.js, so with
+             JavaScript switched off every section simply stays open and
+             nothing is lost.
+             type="button" matters: a plain <button> inside a form counts as a
+             submit button, so without it every click would send the form. -->
         <div class="filter-block">
-            <h3 class="filter-heading"><span class="filter-icon">&#9776;</span> All Categories</h3>
+            <h3 class="filter-heading">
+                <button type="button" class="filter-toggle" aria-expanded="true">
+                    <span class="filter-icon">&#9776;</span>
+                    <span class="filter-toggle-label">All Categories</span>
+                    <span class="filter-chevron" aria-hidden="true"></span>
+                </button>
+            </h3>
+            <div class="filter-body">
             <ul class="category-list">
                 <li>
                     <label class="category-row">
@@ -301,23 +314,37 @@ renderToast($cart_notice);
                     </li>
                 <?php endforeach; ?>
             </ul>
+            </div>
         </div>
 
-        <h3 class="filter-heading"><span class="filter-icon">&#9662;</span> SEARCH FILTER</h3>
+        <h3 class="filter-heading filter-heading-plain"><span class="filter-icon">&#9662;</span> SEARCH FILTER</h3>
 
         <div class="filter-block">
-            <h4 class="filter-subheading">Sport Type</h4>
-            <?php foreach ($sports as $sport): ?>
-                <label class="check-row">
-                    <input type="checkbox" name="sport[]" value="<?= (int)$sport['sport_type_id'] ?>"
-                        <?= in_array((int)$sport['sport_type_id'], $sport_filter, true) ? 'checked' : '' ?>>
-                    <span><?= h($sport['name']) ?></span>
-                </label>
-            <?php endforeach; ?>
+            <h4 class="filter-subheading">
+                <button type="button" class="filter-toggle" aria-expanded="true">
+                    <span class="filter-toggle-label">Sport Type</span>
+                    <span class="filter-chevron" aria-hidden="true"></span>
+                </button>
+            </h4>
+            <div class="filter-body">
+                <?php foreach ($sports as $sport): ?>
+                    <label class="check-row">
+                        <input type="checkbox" name="sport[]" value="<?= (int)$sport['sport_type_id'] ?>"
+                            <?= in_array((int)$sport['sport_type_id'], $sport_filter, true) ? 'checked' : '' ?>>
+                        <span><?= h($sport['name']) ?></span>
+                    </label>
+                <?php endforeach; ?>
+            </div>
         </div>
 
         <div class="filter-block">
-            <h4 class="filter-subheading">Price Range</h4>
+            <h4 class="filter-subheading">
+                <button type="button" class="filter-toggle" aria-expanded="true">
+                    <span class="filter-toggle-label">Price Range</span>
+                    <span class="filter-chevron" aria-hidden="true"></span>
+                </button>
+            </h4>
+            <div class="filter-body">
             <div class="price-row">
                 <input type="number" name="min_price" id="minPrice" min="0" step="0.01"
                        placeholder="Min" value="<?= $min_price !== null ? h((string)$min_price) : '' ?>">
@@ -328,21 +355,30 @@ renderToast($cart_notice);
             <!-- A real submit button, so the whole form still works without
                  JavaScript. With JavaScript it applies the price range in place. -->
             <button type="submit" class="btn btn-block" id="applyPrice">Filter</button>
+            </div>
         </div>
 
         <div class="filter-block">
-            <h4 class="filter-subheading">Rating</h4>
-            <?php for ($stars = 5; $stars >= 2; $stars--): ?>
+            <h4 class="filter-subheading">
+                <button type="button" class="filter-toggle" aria-expanded="true">
+                    <span class="filter-toggle-label">Rating</span>
+                    <span class="filter-chevron" aria-hidden="true"></span>
+                </button>
+            </h4>
+            <div class="filter-body">
+                <?php /* 5 down to 1, so "1 star & Up" is offered as well. */ ?>
+                <?php for ($stars = 5; $stars >= 1; $stars--): ?>
+                    <label class="rating-row">
+                        <input type="radio" name="rating" value="<?= $stars ?>" <?= $min_rating === $stars ? 'checked' : '' ?>>
+                        <span class="stars"><?= ratingStars($stars) ?></span>
+                        <?php if ($stars < 5): ?><span class="rating-up">&amp; Up</span><?php endif; ?>
+                    </label>
+                <?php endfor; ?>
                 <label class="rating-row">
-                    <input type="radio" name="rating" value="<?= $stars ?>" <?= $min_rating === $stars ? 'checked' : '' ?>>
-                    <span class="stars"><?= ratingStars($stars) ?></span>
-                    <?php if ($stars < 5): ?><span class="rating-up">&amp; Up</span><?php endif; ?>
+                    <input type="radio" name="rating" value="0" <?= $min_rating === 0 ? 'checked' : '' ?>>
+                    <span class="rating-any">Any rating</span>
                 </label>
-            <?php endfor; ?>
-            <label class="rating-row">
-                <input type="radio" name="rating" value="0" <?= $min_rating === 0 ? 'checked' : '' ?>>
-                <span class="rating-any">Any rating</span>
-            </label>
+            </div>
         </div>
 
         <!-- A plain link, so it clears the filters even without JavaScript.

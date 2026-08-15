@@ -1,13 +1,25 @@
 <?php
 
-session_start();
-
-// Admin pages use the wider container - see includes/header.php.
-$wide_layout = true;
-require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../config/db_connect.php';
+require_once __DIR__ . '/../config/functions.php';
+
+/*
+ * Admin only.
+ *
+ * This page lists the name, email, phone number and message of every customer
+ * who has used the contact form, and it can change their status, so it must
+ * not be reachable by a visitor or by an ordinary customer.
+ *
+ * This has to run before includes/header.php. That file starts sending the
+ * page to the browser, and a redirect cannot be issued once output has begun.
+ * functions.php starts the session, which is where requireAdmin() reads the
+ * logged-in user's role from.
+ */
+requireAdmin();
 
 // UPDATE MESSAGE STATUS
+// Handled before any output for the same reason: the redirect below needs the
+// headers to still be open.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message_id'], $_POST['status'])) {
 
     $message_id = (int) $_POST['message_id'];
@@ -18,8 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message_id'], $_POST[
     if (in_array($status, $allowed_statuses, true)) {
 
         $stmt = $conn->prepare(
-            "UPDATE contact_messages 
-             SET status = ? 
+            "UPDATE contact_messages
+             SET status = ?
              WHERE message_id = ?"
         );
 
@@ -28,10 +40,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message_id'], $_POST[
         $stmt->close();
     }
 
-    // Reload page after updating
-    header("Location: " . $_SERVER['PHP_SELF']);
+    // Reload page after updating. A fixed address is used rather than
+    // $_SERVER['PHP_SELF'], because PHP_SELF can carry extra path information
+    // from the URL and that does not belong in a Location header.
+    header("Location: " . app_url('/admin/messages.php'));
     exit;
 }
+
+// Admin pages use the wider container - see includes/header.php.
+$wide_layout = true;
+require_once __DIR__ . '/../includes/header.php';
 
 
 // GET ALL CUSTOMER MESSAGES

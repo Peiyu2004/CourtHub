@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setUpCategoryForm();
     setUpCardCartForms();
     setUpToast();
+    setUpFilterCollapse();
 });
 
 
@@ -1023,6 +1024,37 @@ function setUpImagePreview() {
             // A path saved as images/badminton.jpg is relative to the project
             // root, and this page sits one folder down inside /admin.
             preview.src = path.indexOf('http') === 0 ? path : '../' + path;
+        });
+    }
+}
+
+
+/* ---------------------------------------------------------------------
+   12. Folding the filter sections open and shut
+   Every section starts open. Clicking its heading folds it away, which is
+   useful once the category list grows long. The folding is only done here,
+   so with JavaScript switched off the sections simply stay open and every
+   filter is still reachable.
+
+   Hiding a section does not clear it: the inputs stay in the page, so a
+   filter that is already applied is still sent when the form is submitted.
+   --------------------------------------------------------------------- */
+function setUpFilterCollapse() {
+    var toggles = document.querySelectorAll('.filter-toggle');
+
+    for (var i = 0; i < toggles.length; i++) {
+        toggles[i].addEventListener('click', function () {
+            var block = this.closest('.filter-block');
+            if (!block) {
+                return;
+            }
+
+            block.classList.toggle('is-collapsed');
+
+            // Tells a screen reader whether the section is open, and gives the
+            // page something to read the state back from.
+            var isOpen = !block.classList.contains('is-collapsed');
+            this.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         });
     }
 }

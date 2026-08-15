@@ -381,7 +381,7 @@ CREATE TABLE contact_messages (
     message TEXT NOT NULL,
     status ENUM('New', 'In Progress', 'Completed') NOT NULL DEFAULT 'New',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
 -- =====================================================================

@@ -121,6 +121,28 @@
     padding: 18px 16px;
     position: sticky;
     top: 16px;
+
+    /* The panel stays put while the products scroll past it, so it must never
+       be taller than the screen - anything below the fold would otherwise be
+       unreachable, because a stuck element does not scroll with the page.
+       Capping the height and letting it scroll on its own keeps the last
+       filter reachable however many categories are added. */
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+}
+
+/* A slim scrollbar so the panel does not look cluttered when it does scroll. */
+.filter-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.filter-sidebar::-webkit-scrollbar-thumb {
+    background-color: #cfd6e6;
+    border-radius: 999px;
+}
+
+.filter-sidebar::-webkit-scrollbar-track {
+    background-color: transparent;
 }
 
 .filter-heading {
@@ -149,6 +171,73 @@
     font-size: 0.9rem;
     color: #1e293b;
     margin-bottom: 10px;
+}
+
+/* ---------- Collapsible sections ----------
+   The heading is a real button so it can be reached with the keyboard and
+   announces its open/closed state. It is stripped back to look like the
+   heading it replaced. */
+
+.filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.filter-toggle-label {
+    flex: 1;
+}
+
+/* A caret drawn from two borders, so no image is needed. Points down while
+   the section is open and turns to point right when it is folded away. */
+.filter-chevron {
+    width: 0;
+    height: 0;
+    flex-shrink: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #667085;
+    transition: transform 0.15s ease-in-out;
+}
+
+.filter-toggle:hover .filter-chevron {
+    border-top-color: #3572d4;
+}
+
+.filter-toggle:focus-visible {
+    outline: 2px solid #3572d4;
+    outline-offset: 3px;
+}
+
+/* Folded state. The inputs stay in the page while hidden, so a filter that is
+   already applied is still submitted when the section is closed. */
+.filter-block.is-collapsed .filter-body {
+    display: none;
+}
+
+.filter-block.is-collapsed .filter-chevron {
+    transform: rotate(-90deg);
+}
+
+/* The section heading keeps its underline only while it is open, so a folded
+   section reads as one tidy row. */
+.filter-block.is-collapsed .filter-heading {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.filter-block.is-collapsed .filter-subheading {
+    margin-bottom: 0;
 }
 
 /* ---------- Category list (radio styled as a plain list) ---------- */
@@ -684,8 +773,13 @@
         grid-template-columns: 1fr;
     }
 
+    /* Stacked above the products rather than beside them, so it no longer
+       sticks and no longer needs its own scrollbar - the page scroll reaches
+       everything. */
     .filter-sidebar {
         position: static;
+        max-height: none;
+        overflow-y: visible;
     }
 
     .category-list {

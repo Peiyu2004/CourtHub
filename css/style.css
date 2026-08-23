@@ -1,3 +1,59 @@
+:root {
+    --color-surface: #ffffff;
+    --color-page: #f5f6fa;
+    --color-surface-muted: #eef2f7;
+    --color-border: #e5e8ef;
+    --color-border-strong: #cfd6e6;
+
+    --color-ink: #0f172a;
+    --color-ink-strong: #1e293b;
+    --color-ink-body: #334155;
+    --color-ink-muted: #667085;
+    --color-ink-subtle: #98a2b3;
+
+    --color-primary: #3572d4;
+    --color-primary-dark: #1546a0;
+    --color-primary-soft: #90acf4;
+    --color-navy: #1b2a4a;
+    --color-navy-deep: #071630;
+    --color-accent: #d9480f;
+
+    --color-success: #1e7e34;
+    --color-success-soft: #eafaf1;
+    --color-danger: #c0392b;
+    --color-danger-soft: #fdecea;
+    --color-danger-border: #f5c6cb;
+    --color-warning: #e8a33d;
+    --color-warning-soft: #fff4e5;
+    --color-warning-ink: #a15c00;
+
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-md: 1.125rem;
+    --text-lg: 1.25rem;
+    --text-xl: 1.5rem;
+    --text-2xl: 1.75rem;
+    --text-3xl: 2rem;
+    --text-4xl: 2.5rem;
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 20px;
+    --radius-pill: 999px;
+
+    --color-primary-hover: #2a62bd;
+    --color-danger-dark: #a93226;
+    --color-gold: #c8a24a;
+    --color-gold-soft: #f5d78e;
+    --color-star: #f5a623;
+    --color-teal: #16c79a;
+
+    --font-body: 'Segoe UI', Arial, sans-serif;
+    --font-display: 'Arial Black', Impact, sans-serif;
+}
+
 /* =====================================================
    CourtHub - Base Styles
    Pure CSS only (no frameworks), per assignment rules
@@ -10,14 +66,41 @@
 }
 
 body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background-color: #f5f6fa;
-    color: #222;
+    font-family: var(--font-body);
+    background-color: var(--color-page);
+    color: var(--color-ink-strong);
     line-height: 1.5;
 }
 
 html, body {
     height: 100%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--color-ink);
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+h1 {
+    font-size: var(--text-3xl);
+    line-height: 1.2;
+}
+
+h2 {
+    font-size: var(--text-xl);
+}
+
+h3 {
+    font-size: var(--text-lg);
+}
+
+h4 {
+    font-size: var(--text-md);
+}
+
+h5, h6 {
+    font-size: var(--text-base);
 }
 
 a {
@@ -28,8 +111,8 @@ a {
 /* ---------- Header / Navigation ---------- */
 
 .site-header {
-    background-color: #ffffff;
-    color: #3572d4;            
+    background-color: var(--color-surface);
+    color: var(--color-primary);            
     padding: 0 20px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 /* ---------- Sticky Header ---------- */
@@ -52,9 +135,9 @@ a {
     display: flex;
     align-items: center;
     gap: 1px;
-    color: #316bc8;
+    color: var(--color-primary);
     font-weight: 700;
-    font-size: 1.2rem;
+    font-size: var(--text-lg);
 }
 
 .logo-img {
@@ -71,18 +154,18 @@ a {
 }
 
 .main-nav a {
-    color: #1e293b;
+    color: var(--color-ink-strong);
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: var(--text-sm);
     padding: 6px 14px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     transition: all 0.2s ease-in-out;
 }
 
 /* Turns into a blue button on hover */
 .main-nav a:hover {
-    background-color: #3572d4;
-    color: #ffffff;            
+    background-color: var(--color-primary);
+    color: var(--color-surface);            
 }
 
 /* ---------- Navigation Dropdown ---------- */
@@ -94,19 +177,19 @@ a {
 .dropdown-btn {
     border: none;
     background: transparent;
-    color: #1e293b;
+    color: var(--color-ink-strong);
     font-family: inherit;
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: var(--text-sm);
     padding: 6px 14px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all 0.2s ease-in-out;
 }
 
 .dropdown-btn:hover {
-    background-color: #3572d4;
-    color: #ffffff;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
 }
 
 /* ---------- Dropdown Arrow ---------- */
@@ -114,7 +197,7 @@ a {
 .arrow {
     display: inline-block;
     margin-left: 5px;
-    font-size: 0.65rem;
+    font-size: var(--text-xs);
     transition: transform 0.2s ease;
 }
 
@@ -129,8 +212,8 @@ a {
     top: calc(100% + 8px);
     left: 0;
     min-width: 200px;
-    background-color: #ffffff;
-    border-radius: 6px;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-md);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
     padding: 6px 0;
     opacity: 0;
@@ -156,8 +239,8 @@ a {
 .dropdown-menu a {
     display: block;
     width: 100%;
-    color: #1e293b;
-    font-size: 0.9rem;
+    color: var(--color-ink-strong);
+    font-size: var(--text-sm);
     font-weight: 500;
     padding: 10px 16px;
     border-radius: 0;
@@ -167,8 +250,8 @@ a {
 }
 
 .dropdown-menu a:hover {
-    background-color: #f1f5f9;
-    color: #3572d4;
+    background-color: var(--color-surface-muted);
+    color: var(--color-primary);
 }
 
 /* ---------- Account Dropdown ---------- */
@@ -183,7 +266,7 @@ a {
 .dropdown-divider {
     height: 1px;
     margin: 6px 0;
-    background-color: #e5e7eb;
+    background-color: var(--color-border-strong);
 }
 
 /* ---------- Admin Dashboard ---------- */
@@ -194,9 +277,9 @@ a {
 
 .status-select {
     padding: 8px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 14px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
     font-weight: 600;
     cursor: pointer;
     background: white;
@@ -204,7 +287,7 @@ a {
 
 .status-select:focus {
     outline: none;
-    border-color: #2563eb;
+    border-color: var(--color-primary);
 }
 
 .status-form {
@@ -214,12 +297,12 @@ a {
 /* ---------- Logout ---------- */
 
 .logout-link {
-    color: #dc2626 !important;
+    color: var(--color-danger) !important;
 }
 
 .logout-link:hover {
-    background-color: #fef2f2 !important;
-    color: #b91c1c !important;
+    background-color: var(--color-danger-soft) !important;
+    color: var(--color-danger-dark) !important;
 }
 
 
@@ -227,8 +310,8 @@ a {
 
 /* Explicitly handles your dynamic custom user greeter (already canceled but maybe can put in profile)*/ 
 .nav-user {
-    color: #64748b; 
-    font-size: 0.9rem;
+    color: var(--color-ink-muted); 
+    font-size: var(--text-sm);
     font-weight: 500;
     padding: 6px 10px;
 }
@@ -245,8 +328,8 @@ a {
 /* ---------- Footer ---------- */
 
 .site-footer {
-    background-color: #ffffff;
-    color: #1e293b;
+    background-color: var(--color-surface);
+    color: var(--color-ink-strong);
     text-align: center;
     padding: 20px;
     margin-top: 40px;
@@ -262,13 +345,13 @@ a {
 
 /* Can delete */
 /* .footer-contact {
-    color: #1e293b;
+    color: var(--color-ink-strong);
     font-weight: 600;
 }
 
 
 .footer-contact:hover {
-    color: #3572d4;
+    color: var(--color-primary);
 }
 
 
@@ -277,20 +360,20 @@ a {
     margin: 20px auto 0;
 
     padding-top: 15px;
-    border-top: 1px solid #e5e8ef;
+    border-top: 1px solid var(--color-border);
 
     display: flex;
     justify-content: space-between;
 
-    color: #64748b;
-    font-size: 0.9rem;
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
 } */
 
 /* ---------- Reusable components ---------- */
 
 .card {
-    background: #fff;
-    border-radius: 8px;
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
     padding: 20px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     margin-bottom: 20px;
@@ -310,35 +393,35 @@ a {
 
 .btn {
     display: inline-block;
-    background-color: #1b2a4a;
-    color: #fff;
+    background-color: var(--color-navy);
+    color: var(--color-surface);
     border: none;
     padding: 10px 18px;
-    border-radius: 5px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 0.95rem;
+    font-size: var(--text-sm);
 }
 
 .btn:hover {
-    background-color: #90acf4;
+    background-color: var(--color-primary-soft);
 }
 
 .btn:disabled {
-    background-color: #9aa3b2;
+    background-color: var(--color-ink-subtle);
     cursor: not-allowed;
 }
 
 .btn-secondary {
-    background-color: #eee;
-    color: #222;
+    background-color: var(--color-surface-muted);
+    color: var(--color-ink-strong);
 }
 
 .btn-danger {
-    background-color: #c0392b;
+    background-color: var(--color-danger);
 }
 
 .btn-danger:hover {
-    background-color: #a93226;
+    background-color: var(--color-danger-dark);
 }
 
 .form-group {
@@ -356,9 +439,9 @@ a {
 .form-group textarea {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 1rem;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-base);
 }
 
 .form-group.compact {
@@ -388,46 +471,46 @@ a {
 
 .alert {
     padding: 12px 16px;
-    border-radius: 5px;
+    border-radius: var(--radius-sm);
     margin-bottom: 16px;
 }
 
 .alert-error {
-    background-color: #fdecea;
-    color: #c0392b;
-    border: 1px solid #f5c6cb;
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger-border);
 }
 
 .alert-success {
-    background-color: #eafaf1;
-    color: #1e7e34;
-    border: 1px solid #c3e6cb;
+    background-color: var(--color-success-soft);
+    color: var(--color-success);
+    border: 1px solid var(--color-success-soft);
 }
 
 /* Used for the "this cannot be changed after payment" notices, which are a
    caution rather than a failure, so they must not read as an error. */
 .alert-warning {
-    background-color: #fff8e6;
-    color: #8a5a00;
-    border: 1px solid #f2d999;
+    background-color: var(--color-warning-soft);
+    color: var(--color-warning-ink);
+    border: 1px solid var(--color-gold-soft);
 }
 
 .alert-warning p {
     margin-top: 6px;
-    font-size: 0.94rem;
+    font-size: var(--text-sm);
 }
 
 /* Used for notices that tell the customer how something works - the walk-in
    collection notice on checkout - rather than warning them about anything. */
 .alert-info {
-    background-color: #eaf3fb;
-    color: #1c5480;
-    border: 1px solid #c5ddf0;
+    background-color: var(--color-surface-muted);
+    color: var(--color-primary-dark);
+    border: 1px solid var(--color-primary-soft);
 }
 
 .alert-info p {
     margin-top: 6px;
-    font-size: 0.94rem;
+    font-size: var(--text-sm);
 }
 
 .grid {
@@ -489,14 +572,14 @@ a {
 }
 
 .product-meta {
-    border-top: 1px solid #e5e8ef;
-    border-bottom: 1px solid #e5e8ef;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
     padding: 12px 0;
 }
 
 .muted {
-    color: #667085;
-    font-size: 0.94rem;
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
 }
 
 .tag,
@@ -504,65 +587,65 @@ a {
 .mini-pill,
 .status {
     display: inline-block;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     padding: 4px 9px;
-    font-size: 0.82rem;
+    font-size: var(--text-sm);
     font-weight: 700;
 }
 
 .tag {
-    background-color: #fff2bd;
-    color: #6c5200;
+    background-color: var(--color-warning-soft);
+    color: var(--color-warning-ink);
     margin-bottom: 10px;
 }
 
 .amount-pill {
-    background-color: #eafaf1;
-    color: #1e7e34;
-    font-size: 1rem;
+    background-color: var(--color-success-soft);
+    color: var(--color-success);
+    font-size: var(--text-base);
 }
 
 .mini-pill {
-    background-color: #eef2f7;
-    color: #334155;
+    background-color: var(--color-surface-muted);
+    color: var(--color-ink-body);
     margin: 2px;
 }
 
 .status.active {
-    background-color: #eafaf1;
-    color: #1e7e34;
+    background-color: var(--color-success-soft);
+    color: var(--color-success);
 }
 
 .status.pending_deletion {
-    background-color: #fff4e5;
-    color: #a15c00;
+    background-color: var(--color-warning-soft);
+    color: var(--color-warning-ink);
 }
 
 /* Equipment order collection: waiting at the counter, or handed over. */
 .status.pending {
-    background-color: #fff4e5;
-    color: #a15c00;
+    background-color: var(--color-warning-soft);
+    color: var(--color-warning-ink);
 }
 
 .status.completed {
-    background-color: #eafaf1;
-    color: #1e7e34;
+    background-color: var(--color-success-soft);
+    color: var(--color-success);
 }
 
 .select-card {
-    border: 1px solid #d9dee8;
-    border-radius: 8px;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
     padding: 12px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #fff;
+    background: var(--color-surface);
 }
 
 .select-card:has(input:checked) {
-    border-color: #1b2a4a;
-    background-color: #f0f4ff;
+    border-color: var(--color-navy);
+    background-color: var(--color-surface-muted);
 }
 
 .table-wrap {
@@ -582,21 +665,21 @@ th,
 td {
     text-align: left;
     padding: 12px;
-    border-bottom: 1px solid #e5e8ef;
+    border-bottom: 1px solid var(--color-border);
     vertical-align: top;
 }
 
 th {
-    background-color: #f2f4f8;
-    font-size: 0.9rem;
+    background-color: var(--color-surface-muted);
+    font-size: var(--text-sm);
 }
 
 .empty-state {
-    background-color: #f7f9fc;
-    border: 1px dashed #cfd6e6;
-    border-radius: 8px;
+    background-color: var(--color-surface-muted);
+    border: 1px dashed var(--color-border-strong);
+    border-radius: var(--radius-md);
     padding: 18px;
-    color: #667085;
+    color: var(--color-ink-muted);
     margin: 12px 0;
 }
 
@@ -614,20 +697,20 @@ th {
 .inline-form input[type="number"] {
     width: 82px;
     padding: 8px 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #fff;
-    color: #1e293b;
-    font-size: 1rem;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-surface);
+    color: var(--color-ink-strong);
+    font-size: var(--text-base);
 }
 
 .inline-form input[type="number"]:hover {
-    border-color: #aab2c0;
+    border-color: var(--color-ink-subtle);
 }
 
 .inline-form input[type="number"]:focus {
     outline: none;
-    border-color: #1b2a4a;
+    border-color: var(--color-navy);
     box-shadow: 0 0 0 3px rgba(27, 42, 74, 0.12);
 }
 
@@ -666,7 +749,7 @@ th {
     flex-wrap: wrap;
     padding-bottom: 16px;
     margin-bottom: 16px;
-    border-bottom: 1px solid #e5e8ef;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .search-bar label {
@@ -681,9 +764,9 @@ th {
     flex: 1 1 200px;
     max-width: 260px;
     padding: 10px 12px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 1rem;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-base);
     /* Safari styles search fields as rounded pills by default. */
     -webkit-appearance: none;
     appearance: none;
@@ -691,18 +774,18 @@ th {
 
 .search-bar input[type="search"]:focus {
     outline: none;
-    border-color: #1b2a4a;
+    border-color: var(--color-navy);
     box-shadow: 0 0 0 3px rgba(27, 42, 74, 0.12);
 }
 
 .search-bar input[type="search"]::placeholder {
-    color: #98a2b3;
+    color: var(--color-ink-subtle);
 }
 
 .checkout-bar {
     margin-top: 18px;
     padding-top: 18px;
-    border-top: 1px solid #e5e8ef;
+    border-top: 1px solid var(--color-border);
 }
 
 /* ---------- Cart lines that cannot be paid for (shop/cart.php) ---------- */
@@ -711,7 +794,7 @@ th {
    real link so a browser with JavaScript off still reaches checkout.php and
    is turned away there; this only makes it look as dead as it behaves. */
 .btn.is-blocked {
-    background-color: #9aa3b2;
+    background-color: var(--color-ink-subtle);
     cursor: not-allowed;
 }
 
@@ -719,7 +802,7 @@ th {
    point at. The tint is deliberately light - the row is still readable, and
    the Remove button in it is the thing the shopper needs to reach. */
 .js-cart-row.is-unbuyable > td {
-    background-color: #fdf2f2;
+    background-color: var(--color-danger-soft);
 }
 
 /* An empty note leaves no gap behind it. */
@@ -730,7 +813,7 @@ th {
 .js-cart-line-note {
     display: inline-block;
     margin-top: 6px;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
 }
 
 .checkout-form {
@@ -745,13 +828,13 @@ th {
 }
 
 .stat-card span {
-    color: #667085;
+    color: var(--color-ink-muted);
     display: block;
     margin-bottom: 8px;
 }
 
 .stat-card strong {
-    font-size: 1.5rem;
+    font-size: var(--text-xl);
 }
 
 /* ---------- Payment provider shell (includes/gatewayHeader.php) ----------
@@ -763,7 +846,7 @@ th {
     min-height: 100vh;
     display: flex;
     padding: 30px 16px;
-    background-color: #eef2f9;
+    background-color: var(--color-surface-muted);
 }
 
 /* Centred with auto margins rather than align-items, because a card taller
@@ -777,15 +860,15 @@ th {
 .gateway-note {
     margin-top: 18px;
     text-align: center;
-    font-size: 0.78rem;
-    color: #8a94a6;
+    font-size: var(--text-xs);
+    color: var(--color-ink-subtle);
 }
 
 /* ---------- Payment received receipt (booking/paymentSuccess.php) ---------- */
 
 .receipt-card {
-    background: #fff;
-    border-radius: 16px;
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
     padding: 32px 28px 28px;
     text-align: center;
     box-shadow: 0 10px 30px rgba(13, 27, 76, 0.18);
@@ -799,8 +882,8 @@ th {
     height: 68px;
     margin: 0 auto 18px;
     border-radius: 50%;
-    background-color: #eafaf1;
-    border: 2px solid #1e7e34;
+    background-color: var(--color-success-soft);
+    border: 2px solid var(--color-success);
     position: relative;
 }
 
@@ -811,34 +894,34 @@ th {
     top: 13px;
     width: 16px;
     height: 30px;
-    border: solid #1e7e34;
+    border: solid var(--color-success);
     border-width: 0 3px 3px 0;
     transform: rotate(45deg);
 }
 
 .receipt-title {
-    font-size: 1.5rem;
-    color: #1b2a4a;
+    font-size: var(--text-xl);
+    color: var(--color-navy);
     margin-bottom: 4px;
 }
 
 .receipt-subtitle {
-    color: #667085;
-    font-size: 0.92rem;
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
 }
 
 .receipt-amount {
-    font-size: 2.4rem;
+    font-size: var(--text-4xl);
     font-weight: 700;
-    color: #1546a0;
+    color: var(--color-primary-dark);
     margin: 16px 0 22px;
 }
 
 /* Label on the left, value on the right, one line per fact. */
 .receipt-details {
     text-align: left;
-    border-top: 1px solid #e5e8ef;
-    border-bottom: 1px solid #e5e8ef;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
     padding: 6px 0;
 }
 
@@ -851,14 +934,14 @@ th {
 }
 
 .receipt-details dt {
-    color: #667085;
-    font-size: 0.86rem;
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
 }
 
 .receipt-details dd {
     font-weight: 600;
-    color: #1b2a4a;
-    font-size: 0.9rem;
+    color: var(--color-navy);
+    font-size: var(--text-sm);
     text-align: right;
     /* References are long and have no spaces to break at. */
     word-break: break-all;
@@ -866,8 +949,8 @@ th {
 
 .receipt-return {
     margin-top: 18px;
-    font-size: 0.9rem;
-    color: #667085;
+    font-size: var(--text-sm);
+    color: var(--color-ink-muted);
 }
 
 .receipt-button {
@@ -889,8 +972,8 @@ th {
 .tng-card {
     width: 100%;
     max-width: 460px;
-    background: #fff;
-    border-radius: 16px;
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
     /* Keeps the header gradient clipped to the rounded corners. */
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(13, 27, 76, 0.18);
@@ -898,8 +981,8 @@ th {
 }
 
 .tng-header {
-    background: linear-gradient(135deg, #0d1b4c 0%, #1546a0 55%, #3572d4 100%);
-    color: #fff;
+    background: linear-gradient(135deg, var(--color-navy-deep) 0%, var(--color-primary-dark) 55%, var(--color-primary) 100%);
+    color: var(--color-surface);
     padding: 26px 24px 22px;
 }
 
@@ -911,17 +994,17 @@ th {
     width: 84px;
     height: 84px;
     margin: 0 auto 14px;
-    border-radius: 20px;
+    border-radius: var(--radius-xl);
     box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 6px 16px rgba(0, 0, 0, 0.32);
 }
 
 .tng-title {
-    font-size: 1.25rem;
+    font-size: var(--text-lg);
     margin-bottom: 4px;
 }
 
 .tng-subtitle {
-    font-size: 0.83rem;
+    font-size: var(--text-sm);
     opacity: 0.82;
 }
 
@@ -933,37 +1016,37 @@ th {
     display: block;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    font-size: 0.68rem;
+    font-size: var(--text-xs);
     font-weight: 700;
-    color: #667085;
+    color: var(--color-ink-muted);
     margin-bottom: 6px;
 }
 
 /* The one thing the customer must not misread, so it is the largest item. */
 .tng-amount {
     display: block;
-    font-size: 2.4rem;
+    font-size: var(--text-4xl);
     font-weight: 700;
     line-height: 1.15;
-    color: #1546a0;
+    color: var(--color-primary-dark);
 }
 
 .tng-summary {
-    font-size: 0.88rem;
-    color: #667085;
+    font-size: var(--text-sm);
+    color: var(--color-ink-muted);
     margin-top: 10px;
     padding-bottom: 20px;
-    border-bottom: 1px solid #e5e8ef;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .tng-alert {
-    background-color: #fdecea;
-    color: #c0392b;
-    border: 1px solid #f5c6cb;
-    border-radius: 10px;
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger-border);
+    border-radius: var(--radius-md);
     padding: 12px 14px;
     margin-top: 18px;
-    font-size: 0.89rem;
+    font-size: var(--text-sm);
 }
 
 .tng-field {
@@ -973,8 +1056,8 @@ th {
 .tng-label {
     display: block;
     font-weight: 600;
-    font-size: 0.86rem;
-    color: #1b2a4a;
+    font-size: var(--text-sm);
+    color: var(--color-navy);
     margin-bottom: 7px;
 }
 
@@ -982,24 +1065,24 @@ th {
     width: 100%;
     padding: 13px 14px;
     text-align: center;
-    font-size: 1rem;
-    color: #1b2a4a;
-    background-color: #f7f9fd;
-    border: 1px solid #cfd8e8;
-    border-radius: 10px;
+    font-size: var(--text-base);
+    color: var(--color-navy);
+    background-color: var(--color-surface-muted);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
     transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
 .tng-input:focus {
     outline: none;
-    background-color: #fff;
-    border-color: #3572d4;
+    background-color: var(--color-surface);
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(53, 114, 212, 0.18);
 }
 
 /* Spaced out so six characters read as a PIN rather than as a word. */
 .tng-pin {
-    font-size: 1.2rem;
+    font-size: var(--text-lg);
     letter-spacing: 0.6em;
     /* letter-spacing also adds a gap after the last character, which drags
        centred text half a space to the left. Half of it back again. */
@@ -1011,17 +1094,17 @@ th {
     margin-top: 24px;
     padding: 14px;
     border: none;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #1546a0 0%, #3572d4 100%);
-    color: #fff;
-    font-size: 1rem;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+    color: var(--color-surface);
+    font-size: var(--text-base);
     font-weight: 700;
     cursor: pointer;
     transition: background 0.15s ease;
 }
 
 .tng-pay:hover {
-    background: linear-gradient(135deg, #0d3480 0%, #2a62bd 100%);
+    background: linear-gradient(135deg, var(--color-navy-deep) 0%, var(--color-primary-hover) 100%);
 }
 
 /* Kept in the page's blue rather than the usual amber warning colours, so the
@@ -1030,20 +1113,20 @@ th {
 .tng-note {
     margin-top: 16px;
     padding: 10px 12px;
-    font-size: 0.8rem;
-    color: #1546a0;
-    background-color: #eef4fd;
-    border: 1px solid #cfe0f8;
-    border-left: 3px solid #3572d4;
-    border-radius: 8px;
+    font-size: var(--text-xs);
+    color: var(--color-primary-dark);
+    background-color: var(--color-surface-muted);
+    border: 1px solid var(--color-primary-soft);
+    border-left: 3px solid var(--color-primary);
+    border-radius: var(--radius-md);
 }
 
 .tng-back {
     display: inline-block;
     margin-top: 18px;
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
     font-weight: 600;
-    color: #3572d4;
+    color: var(--color-primary);
 }
 
 .tng-back:hover {
@@ -1063,9 +1146,9 @@ th {
 /* Decoration that mirrors what is being typed. Proportioned roughly like a
    real card (85.6 x 54mm) so it reads as one at a glance. */
 .card-face {
-    background: linear-gradient(135deg, #1b2a4a 0%, #3572d4 100%);
-    color: #fff;
-    border-radius: 12px;
+    background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-primary) 100%);
+    color: var(--color-surface);
+    border-radius: var(--radius-lg);
     padding: 20px;
     aspect-ratio: 1.586;
     max-height: 220px;
@@ -1086,12 +1169,12 @@ th {
     display: block;
     width: 42px;
     height: 30px;
-    border-radius: 5px;
-    background: linear-gradient(135deg, #f5d78e 0%, #c8a24a 100%);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--color-gold-soft) 0%, var(--color-gold) 100%);
 }
 
 .card-face-brand {
-    font-size: 0.72rem;
+    font-size: var(--text-xs);
     font-weight: 700;
     letter-spacing: 0.14em;
     opacity: 0.85;
@@ -1099,7 +1182,7 @@ th {
 
 /* Tabular figures keep the digits from shifting sideways as they are typed. */
 .card-face-number {
-    font-size: 1.32rem;
+    font-size: var(--text-lg);
     letter-spacing: 0.09em;
     font-variant-numeric: tabular-nums;
     word-spacing: 0.3em;
@@ -1113,7 +1196,7 @@ th {
 
 .card-face-label {
     display: block;
-    font-size: 0.62rem;
+    font-size: var(--text-xs);
     letter-spacing: 0.12em;
     text-transform: uppercase;
     opacity: 0.7;
@@ -1122,7 +1205,7 @@ th {
 
 .card-face-value {
     display: block;
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
     text-transform: uppercase;
     /* Long names are cut off rather than wrapping and pushing the expiry date
        off the bottom edge of the card. */
@@ -1146,18 +1229,18 @@ th {
 }
 
 .card-payment-summary {
-    border-top: 1px solid #e5e8ef;
+    border-top: 1px solid var(--color-border);
     padding-top: 14px;
     margin-top: 4px;
 }
 
 .card-payment-back {
     margin-top: 16px;
-    font-size: 0.94rem;
+    font-size: var(--text-sm);
 }
 
 .card-payment-back a {
-    color: #3572d4;
+    color: var(--color-primary);
 }
 
 /* The "I understand this is final" tick box. Laid out with the box beside the
@@ -1168,11 +1251,11 @@ th {
     gap: 10px;
     margin-top: 18px;
     padding: 12px 14px;
-    background-color: #f7f9fc;
-    border: 1px solid #cfd6e6;
-    border-radius: 8px;
+    background-color: var(--color-surface-muted);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
     cursor: pointer;
-    font-size: 0.94rem;
+    font-size: var(--text-sm);
 }
 
 .acknowledge-row input {
@@ -1187,26 +1270,26 @@ th {
     gap: 8px;
     flex-wrap: wrap;
     margin-top: 16px;
-    border-bottom: 1px solid #e5e8ef;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .history-tab {
     padding: 10px 16px;
     font-weight: 600;
-    font-size: 0.95rem;
-    color: #667085;
+    font-size: var(--text-sm);
+    color: var(--color-ink-muted);
     border-bottom: 3px solid transparent;
     margin-bottom: -1px;
 }
 
 .history-tab:hover {
-    color: #1b2a4a;
+    color: var(--color-navy);
 }
 
 /* The tab for the page the user is already on. */
 .history-tab.is-active {
-    color: #1b2a4a;
-    border-bottom-color: #1b2a4a;
+    color: var(--color-navy);
+    border-bottom-color: var(--color-navy);
 }
 
 /* ---------- Responsive breakpoints ---------- */
@@ -1257,7 +1340,7 @@ th {
     }
 
     .tng-amount {
-        font-size: 2rem;
+        font-size: var(--text-3xl);
     }
 
     th,
@@ -1289,7 +1372,7 @@ th {
 
     .main-nav a,
     .dropdown-btn {
-        font-size: 0.85rem;
+        font-size: var(--text-sm);
         padding: 6px 9px;
     }
 }
@@ -1317,8 +1400,8 @@ th {
 .contact-box {
     flex: 1;
     padding: 20px;
-    border-radius: 10px;
-    background: #f5f5f5;
+    border-radius: var(--radius-md);
+    background: var(--color-surface-muted);
 }
 
 .contact-form {
@@ -1367,8 +1450,8 @@ th {
 
 .message-date {
     white-space: nowrap;
-    color: #667085;
-    font-size: 0.9rem;
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
 }
 
 .message-contact {
@@ -1377,20 +1460,20 @@ th {
 
 .message-contact strong {
     display: block;
-    color: #1e293b;
+    color: var(--color-ink-strong);
 }
 
 .message-contact span {
     display: block;
-    color: #667085;
-    font-size: 0.9rem;
+    color: var(--color-ink-muted);
+    font-size: var(--text-sm);
 }
 
 /* ---------- Home Contact Section ---------- */
 
 .home-contact {
     padding: 80px 20px;
-    background-color: #f5f6fa;
+    background-color: var(--color-page);
 }
 
 .home-contact-content {
@@ -1407,21 +1490,21 @@ th {
 }
 
 .section-label {
-    color: #3572d4;
+    color: var(--color-primary);
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
     letter-spacing: 1px;
 }
 
 .home-contact-text h2 {
-    font-size: 2.8rem;
+    font-size: var(--text-4xl);
     margin: 10px 0 20px;
-    color: #222;
+    color: var(--color-ink-strong);
 }
 
 .home-contact-text p {
-    color: #667085;
-    font-size: 1.05rem;
+    color: var(--color-ink-muted);
+    font-size: var(--text-base);
     line-height: 1.7;
     margin-bottom: 25px;
 }
@@ -1432,9 +1515,9 @@ th {
 }
 
 .home-contact-info {
-    background-color: #ffffff;
+    background-color: var(--color-surface);
     padding: 30px;
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     width: 350px;
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
 }
@@ -1442,7 +1525,7 @@ th {
 .contact-info-item {
     padding: 15px 0;
     padding-left: 20px;
-    border-bottom: 1px solid #e5e8ef;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .contact-info-item:last-child {
@@ -1450,11 +1533,11 @@ th {
 }
 
 .contact-info-item strong {
-    color: #1e293b;
+    color: var(--color-ink-strong);
 }
 
 .contact-info-item p {
-    color: #667085;
+    color: var(--color-ink-muted);
     margin: 6px 0 0;
 }
 
@@ -1469,15 +1552,15 @@ th {
     }
 
     .home-contact-text h2 {
-        font-size: 2.2rem;
+        font-size: var(--text-4xl);
     }
 
 }
 
 /* ---------- Search ---------- */
 .amenities-card {
-    background-color: #ffffff;
-    border-radius: 10px;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-md);
     padding: 20px;
     text-align: center;
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);

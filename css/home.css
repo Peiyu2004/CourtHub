@@ -58,14 +58,14 @@ body, html {
     font-size: 4rem;
     line-height: 1.1;
     font-weight: 900;
-    color: #ffffff;
+    color: var(--color-surface);
     text-transform: uppercase;
     margin-bottom: 16px;
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6); /* Helps text pop beautifully off graphic backgrounds */
 }
 
 .hero-subtitle {
-    color: #f8fafc;
+    color: var(--color-surface-muted);
     font-size: 1.2rem;
     font-weight: 500;
     margin-bottom: 30px;
@@ -80,44 +80,44 @@ body, html {
 }
 
 .btn-primary {
-    background-color: #ffffff;
-    color: #1e293b;
+    background-color: var(--color-surface);
+    color: var(--color-ink-strong);
     font-family: 'Arial Black', sans-serif;
     font-size: 0.95rem;
     padding: 14px 28px;
-    border-radius: 50px;
+    border-radius: var(--radius-pill);
     font-weight: bold;
     text-transform: uppercase;
     transition: all 0.2s ease;
 }
 
 .btn-secondary {
-    border: 2px solid #ffffff;
+    border: 2px solid var(--color-surface);
     background-color: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
+    color: var(--color-surface);
     font-family: 'Arial Black', sans-serif;
     font-size: 0.95rem;
     padding: 12px 28px;
-    border-radius: 50px;
+    border-radius: var(--radius-pill);
     font-weight: bold;
     text-transform: uppercase;
     transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-    background-color: #2589cc;
-    color: #ffffff;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
 }
 
 .btn-secondary:hover {
-    background-color: #2589cc;
-    color: #ffffff;
-    border: solid #2589cc;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    border: solid var(--color-primary);
 }
 
 /* ---------- Layout Sections & Amenities Grid ---------- */
 .about-section {
-    background-color: #f1f5f9;
+    background-color: var(--color-surface-muted);
     padding: 60px 20px;
 }
 
@@ -129,7 +129,7 @@ body, html {
 .section-main-title {
     font-family: 'Arial Black', Impact, sans-serif;
     font-size: 2.5rem;
-    color: #1e293b;
+    color: var(--color-ink-strong);
     text-transform: uppercase;
     margin-bottom: 36px;
 }
@@ -142,10 +142,10 @@ body, html {
 
 /* Cannot be replaced as the .card has difference padding */
 .info-card {
-    background: #ffffff;
+    background: var(--color-surface);
     display: flex;
     flex-direction: column;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     overflow: hidden;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     margin-bottom: 36px;
@@ -171,13 +171,13 @@ body, html {
 
 .card-body h3 {
     font-family: 'Arial Black', sans-serif;
-    color: #1e293b;
+    color: var(--color-ink-strong);
     font-size: 1.25rem;
     margin-bottom: 12px;
 }
 
 .card-body p {
-    color: #475569;
+    color: var(--color-ink-body);
     font-size: 0.95rem;
     line-height: 1.5;
     margin-bottom: 16px;
@@ -185,13 +185,13 @@ body, html {
 }
 
 .card-link {
-    color: #1e293b;
+    color: var(--color-ink-strong);
     font-weight: bold;
     font-size: 0.95rem;
 }
 
 .card-link:hover{
-    color: #2589cc;
+    color: var(--color-primary);
 }
 
 /* ---------- Equipment Store Premium Banner Component ---------- */
@@ -202,7 +202,7 @@ body, html {
     right: 50%;
     margin-left: -50vw;
     margin-right: -50vw;
-    background: linear-gradient(135deg, #071630 0%, #0c234b 50%, #15376d 100%); 
+    background: linear-gradient(135deg, var(--color-navy-deep) 0%, var(--color-navy-deep) 50%, var(--color-navy-deep) 100%); 
     padding: 40px 0;
     overflow: hidden;
     margin-top: 32px;
@@ -230,7 +230,7 @@ body, html {
 .store-tagline {
     font-family: 'Arial Black', Impact, sans-serif;
     font-size: 2.2rem;
-    color: #2589cc;       /* High-energy athletic blue text accent */
+    color: var(--color-primary);       /* High-energy athletic blue text accent */
     text-transform: uppercase;
     line-height: 1;
     margin-bottom: 4px;
@@ -240,7 +240,7 @@ body, html {
 .store-main-title {
     font-family: 'Arial Black', Impact, sans-serif;
     font-size: 5rem;
-    color: #ffffff;       /* Massive bold white text block */
+    color: var(--color-surface);       /* Massive bold white text block */
     text-transform: uppercase;
     line-height: 0.95;
     margin-bottom: 20px;
@@ -248,7 +248,7 @@ body, html {
 }
 
 .store-desc {
-    color: #94a3b8;       /* Smooth readable slate gray contrast text */
+    color: var(--color-ink-subtle);       /* Smooth readable slate gray contrast text */
     font-size: 1.05rem;
     line-height: 1.6;
     max-width: 480px;
@@ -257,13 +257,13 @@ body, html {
 
 /* Rounded Pill Button Interface */
 .btn-store-visit {
-    background-color: #2589cc;
-    color: #ffffff;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
     font-family: 'Segoe UI', Arial, sans-serif;
     font-weight: bold;
     font-size: 0.95rem;
     padding: 12px 36px;
-    border-radius: 50px;   /* Clean capsule layout shape matching the visual target */
+    border-radius: var(--radius-pill);   /* Clean capsule layout shape matching the visual target */
     text-transform: uppercase;
     letter-spacing: 0.5px;
     box-shadow: 0 4px 15px rgba(37, 137, 204, 0.3);
@@ -272,7 +272,7 @@ body, html {
 }
 
 .btn-store-visit:hover {
-    background-color: #1a6fa8;
+    background-color: var(--color-primary);
     box-shadow: 0 6px 20px rgba(37, 137, 204, 0.4);
     transform: translateY(-1px);
 }
@@ -289,7 +289,7 @@ body, html {
     width: 100%;
     max-width: 440px;
     height: 300px;
-    border-radius: 24px;   /* Smooth curved bounding corners */
+    border-radius: var(--radius-xl);   /* Smooth curved bounding corners */
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }

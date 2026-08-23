@@ -1,5 +1,8 @@
-<?php require_once __DIR__ . '/includes/header.php'; ?>
-<link rel="stylesheet" href="<?= h(asset_url('/css/home.css')) ?>">
+<?php
+$page_title = 'Home';
+$extra_css = ['home'];
+require_once __DIR__ . '/includes/header.php';
+?>
 
 <!-- Hero Banner Section -->
 <header class="hero-section">

@@ -87,16 +87,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$page_title = 'Create Account';
+$extra_css = ['auth'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<link rel="stylesheet" href="<?= h(asset_url('/css/auth.css')) ?>">
 
 <div class="auth-page-wrapper">
     <div class="auth-card-container">
         
         <!-- Left Column: Visual Side -->
-        <div class="auth-visual-side" style="background-image: url('<?= h(app_url('/images/signUp.png')) ?>');">
+        <div class="auth-visual-side auth-visual-register">
             <div class="auth-visual-overlay">
                 <div class="auth-brand-badge">
                     <h2>CourtHub</h2>

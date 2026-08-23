@@ -69,6 +69,8 @@ if (($_POST['action'] ?? '') === 'choose') {
     }
 }
 
+$page_title = 'Checkout';
+$extra_css = ['shop'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -145,7 +147,7 @@ require_once __DIR__ . '/../includes/header.php';
             </table>
         </div>
 
-        <div class="split-row" style="margin-top: 18px;">
+        <div class="split-row stack-md">
             <p class="muted">
                 <?= (int)$review['item_count'] ?> item<?= $review['item_count'] === 1 ? '' : 's' ?>
                 across <?= count($review['items']) ?> line<?= count($review['items']) === 1 ? '' : 's' ?>
@@ -153,7 +155,7 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="amount-pill"><?= money($review['total_amount']) ?></div>
         </div>
 
-        <p style="margin-top: 14px;">
+        <p class="stack-sm">
             <a href="<?= h(app_url('/shop/cart.php')) ?>">&larr; Change my cart</a>
         </p>
     </section>

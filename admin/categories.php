@@ -135,11 +135,11 @@ if (isset($_GET['edit'])) {
 
 // Admin pages use the wider container - see includes/header.php.
 $wide_layout = true;
+$page_title = 'Manage Categories';
+$extra_css = ['shop', 'admin'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<link rel="stylesheet" href="<?= h(asset_url('/css/shop.css')) ?>">
-<link rel="stylesheet" href="<?= h(asset_url('/css/admin.css')) ?>">
 
 <section class="card">
     <h1>Admin Dashboard</h1>

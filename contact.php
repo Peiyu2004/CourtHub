@@ -102,6 +102,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
+$page_title = 'Contact Us';
 require_once __DIR__ . '/includes/header.php';
 ?>
 

@@ -108,6 +108,26 @@ a {
     color: inherit;
 }
 
+.stack-sm {
+    margin-top: 14px;
+}
+
+.stack-md {
+    margin-top: 18px;
+}
+
+.stack-lg {
+    margin-top: 24px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.is-hidden-initial {
+    display: none;
+}
+
 /* ---------- Header / Navigation ---------- */
 
 .site-header {

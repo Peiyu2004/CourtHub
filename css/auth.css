@@ -303,3 +303,10 @@
         grid-template-columns: 1fr;
     }
 }
+.auth-visual-side.auth-visual-login {
+    background-image: url('../images/login.jpg');
+}
+
+.auth-visual-side.auth-visual-register {
+    background-image: url('../images/signUp.png');
+}

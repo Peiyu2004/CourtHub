@@ -44,6 +44,7 @@ while ($row = $result->fetch_assoc()) {
 }
 $result->close();
 
+$page_title = 'Our Facilities';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -53,11 +54,11 @@ require_once __DIR__ . '/../includes/header.php';
 </section>
 
 <?php if (empty($facilities)): ?>
-    <section class="card" style="margin-top: 24px;">
+    <section class="card stack-lg">
         <div class="empty-state">No facilities have been set up yet. Please check back soon.</div>
     </section>
 <?php else: ?>
-    <section class="grid" style="margin-top: 24px;">
+    <section class="grid stack-lg">
         <?php foreach ($facilities as $facility): ?>
             <?php $court_count = (int)$facility['court_count']; ?>
             <div class="card">
@@ -92,7 +93,7 @@ require_once __DIR__ . '/../includes/header.php';
     </section>
 <?php endif; ?>
 
-<section class="card" style="margin-top: 24px; text-align: center;">
+<section class="card stack-lg text-center">
     <h3>Need new gear?</h3>
     <p>Check out our equipment store for racquets, paddles, balls, and more.</p>
     <a href="<?= h(app_url('/shop/equipment.php')) ?>" class="btn btn-secondary">Visit Equipment Store</a>

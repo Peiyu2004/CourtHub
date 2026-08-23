@@ -100,6 +100,7 @@ if ($action === 'choose' && $pending) {
 // charged rather than a figure carried over from the previous page.
 $review = $pending ? reviewPendingBooking($conn, $pending) : null;
 
+$page_title = 'Confirm Booking';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -166,7 +167,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </table>
             </div>
 
-            <div class="split-row" style="margin-top: 18px;">
+            <div class="split-row stack-md">
                 <p class="muted">
                     <?= count($review['courts']) ?> court<?= count($review['courts']) === 1 ? '' : 's' ?>
                     &times; <?= h(bookingDurationLabel($review['duration_hours'])) ?>
@@ -176,7 +177,7 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
         <?php endif; ?>
 
-        <p style="margin-top: 14px;">
+        <p class="stack-sm">
             <a href="<?= h(bookingSearchUrl($pending)) ?>">&larr; Change my selection</a>
         </p>
     </section>

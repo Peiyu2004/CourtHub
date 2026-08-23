@@ -46,6 +46,7 @@ $stmt->close();
 $booking_numbers = orderDisplayNumbers($orders);
 $success_number = $booking_numbers[$booking_success] ?? 0;
 
+$page_title = 'Booking History';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

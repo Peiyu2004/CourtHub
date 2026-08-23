@@ -141,8 +141,9 @@ if ($equipment_id > 0) {
 // A missing product is a normal thing to happen (an old link, a deleted item),
 // so it gets a friendly page instead of a crash or a blank screen.
 if (!$product) {
+    $page_title = 'Product Not Found';
+    $extra_css = ['shop'];
     require_once __DIR__ . '/../includes/header.php';
-    echo '<link rel="stylesheet" href="' . h(asset_url('/css/shop.css')) . '">';
     ?>
     <section class="card">
         <h1>Product not found</h1>
@@ -232,9 +233,10 @@ $initial_stock = $variant_stock[$initial_key] ?? 0;
 // invited to pick a size that cannot be supplied in any colour.
 $value_stock = optionValueStock($option_groups, $variants);
 
+$page_title = $product['name'];
+$extra_css = ['shop'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="<?= h(asset_url('/css/shop.css')) ?>">
 
 <section class="card">
     <p class="muted">

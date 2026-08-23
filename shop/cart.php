@@ -85,6 +85,8 @@ $stmt->close();
 
 $cart_is_payable = empty($blocking_problems);
 
+$page_title = 'Your Cart';
+$extra_css = ['shop'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

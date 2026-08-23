@@ -66,6 +66,7 @@ if (empty($slot_errors) && $selected_sport) {
     $price_per_court = (float)$selected_sport['price_per_hour'] * $duration_hours;
 }
 
+$page_title = 'Book a Court';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

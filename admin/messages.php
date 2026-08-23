@@ -49,6 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message_id'], $_POST[
 
 // Admin pages use the wider container - see includes/header.php.
 $wide_layout = true;
+$page_title = 'Customer Messages';
+$extra_css = ['shop', 'admin'];
 require_once __DIR__ . '/../includes/header.php';
 
 

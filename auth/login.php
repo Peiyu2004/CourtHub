@@ -52,16 +52,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$page_title = 'Login';
+$extra_css = ['auth'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<link rel="stylesheet" href="<?= h(asset_url('/css/auth.css')) ?>">
 
 <div class="auth-page-wrapper">
     <div class="auth-card-container">
         
         <!-- Left Column: Image set as CSS Background -->
-        <div class="auth-visual-side" style="background-image: url('<?= h(app_url('/images/login.jpg')) ?>');">
+        <div class="auth-visual-side auth-visual-login">
             <div class="auth-visual-overlay">
                 <div class="auth-brand-badge">
                     <h2>CourtHub</h2>

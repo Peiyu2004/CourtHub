@@ -40,6 +40,8 @@ $summary = purchaseHistorySummary($orders);
 $order_success = isset($_GET['order_success']) ? (int)$_GET['order_success'] : 0;
 $paid_order = $orders[$order_success] ?? null;
 
+$page_title = 'Purchase History';
+$extra_css = ['shop'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 

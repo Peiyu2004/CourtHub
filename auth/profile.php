@@ -92,10 +92,11 @@ $stmt->execute();
 $current_user = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
+$page_title = 'My Profile';
+$extra_css = ['auth'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<link rel="stylesheet" href="<?= h(asset_url('/css/auth.css')) ?>">
 
 <?php
 $is_security_active = !empty($errors_password) || !empty($success_password);

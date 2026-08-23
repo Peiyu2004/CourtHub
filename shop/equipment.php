@@ -237,9 +237,10 @@ $post_target = app_url('/shop/equipment.php' . (!empty($_GET) ? '?' . http_build
 $has_filters =$q !== '' || $category_filter > 0 || !empty($sport_filter)
             || $min_price !== null || $max_price !== null || $min_rating > 0 || $sort !== 'name_asc';
 
+$page_title = 'Equipment Store';
+$extra_css = ['shop'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="<?= h(asset_url('/css/shop.css')) ?>">
 
 <section class="card">
     <h1>Equipment Store</h1>
@@ -424,7 +425,7 @@ renderToast($cart_notice);
 
             <!-- Hidden by default; js/equipment.js shows this when live
                  filtering removes every card without a page reload. -->
-            <section class="card" id="noResults" style="display: none;">
+            <section class="card is-hidden-initial" id="noResults">
                 <div class="empty-state">No products match your filters.</div>
             </section>
 

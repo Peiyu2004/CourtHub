@@ -1,11 +1,30 @@
-<?php require_once __DIR__ . '/../config/functions.php';?>
+<?php
+require_once __DIR__ . '/../config/functions.php';
+
+$site_name = 'CourtHub Sport Center';
+$head_title = isset($page_title) && trim($page_title) !== ''
+    ? trim($page_title) . ' | ' . $site_name
+    : $site_name;
+
+$head_styles = ['style'];
+if (isset($extra_css)) {
+    foreach ((array)$extra_css as $sheet) {
+        $sheet = preg_replace('/[^a-z0-9_-]/i', '', $sheet);
+        if ($sheet !== '' && !in_array($sheet, $head_styles, true)) {
+            $head_styles[] = $sheet;
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CourtHub Sport Center</title>
-    <link rel="stylesheet" href="<?= h(asset_url('/css/style.css')) ?>">
+    <title><?= h($head_title) ?></title>
+    <?php foreach ($head_styles as $sheet): ?>
+    <link rel="stylesheet" href="<?= h(asset_url('/css/' . $sheet . '.css')) ?>">
+    <?php endforeach; ?>
 </head>
 <body>
 

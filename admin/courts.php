@@ -178,10 +178,11 @@ $order_counts = function_exists('equipmentOrderStatusCounts') ? equipmentOrderSt
 
 // Admin pages use the wider container - see includes/header.php.
 $wide_layout = true;
+$page_title = 'Manage Courts';
+$extra_css = ['admin'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<link rel="stylesheet" href="<?= h(asset_url('/css/admin.css')) ?>">
 
 <section class="card">
     <h1>Admin Dashboard</h1>

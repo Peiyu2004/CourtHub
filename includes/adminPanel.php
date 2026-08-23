@@ -6,8 +6,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $order_counts = function_exists('equipmentOrderStatusCounts') ? equipmentOrderStatusCounts($conn) : ['pending' => 0];
 ?>
 
-<link rel="stylesheet" href="<?= h(asset_url('/css/admin.css')) ?>">
-
 <aside class="sidebar-nav">
     <div class="sidebar-brand">
         <span class="brand-icon">⚡</span>

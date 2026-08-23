@@ -1337,3 +1337,77 @@ function getRecentlyViewedProducts($conn, $exclude_id = 0) {
 
     return $ordered;
 }
+
+const UPLOAD_DIR = 'images/products';
+const UPLOAD_MAX_BYTES = 2097152;
+
+function uploadedImageErrorMessage($code) {
+    switch ($code) {
+        case UPLOAD_ERR_INI_SIZE:
+        case UPLOAD_ERR_FORM_SIZE:
+            return "The image is larger than the 2 MB limit.";
+        case UPLOAD_ERR_PARTIAL:
+            return "The image was only partly uploaded. Please try again.";
+        case UPLOAD_ERR_NO_TMP_DIR:
+        case UPLOAD_ERR_CANT_WRITE:
+        case UPLOAD_ERR_EXTENSION:
+            return "The image could not be saved on the server.";
+        default:
+            return "The image could not be uploaded.";
+    }
+}
+
+function handleProductImageUpload($file, &$errors) {
+    if (!isset($file) || !is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        return null;
+    }
+
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $errors[] = uploadedImageErrorMessage($file['error']);
+        return null;
+    }
+
+    if (!is_uploaded_file($file['tmp_name'])) {
+        $errors[] = "The image could not be uploaded.";
+        return null;
+    }
+
+    if ($file['size'] > UPLOAD_MAX_BYTES) {
+        $errors[] = "The image is larger than the 2 MB limit.";
+        return null;
+    }
+
+    $allowed = [
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/webp' => 'webp',
+    ];
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+
+    if (!isset($allowed[$mime])) {
+        $errors[] = "Only JPG, PNG and WEBP images are accepted.";
+        return null;
+    }
+
+    if (getimagesize($file['tmp_name']) === false) {
+        $errors[] = "That file is not a readable image.";
+        return null;
+    }
+
+    $target_dir = __DIR__ . '/../' . UPLOAD_DIR;
+    if (!is_dir($target_dir) && !mkdir($target_dir, 0777, true)) {
+        $errors[] = "The upload folder could not be created.";
+        return null;
+    }
+
+    $name = 'product_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $allowed[$mime];
+    if (!move_uploaded_file($file['tmp_name'], $target_dir . '/' . $name)) {
+        $errors[] = "The image could not be saved on the server.";
+        return null;
+    }
+
+    return UPLOAD_DIR . '/' . $name;
+}

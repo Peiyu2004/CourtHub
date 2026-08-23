@@ -881,3 +881,17 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+.form-group input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px dashed var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-surface-muted);
+    font-size: var(--text-sm);
+    cursor: pointer;
+}
+
+.form-group input[type="file"]:hover {
+    border-color: var(--color-primary);
+}

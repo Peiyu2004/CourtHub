@@ -227,6 +227,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             validateOptionRows($option_rows)
         );
 
+        $uploaded = handleProductImageUpload($_FILES['product_image'] ?? null, $errors);
+        if ($uploaded !== null) {
+            $fields['image_url'] = $uploaded;
+        }
+
         if (empty($errors)) {
             // The product row and its option rows must either both be written
             // or neither. Now that the tables are InnoDB this rollback is real.
@@ -285,6 +290,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$exists) {
             $errors[] = "That product could not be found.";
+        }
+
+        $uploaded = handleProductImageUpload($_FILES['product_image'] ?? null, $errors);
+        if ($uploaded !== null) {
+            $fields['image_url'] = $uploaded;
         }
 
         if (empty($errors)) {
@@ -518,7 +528,7 @@ require_once __DIR__ . '/../includes/header.php';
             <?php else: ?>
                 <!-- js-equipment-form switches on the checks in js/equipment.js -->
                 <form method="POST" action="<?= h(app_url('/admin/equipment.php')) ?>"
-                    class="form-grid wide js-equipment-form">
+                    class="form-grid wide js-equipment-form" enctype="multipart/form-data">
 
                     <input type="hidden" name="action" value="<?= $editing ? 'update' : 'add' ?>">
                     <?php if ($editing): ?>
@@ -572,14 +582,13 @@ require_once __DIR__ . '/../includes/header.php';
                     </div>
 
                     <div class="form-group full-span">
-                        <label for="image_url">Image URL</label>
-                        <!-- js-image-url makes js/equipment.js show a live preview -->
-                        <input type="text" id="image_url" name="image_url" class="js-image-url"
-                            placeholder="images/badminton.jpg"
-                            value="<?= h($editing['image_url'] ?? '') ?>">
-                        <p class="muted">Relative to the project folder, for example images/badminton.jpg</p>
+                        <label for="product_image">Product Photo</label>
+                        <input type="file" id="product_image" name="product_image"
+                               accept="image/jpeg,image/png,image/webp" class="js-image-file">
+                        <p class="muted">JPG, PNG or WEBP, up to 2 MB. Leave empty to keep the current photo.</p>
+                        <input type="hidden" name="image_url" value="<?= h($editing['image_url'] ?? '') ?>">
                         <?php if (!empty($editing['image_url'])): ?>
-                            <img class="image-preview" src="<?= h(equipmentImage($editing['image_url'])) ?>" alt="Image preview">
+                            <img class="image-preview" src="<?= h(equipmentImage($editing['image_url'])) ?>" alt="Current product photo">
                         <?php endif; ?>
                     </div>
 

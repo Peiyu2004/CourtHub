@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Please enter both email and password.";
     } else {
         $stmt = $conn->prepare(
-            "SELECT user_id, full_name, password_hash, role FROM users WHERE email = ?"
+            "SELECT user_id, email, full_name, password_hash, role FROM users WHERE email = ?"
         );
         $stmt->bind_param("s", $email);
         $stmt->execute();
@@ -33,13 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$user || !password_verify($password, $user['password_hash'])) {
             $errors[] = "Invalid email or password.";
         } else {
-            // Regenerate session ID to prevent session fixation attacks
-            session_regenerate_id(true);
+            startUserSession($user);
 
-            // Login successful - store what we need in the session
-            $_SESSION['user_id'] = $user['user_id'];
-            $_SESSION['full_name'] = $user['full_name'];
-            $_SESSION['role'] = $user['role'];
+            if (!empty($_POST['remember'])) {
+                issueRememberToken($conn, (int)$user['user_id']);
+            }
 
             // Redirect based on role
             if ($user['role'] === 'admin') {
@@ -103,6 +101,11 @@ require_once __DIR__ . '/../includes/header.php';
                         <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">👁️</button>
                     </div>
                 </div>
+
+                <label class="remember-row">
+                    <input type="checkbox" name="remember" value="1">
+                    <span>Remember me on this device</span>
+                </label>
 
                 <button type="submit" class="btn btn-auth-submit">Login</button>
             </form>

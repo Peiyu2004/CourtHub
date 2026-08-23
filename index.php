@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/config/db_connect.php';
+
 $page_title = 'Home';
 $extra_css = ['home'];
 require_once __DIR__ . '/includes/header.php';

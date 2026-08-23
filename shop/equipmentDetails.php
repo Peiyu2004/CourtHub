@@ -233,6 +233,8 @@ $initial_stock = $variant_stock[$initial_key] ?? 0;
 // invited to pick a size that cannot be supplied in any colour.
 $value_stock = optionValueStock($option_groups, $variants);
 
+rememberViewedProduct($equipment_id);
+
 $page_title = $product['name'];
 $extra_css = ['shop'];
 require_once __DIR__ . '/../includes/header.php';

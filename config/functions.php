@@ -12,18 +12,109 @@ if (session_status() === PHP_SESSION_NONE) {
 
 date_default_timezone_set('Asia/Kuala_Lumpur');
 
-/**
- * Returns true if someone is currently logged in (customer or admin).
- */
+const REMEMBER_COOKIE = 'courthub_remember';
+const REMEMBER_DAYS = 30;
+
 function isLoggedIn() {
     return isset($_SESSION['user_id']);
 }
 
-/**
- * Returns true if the logged-in user's role is 'admin'.
- */
+function currentUser() {
+    global $conn;
+    static $cached = false;
+
+    if ($cached !== false) {
+        return $cached;
+    }
+    if (!isset($_SESSION['user_id'], $_SESSION['email']) || !isset($conn)) {
+        $cached = null;
+        return null;
+    }
+
+    $stmt = $conn->prepare(
+        "SELECT user_id, email, full_name, role FROM users WHERE user_id = ? AND email = ?"
+    );
+    $stmt->bind_param("is", $_SESSION['user_id'], $_SESSION['email']);
+    $stmt->execute();
+    $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    $cached = $row ?: null;
+    return $cached;
+}
+
 function isAdmin() {
-    return isLoggedIn() && $_SESSION['role'] === 'admin';
+    $user = currentUser();
+    if ($user !== null) {
+        return $user['role'] === 'admin';
+    }
+    return isLoggedIn() && isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+}
+
+function startUserSession($user) {
+    session_regenerate_id(true);
+    $_SESSION['user_id'] = (int)$user['user_id'];
+    $_SESSION['email'] = $user['email'];
+    $_SESSION['full_name'] = $user['full_name'];
+    $_SESSION['role'] = $user['role'];
+}
+
+function issueRememberToken($conn, $user_id) {
+    $token = bin2hex(random_bytes(32));
+    $hash = hash('sha256', $token);
+    $expires = date('Y-m-d H:i:s', time() + (REMEMBER_DAYS * 86400));
+
+    $stmt = $conn->prepare(
+        "INSERT INTO remember_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)"
+    );
+    $stmt->bind_param("iss", $user_id, $hash, $expires);
+    $stmt->execute();
+    $stmt->close();
+
+    setcookie(REMEMBER_COOKIE, $token, time() + (REMEMBER_DAYS * 86400), '/', '', false, true);
+}
+
+function forgetRememberCookie() {
+    setcookie(REMEMBER_COOKIE, '', time() - 3600, '/', '', false, true);
+    unset($_COOKIE[REMEMBER_COOKIE]);
+}
+
+function clearRememberToken($conn) {
+    if (!isset($_COOKIE[REMEMBER_COOKIE])) {
+        return;
+    }
+    $hash = hash('sha256', $_COOKIE[REMEMBER_COOKIE]);
+    $stmt = $conn->prepare("DELETE FROM remember_tokens WHERE token_hash = ?");
+    $stmt->bind_param("s", $hash);
+    $stmt->execute();
+    $stmt->close();
+    forgetRememberCookie();
+}
+
+function loginFromRememberCookie($conn) {
+    if (isLoggedIn() || !isset($_COOKIE[REMEMBER_COOKIE])) {
+        return false;
+    }
+
+    $hash = hash('sha256', $_COOKIE[REMEMBER_COOKIE]);
+    $stmt = $conn->prepare(
+        "SELECT u.user_id, u.email, u.full_name, u.role
+         FROM remember_tokens t
+         JOIN users u ON u.user_id = t.user_id
+         WHERE t.token_hash = ? AND t.expires_at > NOW()"
+    );
+    $stmt->bind_param("s", $hash);
+    $stmt->execute();
+    $user = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$user) {
+        forgetRememberCookie();
+        return false;
+    }
+
+    startUserSession($user);
+    return true;
 }
 
 /**
@@ -414,4 +505,8 @@ function courtsWithUnfinishedBookings($conn) {
     $result->close();
 
     return $blocked;
+}
+
+if (isset($conn) && !isLoggedIn() && isset($_COOKIE[REMEMBER_COOKIE])) {
+    loginFromRememberCookie($conn);
 }

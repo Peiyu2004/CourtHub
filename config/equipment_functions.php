@@ -1262,3 +1262,78 @@ function equipmentImage($image_url) {
     }
     return app_url('/' . ltrim($path, '/'));
 }
+
+const RECENT_COOKIE = 'courthub_recent';
+const RECENT_MAX = 6;
+
+function recentlyViewedIds() {
+    if (empty($_COOKIE[RECENT_COOKIE])) {
+        return [];
+    }
+
+    $ids = [];
+    foreach (explode(',', (string)$_COOKIE[RECENT_COOKIE]) as $raw) {
+        $id = (int)$raw;
+        if ($id > 0 && !in_array($id, $ids, true)) {
+            $ids[] = $id;
+        }
+    }
+
+    return array_slice($ids, 0, RECENT_MAX);
+}
+
+function rememberViewedProduct($equipment_id) {
+    $equipment_id = (int)$equipment_id;
+    if ($equipment_id <= 0) {
+        return;
+    }
+
+    $ids = [$equipment_id];
+    foreach (recentlyViewedIds() as $id) {
+        if ($id !== $equipment_id) {
+            $ids[] = $id;
+        }
+    }
+    $ids = array_slice($ids, 0, RECENT_MAX);
+
+    $value = implode(',', $ids);
+    setcookie(RECENT_COOKIE, $value, time() + (30 * 86400), '/', '', false, true);
+    $_COOKIE[RECENT_COOKIE] = $value;
+}
+
+function getRecentlyViewedProducts($conn, $exclude_id = 0) {
+    $ids = [];
+    foreach (recentlyViewedIds() as $id) {
+        if ($id !== (int)$exclude_id) {
+            $ids[] = $id;
+        }
+    }
+    if (empty($ids)) {
+        return [];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $conn->prepare(
+        "SELECT equipment_id, name, price, image_url
+         FROM equipment
+         WHERE equipment_id IN (" . $placeholders . ") AND status = 'active'"
+    );
+    bindParams($stmt, str_repeat('i', count($ids)), $ids);
+    $stmt->execute();
+    $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+
+    $byId = [];
+    foreach ($rows as $row) {
+        $byId[(int)$row['equipment_id']] = $row;
+    }
+
+    $ordered = [];
+    foreach ($ids as $id) {
+        if (isset($byId[$id])) {
+            $ordered[] = $byId[$id];
+        }
+    }
+
+    return $ordered;
+}

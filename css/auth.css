@@ -310,3 +310,19 @@
 .auth-visual-side.auth-visual-register {
     background-image: url('../images/signUp.png');
 }
+
+.remember-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: var(--text-sm);
+    color: var(--color-ink-body);
+    cursor: pointer;
+}
+
+.remember-row input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}

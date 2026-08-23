@@ -21,6 +21,13 @@ require_once __DIR__ . '/../config/db_connect.php';
 require_once __DIR__ . '/../config/functions.php';
 require_once __DIR__ . '/../config/equipment_functions.php';
 
+if (isset($_GET['clear_recent'])) {
+    setcookie(RECENT_COOKIE, '', time() - 3600, '/', '', false, true);
+    unset($_COOKIE[RECENT_COOKIE]);
+    header("Location: " . app_url('/shop/equipment.php'));
+    exit();
+}
+
 $sports     = getSportTypes($conn);
 $categories = getCategories($conn);
 
@@ -568,6 +575,25 @@ renderToast($cart_notice);
                         <a class="btn btn-secondary btn-block" href="<?= h($details_url) ?>">View Details</a>
                     </article>
                 <?php endforeach; ?>
+            </section>
+        <?php endif; ?>
+
+        <?php $recent = getRecentlyViewedProducts($conn); ?>
+        <?php if (!empty($recent)): ?>
+            <section class="card recent-strip">
+                <div class="recent-head">
+                    <h2>Recently Viewed</h2>
+                    <a class="muted" href="<?= h(app_url('/shop/equipment.php?clear_recent=1')) ?>">Clear</a>
+                </div>
+                <div class="recent-list">
+                    <?php foreach ($recent as $item): ?>
+                        <a class="recent-item" href="<?= h(app_url('/shop/equipmentDetails.php?id=' . (int)$item['equipment_id'])) ?>">
+                            <img src="<?= h(equipmentImage($item['image_url'])) ?>" alt="<?= h($item['name']) ?>">
+                            <span class="recent-name"><?= h($item['name']) ?></span>
+                            <span class="recent-price"><?= money($item['price']) ?></span>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
             </section>
         <?php endif; ?>
     </div>

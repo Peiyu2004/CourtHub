@@ -1,7 +1,9 @@
 <?php
+require_once __DIR__ . '/../config/db_connect.php';
 require_once __DIR__ . '/../config/functions.php';
 
-// Clear all session data and destroy the session completely
+clearRememberToken($conn);
+
 $_SESSION = [];
 session_destroy();
 

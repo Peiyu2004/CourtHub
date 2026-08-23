@@ -48,7 +48,7 @@ $page_title = 'Our Facilities';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<section class="card">
+<section class="page-hero">
     <h1>Welcome to CourtHub Sport Center</h1>
     <p>Book badminton, pickleball, and futsal courts, or shop for sports equipment - all in one place.</p>
 </section>
@@ -61,11 +61,19 @@ require_once __DIR__ . '/../includes/header.php';
     <section class="grid stack-lg">
         <?php foreach ($facilities as $facility): ?>
             <?php $court_count = (int)$facility['court_count']; ?>
-            <div class="card">
-                <div class="card-pic">
-                    <img src="<?= h(courtImage($facility['name'])) ?>"
-                         alt="<?= h($facility['name']) ?> court">
-                </div>
+            <?php $facility_url = app_url('/booking/search.php?sport=' . (int)$facility['sport_type_id']); ?>
+            <div class="card facility-card">
+                <?php if ($court_count === 0): ?>
+                    <div class="card-pic">
+                        <img src="<?= h(courtImage($facility['name'])) ?>"
+                             alt="<?= h($facility['name']) ?> court">
+                    </div>
+                <?php else: ?>
+                    <a class="card-pic" href="<?= h($facility_url) ?>">
+                        <img src="<?= h(courtImage($facility['name'])) ?>"
+                             alt="<?= h($facility['name']) ?> court">
+                    </a>
+                <?php endif; ?>
 
                 <h3><?= h($facility['name']) ?></h3>
 
@@ -85,8 +93,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php if ($court_count === 0): ?>
                     <button type="button" class="btn" disabled>Book Now</button>
                 <?php else: ?>
-                    <a href="<?= h(app_url('/booking/search.php?sport=' . (int)$facility['sport_type_id'])) ?>"
-                       class="btn">Book Now</a>
+                    <a href="<?= h($facility_url) ?>" class="btn">Book Now</a>
                 <?php endif; ?>
             </div>
         <?php endforeach; ?>
@@ -96,7 +103,7 @@ require_once __DIR__ . '/../includes/header.php';
 <section class="card stack-lg text-center">
     <h3>Need new gear?</h3>
     <p>Check out our equipment store for racquets, paddles, balls, and more.</p>
-    <a href="<?= h(app_url('/shop/equipment.php')) ?>" class="btn btn-secondary">Visit Equipment Store</a>
+    <a href="<?= h(app_url('/shop/equipment.php')) ?>" class="btn">Visit Equipment Store</a>
 </section>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

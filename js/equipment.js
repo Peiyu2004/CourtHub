@@ -1086,16 +1086,24 @@ function setUpToast() {
 
     toast.addEventListener('click', dismiss);
 
-    // Normal case: the CSS fade finishes and the element is taken out.
-    toast.addEventListener('animationend', remove);
+    /* Normal case: the CSS fade finishes and the element is taken out.
+
+       The check has to be here because animationend bubbles. The tick circle
+       inside runs its own 0.35s pop, and without these two tests that event
+       reaches this listener and tears the popup down before it has been read. */
+    toast.addEventListener('animationend', function (event) {
+        if (event.target === toast && event.animationName === 'toastFade') {
+            remove();
+        }
+    });
 
     /* Backstop. A browser pauses animations on a tab that is not being looked
        at, so animationend can be delayed or, if the animation is interrupted,
        never arrive at all. Without this the overlay could be left sitting
        invisibly over the page and swallowing clicks. The timer is a little
-       longer than the 3.5s fade in css/shop.css so it only acts when the
+       longer than the 1.5s fade in css/shop.css so it only acts when the
        event has not. Raise both together if the popup timing is changed. */
-    window.setTimeout(remove, 4100);
+    window.setTimeout(remove, 1900);
 
     // Escape closes it too, which is what people expect from anything that
     // covers the page.

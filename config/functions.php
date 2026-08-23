@@ -230,7 +230,7 @@ function courtImage($sport_name) {
         }
     }
 
-    return app_url('/images/banner.png');
+    return app_url('/images/banner.jpg');
 }
 
 function getSportTypes($conn) {

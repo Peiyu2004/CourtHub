@@ -74,7 +74,7 @@ $extra_css = ['shop'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<section class="card">
+<section class="page-hero">
     <h1>Checkout</h1>
     <p class="muted">Check your order, then choose how you would like to pay.</p>
 </section>

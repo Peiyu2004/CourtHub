@@ -70,7 +70,7 @@ $page_title = 'Book a Court';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<section class="card">
+<section class="page-hero">
     <h1>Book a Court</h1>
     <p class="muted">
         Open 8:00 AM to 11:00 PM. Book any hours inside that window, from 1 hour

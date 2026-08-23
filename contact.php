@@ -106,7 +106,7 @@ $page_title = 'Contact Us';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<main class="contact-page">
+<div class="contact-page">
 
     <section class="contact-container">
 
@@ -181,23 +181,24 @@ require_once __DIR__ . '/includes/header.php';
                  checks it again, because a form can be sent without a browser. -->
 
             <div class="form-group">
-                <label>Name</label>
-                <input type="text" name="name" maxlength="<?= CONTACT_NAME_MAX ?>" required
+                <label for="contactName">Name</label>
+                <input type="text" id="contactName" name="name" maxlength="<?= CONTACT_NAME_MAX ?>" required
                        value="<?= h($_POST['name'] ?? '') ?>">
             </div>
 
 
             <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" name="email" maxlength="<?= CONTACT_EMAIL_MAX ?>" required
+                <label for="contactEmail">Email Address</label>
+                <input type="email" id="contactEmail" name="email" maxlength="<?= CONTACT_EMAIL_MAX ?>" required
                        value="<?= h($_POST['email'] ?? '') ?>">
             </div>
 
 
             <div class="form-group">
-                <label>Phone Number (e.g. 0123456789)</label>
+                <label for="contactPhone">Phone Number (e.g. 0123456789)</label>
                 <input
                     type="tel"
+                    id="contactPhone"
                     name="phone"
                     inputmode="numeric"
                     pattern="[0-9]{7,20}"
@@ -210,8 +211,8 @@ require_once __DIR__ . '/includes/header.php';
 
 
             <div class="form-group">
-                <label>Message</label>
-                <textarea name="message" rows="5" maxlength="<?= CONTACT_MESSAGE_MAX ?>" required><?= h($_POST['message'] ?? '') ?></textarea>
+                <label for="contactMessage">Message</label>
+                <textarea id="contactMessage" name="message" rows="5" maxlength="<?= CONTACT_MESSAGE_MAX ?>" required><?= h($_POST['message'] ?? '') ?></textarea>
             </div>
 
 
@@ -223,7 +224,7 @@ require_once __DIR__ . '/includes/header.php';
 
     </section>
 
-</main>
+</div>
 
 
 <?php

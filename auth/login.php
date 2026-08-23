@@ -52,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $page_title = 'Login';
 $extra_css = ['auth'];
+$centered_layout = true;
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -98,7 +99,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <label for="password">Password</label>
                     <div class="password-input-wrapper">
                         <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">👁️</button>
+                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">Show</button>
                     </div>
                 </div>
 

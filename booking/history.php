@@ -50,7 +50,7 @@ $page_title = 'Booking History';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<section class="card">
+<section class="page-hero">
     <h1>My History</h1>
     <p class="muted">Your court reservations and your equipment orders, all in one place.</p>
     <?php renderHistoryTabs('bookings'); ?>

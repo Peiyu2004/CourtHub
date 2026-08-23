@@ -249,7 +249,7 @@ $extra_css = ['shop'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<section class="card">
+<section class="page-hero">
     <h1>Equipment Store</h1>
     <p class="muted">Shop equipment for badminton, pickleball, and futsal.</p>
 </section>
@@ -537,9 +537,11 @@ renderToast($cart_notice);
                                 <?php if (!empty($item_options)): ?>
                                     <div class="card-options">
                                         <?php foreach ($item_options as $option_name => $values): ?>
+                                            <?php $option_id = 'opt-' . (int)$item['equipment_id'] . '-' . preg_replace('/[^a-z0-9]/i', '', $option_name); ?>
                                             <div class="form-group compact">
-                                                <label><?= h($option_name) ?></label>
-                                                <select name="options[<?= h($option_name) ?>]"
+                                                <label for="<?= h($option_id) ?>"><?= h($option_name) ?></label>
+                                                <select id="<?= h($option_id) ?>"
+                                                        name="options[<?= h($option_name) ?>]"
                                                         class="js-variant-option"
                                                         data-option-name="<?= h($option_name) ?>" required>
                                                     <?php foreach ($values as $value): ?>

@@ -25,6 +25,7 @@ if (isset($extra_css)) {
     <?php foreach ($head_styles as $sheet): ?>
     <link rel="stylesheet" href="<?= h(asset_url('/css/' . $sheet . '.css')) ?>">
     <?php endforeach; ?>
+    <script src="<?= h(asset_url('/js/site.js')) ?>" defer></script>
 </head>
 <body>
 
@@ -99,4 +100,4 @@ if (isset($extra_css)) {
  * every admin table growing its own horizontal scrollbar.
  */
 ?>
-<main class="site-main<?= !empty($wide_layout) ? ' site-main-wide' : '' ?>">
+<main class="site-main<?= !empty($wide_layout) ? ' site-main-wide' : '' ?><?= !empty($centered_layout) ? ' site-main-centered' : '' ?>">

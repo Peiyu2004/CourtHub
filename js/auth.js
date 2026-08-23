@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (input) {
                 const isPassword = input.type === 'password';
                 input.type = isPassword ? 'text' : 'password';
-                button.textContent = isPassword ? '🙈' : '👁️';
+                button.textContent = isPassword ? 'Hide' : 'Show';
             }
         });
     });

@@ -89,6 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $page_title = 'Create Account';
 $extra_css = ['auth'];
+$centered_layout = true;
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -141,7 +142,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <label for="password">Password</label>
                     <div class="password-input-wrapper">
                         <input type="password" id="password" name="password" placeholder="Create a password (min. 6 chars)" required minlength="6">
-                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">👁️</button>
+                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">Show</button>
                     </div>
                 </div>
 
@@ -149,7 +150,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <label for="confirm_password">Confirm Password</label>
                     <div class="password-input-wrapper">
                         <input type="password" id="confirm_password" name="confirm_password" placeholder="Re-enter your password" required minlength="6">
-                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">👁️</button>
+                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">Show</button>
                     </div>
                 </div>
 

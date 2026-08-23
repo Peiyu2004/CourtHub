@@ -489,9 +489,9 @@ $extra_css = ['shop', 'admin'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<section class="card">
-    <h1>Admin Dashboard</h1>
-    <p class="muted">Court reservation revenue and management shortcuts.</p>
+<section class="page-hero">
+    <h1>Equipment Management</h1>
+    <p class="muted">Add, update and remove products, variants and stock levels.</p>
 </section>
 
 <div class="dashboard-layout">
@@ -499,7 +499,7 @@ require_once __DIR__ . '/../includes/header.php';
     <?php include __DIR__ . '/../includes/adminPanel.php'; ?>
 
     <!-- Main Content Area -->
-    <main class="dashboard-main-content">
+    <div class="dashboard-main-content">
         <section class="card">
             <h1>Manage Equipment</h1>
             <p class="muted">Add, edit and remove the products shown in the equipment store.</p>
@@ -789,7 +789,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
             <?php endif; ?>
         </section>
-    </main>
+    </div>
 </div>
 
 <script src="<?= h(asset_url('/js/equipment.js')) ?>"></script>

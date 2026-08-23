@@ -2,12 +2,28 @@
    Login & Register
    ===================================================== */
 /* Layout Wrapper */
+/* Login and register centre one card in the space between the header and the
+   footer. The column has to become a flex parent for the wrapper to have a
+   height to centre inside, and the usual top/bottom spacing has to go or the
+   card sits high - .site-main has 24px above and 40px below, and the footer
+   adds another 48px. Only pages that set $centered_layout get this. */
+.site-main-centered {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.site-main-centered ~ .site-footer {
+    margin-top: 0;
+}
+
 .auth-page-wrapper {
+    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 40px 20px;
-    min-height: calc(100vh - 120px);
+    padding: 20px;
     box-sizing: border-box;
 }
 
@@ -100,7 +116,7 @@
 
 .auth-form input:focus {
     outline: none;
-    border-color: var(--color-primary);
+    border-color: var(--color-accent);
     box-shadow: 0 0 0 3px rgba(37, 137, 204, 0.15);
 }
 
@@ -119,20 +135,24 @@
     box-sizing: border-box;
 }
 
-/* Eye icon toggle button styling */
+/* Show / hide toggle button styling */
 .password-input-wrapper .toggle-password {
     position: absolute !important;
-    right: 12px !important;
+    right: 10px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
     background: transparent !important;
     border: none !important;
     outline: none !important;
-    font-size: var(--text-md);
+    font-family: inherit;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-ink-muted);
     cursor: pointer;
-    padding: 0;
+    padding: 4px 6px;
     margin: 0;
     line-height: 1;
+    border-radius: var(--radius-sm);
     z-index: 10;
     user-select: none;
 }
@@ -157,8 +177,8 @@
     font-size: var(--text-sm);
     font-weight: 600;
     margin-top: 10px;
-    background-color: var(--color-navy);
-    color: var(--color-surface);
+    background-color: var(--color-accent);
+    color: var(--color-navy-deep);
     border: none;
     border-radius: var(--radius-sm);
     cursor: pointer;
@@ -166,7 +186,7 @@
 }
 
 .btn-auth-submit:hover {
-    background-color: var(--color-primary-soft);
+    background-color: var(--color-accent-hover);
 }
 
 .btn-auth-submit:disabled {
@@ -275,9 +295,9 @@
 }
 
 .nav-tab.active {
-    background-color: var(--color-primary);
-    color: var(--color-surface);
-    font-weight: 600;
+    background-color: var(--color-accent);
+    color: var(--color-navy-deep);
+    font-weight: 700;
 }
 
 .nav-icon {

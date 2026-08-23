@@ -64,7 +64,7 @@ require_once __DIR__ . '/../includes/header.php';
 ?>
 
 
-<section class="card">
+<section class="page-hero">
     <h1>Admin Dashboard</h1>
     <p class="muted">Court reservation revenue and management shortcuts.</p>
 </section>
@@ -74,7 +74,7 @@ require_once __DIR__ . '/../includes/header.php';
     <?php include __DIR__ . '/../includes/adminPanel.php'; ?>
 
     <!-- Main Content Area -->
-    <main class="dashboard-main-content">
+    <div class="dashboard-main-content">
         <div class="card">
             <h1>Overview</h1>
         </div>
@@ -151,7 +151,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
             <?php endif; ?>
         </div>
-    </main>
+    </div>
 </div>
 
 <!-- Data for Chart Script -->

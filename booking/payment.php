@@ -104,7 +104,7 @@ $page_title = 'Confirm Booking';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<section class="card">
+<section class="page-hero">
     <h1>Confirm Your Booking</h1>
     <p class="muted">Check the details, then choose how you would like to pay.</p>
 </section>

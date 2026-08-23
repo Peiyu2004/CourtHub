@@ -47,20 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message_id'], $_POST[
     exit;
 }
 
-// Admin pages use the wider container - see includes/header.php.
-$wide_layout = true;
-$page_title = 'Customer Messages';
-$extra_css = ['shop', 'admin'];
-require_once __DIR__ . '/../includes/header.php';
-
-
-// GET ALL CUSTOMER MESSAGES
-$sql = "SELECT message_id, name, email, phone, message, status, created_at
-        FROM contact_messages
-        ORDER BY created_at DESC";
-
-$result = $conn->query($sql);
-
 // Get selected filter
 $filter = $_GET['filter'] ?? 'All';
 
@@ -96,16 +82,18 @@ if ($filter === 'All') {
 }
 
 
-// Load header AFTER processing POST
+// Load header AFTER processing POST, so the redirect above still has its headers.
 // Admin pages use the wider container - see includes/header.php.
 $wide_layout = true;
+$page_title = 'Customer Messages';
+$extra_css = ['shop', 'admin'];
 require_once __DIR__ . '/../includes/header.php';
 
 ?>
 
-<section class="card">
-    <h1>Admin Dashboard</h1>
-    <p class="muted">Court reservation revenue and management shortcuts.</p>
+<section class="page-hero">
+    <h1>Customer Messages</h1>
+    <p class="muted">Enquiries submitted through the contact form.</p>
 </section>
 
 <div class="dashboard-layout">
@@ -115,7 +103,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 
     <!-- Main Content -->
-    <main class="dashboard-main-content">
+    <div class="dashboard-main-content">
         
         <section class="card">
 
@@ -220,7 +208,7 @@ require_once __DIR__ . '/../includes/header.php';
                                     </td>
 
                                     <td>
-                                        <?= htmlspecialchars($row['email']) ?>
+                                        <?= h($row['email']) ?>
                                     </td>
 
                                     <td>
@@ -292,7 +280,7 @@ require_once __DIR__ . '/../includes/header.php';
 
         </section>
 
-    </main>
+    </div>
 
 </div>
 

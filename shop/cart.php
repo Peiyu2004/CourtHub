@@ -90,7 +90,7 @@ $extra_css = ['shop'];
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<section class="card">
+<section class="page-hero">
     <h1>Shopping Cart</h1>
     <p class="muted">Review your selected equipment before simulated payment.</p>
 </section>
@@ -256,10 +256,15 @@ require_once __DIR__ . '/../includes/header.php';
              * script only saves a wasted page load.
              */
             ?>
-            <a href="<?= h(app_url('/shop/checkout.php')) ?>"
-               class="btn js-checkout-link<?= $cart_is_payable ? '' : ' is-blocked' ?>"
-               data-blocked="<?= $cart_is_payable ? '0' : '1' ?>"
-               aria-describedby="cartBlocker">Proceed to Payment</a>
+            <div class="checkout-actions">
+                <a href="<?= h(app_url('/shop/equipment.php')) ?>"
+                   class="btn btn-secondary">Continue Shopping</a>
+
+                <a href="<?= h(app_url('/shop/checkout.php')) ?>"
+                   class="btn js-checkout-link<?= $cart_is_payable ? '' : ' is-blocked' ?>"
+                   data-blocked="<?= $cart_is_payable ? '0' : '1' ?>"
+                   aria-describedby="cartBlocker">Proceed to Payment</a>
+            </div>
         </div>
     </section>
 <?php endif; ?>

@@ -126,7 +126,7 @@ $is_security_active = !empty($errors_password) || !empty($success_password);
     </aside>
 
     <!-- Main Content Area -->
-    <main class="profile-content">
+    <div class="profile-content">
         <!-- Profile Details Form -->
         <div class="card tab-pane <?= !$is_security_active ? 'active' : '' ?>" id="tab-info">
             <h2>Personal Information</h2>
@@ -190,7 +190,7 @@ $is_security_active = !empty($errors_password) || !empty($success_password);
                     <label for="current_password">Current Password</label>
                     <div class="password-input-wrapper">
                         <input type="password" id="current_password" name="current_password" placeholder="Enter your current password" required>
-                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">👁️</button>
+                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">Show</button>
                     </div>
                 </div>
 
@@ -198,7 +198,7 @@ $is_security_active = !empty($errors_password) || !empty($success_password);
                     <label for="new_password">New Password</label>
                     <div class="password-input-wrapper">
                         <input type="password" id="new_password" name="new_password" placeholder="Enter your new password" required minlength="6">
-                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">👁️</button>
+                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">Show</button>
                     </div>
                 </div>
 
@@ -206,14 +206,14 @@ $is_security_active = !empty($errors_password) || !empty($success_password);
                     <label for="confirm_password">Confirm New Password</label>
                     <div class="password-input-wrapper">
                         <input type="password" id="confirm_password" name="confirm_password" placeholder="Re-enter your new password" required minlength="6">
-                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">👁️</button>
+                        <button type="button" class="toggle-password" aria-label="Toggle password visibility">Show</button>
                     </div>
                 </div>
 
                 <button type="submit" class="btn btn-auth-submit">Update Password</button>
             </form>
         </div>
-    </main>
+    </div>
 </div>
 
 <script src="<?= h(asset_url('/js/auth.js')) ?>"></script>

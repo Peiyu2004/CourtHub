@@ -30,9 +30,9 @@ require_once __DIR__ . '/includes/header.php';
         <div class="grid">
             <!-- Card 1: Badminton -->
             <div class="info-card">
-                <div class="card-image">
+                <a class="card-image" href="<?= h(app_url('/booking/courtService.php')) ?>">
                     <img src="<?= h(app_url('/images/badmintonCourt.jpg')) ?>" alt="Badminton Hall">
-                </div>
+                </a>
                 <div class="card-body">
                     <h3>BADMINTON COURTS</h3>
                     <p>6 premium indoor rubber mats equipped with optimal professional lighting setups. Ideal for competitive matches.</p>
@@ -42,9 +42,9 @@ require_once __DIR__ . '/includes/header.php';
 
             <!-- Card 2: Pickleball -->
             <div class="info-card">
-                <div class="card-image">
+                <a class="card-image" href="<?= h(app_url('/booking/courtService.php')) ?>">
                     <img src="<?= h(app_url('/images/pickleballCourt.jpg')) ?>" alt="Pickleball Arena">
-                </div>
+                </a>
                 <div class="card-body">
                     <h3>PICKLEBALL ZONE</h3>
                     <p>6 dedicated, state-of-the-art indoor courts curated for maximum bounce control and rapid gameplay tracking.</p>
@@ -54,9 +54,9 @@ require_once __DIR__ . '/includes/header.php';
 
             <!-- Card 3: Futsal -->
             <div class="info-card">
-                <div class="card-image">
+                <a class="card-image" href="<?= h(app_url('/booking/courtService.php')) ?>">
                     <img src="<?= h(app_url('/images/futsalCourt.jpg')) ?>" alt="Futsal Pitch">
-                </div>
+                </a>
                 <div class="card-body">
                     <h3>FUTSAL PITCHES</h3>
                     <p>2 full-sized premium interlock court options designed for ideal traction control, acceleration, and player safety.</p>

@@ -46,11 +46,79 @@ document.addEventListener('DOMContentLoaded', () => {
     /* =====================================================
        Login Page Enhancements
        ===================================================== */
-    const loginForm = document.querySelector('.auth-form[action*="login.php"]');
+    const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         const submitBtn = loginForm.querySelector('.btn-auth-submit');
+        const emailInput = loginForm.querySelector('#email');
+        const passwordInput = loginForm.querySelector('#password');
+        const errorBox = loginForm.querySelector('#loginClientErrors');
 
-        loginForm.addEventListener('submit', () => {
+        const showLoginErrors = (messages) => {
+            if (!errorBox) {
+                alert(messages.join("\n"));
+                return;
+            }
+
+            errorBox.innerHTML = '';
+            messages.forEach(message => {
+                const line = document.createElement('p');
+                line.textContent = message;
+                errorBox.appendChild(line);
+            });
+            errorBox.hidden = false;
+        };
+
+        const clearLoginErrors = () => {
+            if (errorBox) {
+                errorBox.hidden = true;
+                errorBox.innerHTML = '';
+            }
+            [emailInput, passwordInput].forEach(input => {
+                if (input) {
+                    input.classList.remove('input-error');
+                }
+            });
+        };
+
+        // Clear the message as soon as the user starts fixing the field,
+        // so a stale error doesn't sit under a form that now looks fine
+        [emailInput, passwordInput].forEach(input => {
+            if (input) {
+                input.addEventListener('input', clearLoginErrors);
+            }
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            clearLoginErrors();
+
+            const errors = [];
+            let firstInvalid = null;
+
+            if (!emailInput || emailInput.value.trim() === '') {
+                errors.push('Please enter your email.');
+                if (emailInput) {
+                    emailInput.classList.add('input-error');
+                    firstInvalid = firstInvalid || emailInput;
+                }
+            }
+
+            if (!passwordInput || passwordInput.value === '') {
+                errors.push('Please enter your password.');
+                if (passwordInput) {
+                    passwordInput.classList.add('input-error');
+                    firstInvalid = firstInvalid || passwordInput;
+                }
+            }
+
+            if (errors.length > 0) {
+                e.preventDefault();
+                showLoginErrors(errors);
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                }
+                return;
+            }
+
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Logging in...';

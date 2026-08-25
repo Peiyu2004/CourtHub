@@ -19,3 +19,6 @@ Thumbs.db
 # Composer
 composer.phar
 composer.lock
+
+#Ignore AssignmentDetails
+AssignmentDetails/

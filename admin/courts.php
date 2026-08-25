@@ -272,6 +272,7 @@ require_once __DIR__ . '/../includes/header.php';
                                     <?php $court_form_id = 'court_form_' . (int)$court['court_id']; ?>
                                     <tr>
                                         <td>
+                                            <div class="form-group">
                                             <?php if ($court['status'] === 'active'): ?>
                                                 <form id="<?= h($court_form_id) ?>" method="POST" action="<?= h(app_url('/admin/courts.php')) ?>"></form>
                                                 <input type="hidden" name="action" value="update_court" form="<?= h($court_form_id) ?>">
@@ -280,8 +281,10 @@ require_once __DIR__ . '/../includes/header.php';
                                             <?php else: ?>
                                                 <?= h($court['court_number']) ?>
                                             <?php endif; ?>
+                                            </div>
                                         </td>
                                         <td>
+                                            <div class="form-group">
                                             <?php if ($court['status'] === 'active'): ?>
                                                 <select name="sport_type_id" form="<?= h($court_form_id) ?>" required>
                                                     <?php foreach ($sports as $sport): ?>
@@ -293,6 +296,7 @@ require_once __DIR__ . '/../includes/header.php';
                                             <?php else: ?>
                                                 <?= h($court['sport_name']) ?>
                                             <?php endif; ?>
+                                            </div>
                                         </td>
                                         <td><span class="status <?= h($court['status']) ?>"><?= h(str_replace('_', ' ', $court['status'])) ?></span></td>
                                         <td>

@@ -60,6 +60,9 @@ require_once __DIR__ . '/includes/header.php';
         View your enquiries and track their progress.
     </p>
 
+</section>
+
+<section class="card">
 
     <?php if (empty($messages)): ?>
 

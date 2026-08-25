@@ -223,7 +223,12 @@ require_once __DIR__ . '/../includes/header.php';
                         You will not be able to change the date, time or courts
                         after payment, so please check your selection before you
                         continue.
-                    </p>
+                    </p><br>
+                    <strong>
+                        Please do not leave your valuables unattended.
+                        We will not be responsible for any theft.
+                    </strong>
+                    
                 </div>
 
                 <div class="checkout-bar">

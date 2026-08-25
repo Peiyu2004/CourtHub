@@ -60,7 +60,7 @@ if (!in_array($filter, $allowedFilters, true)) {
 // Get customer messages based on filter
 if ($filter === 'All') {
 
-    $sql = "SELECT message_id, name, email, phone, message, status, created_at
+    $sql = "SELECT message_id, user_id, name, email, phone, message, status, created_at
             FROM contact_messages
             ORDER BY created_at DESC";
 
@@ -69,10 +69,10 @@ if ($filter === 'All') {
 } else {
 
     $stmt = $conn->prepare(
-        "SELECT message_id, name, email, phone, message, status, created_at
-         FROM contact_messages
-         WHERE status = ?
-         ORDER BY created_at DESC"
+        "SELECT message_id, user_id, name, email, phone, message, status, created_at
+        FROM contact_messages
+        WHERE status = ?
+        ORDER BY created_at DESC"
     );
 
     $stmt->bind_param("s", $filter);

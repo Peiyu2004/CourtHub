@@ -5,8 +5,8 @@
         <div class="footer-grid">
             <div class="footer-col">
                 <div class="footer-brand">
-                    <img src="<?= h(app_url('/images/logo.png')) ?>" alt="">
-                    <span>CourtHub</span>
+                    <img src="<?= h(app_url('/images/logo.png')) ?>" alt="CourtHub Logo" class="logo-img">
+                    <span class="logo-text">ourtHub</span>
                 </div>
                 <p>Badminton, pickleball and futsal courts by the hour, plus a shop stocked for every one of them.</p>
             </div>

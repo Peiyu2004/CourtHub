@@ -20,6 +20,11 @@ const CONTACT_PHONE_MAX   = 20;
 const CONTACT_MESSAGE_MAX = 2000;
 
 $error_message = "";
+$name_error = "";
+$email_error = "";
+$phone_error = "";
+$message_error = "";
+
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -29,53 +34,65 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email   = trim($_POST["email"] ?? "");
     $phone   = trim($_POST["phone"] ?? "");
     $message = trim($_POST["message"] ?? "");
-
-    $errors = [];
-
+    
     // Required
     if ($name === "" || $email === "" || $phone === "" || $message === "") {
-        $errors[] = "Please fill in all fields.";
+        if ($name === "") {
+            $name_error = "Name is required.";
+        }
+        if ($email === "") {
+            $email_error = "Email is required.";
+        }
+        if ($phone === "") {
+            $phone_error = "Phone number is required.";
+        }
+        if ($message === "") {
+            $message_error = "Message is required.";
+        }
     }
 
     // Format. The form uses type="email" and a pattern, but a form can be sent
     // without a browser, so the same rules are applied again here.
     if ($email !== "" && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Please enter a valid email address.";
+        $email_error = "Please enter a valid email address.";
     }
     if ($phone !== "" && !preg_match('/^[0-9+\-\s]{7,20}$/', $phone)) {
-        $errors[] = "Please enter a valid phone number.";
+        $phone_error = "Please enter a valid phone number.";
     }
 
     // Length
     if (mb_strlen($name) > CONTACT_NAME_MAX) {
-        $errors[] = "Name cannot be longer than " . CONTACT_NAME_MAX . " characters.";
+        $name_error = "Name cannot be longer than " . CONTACT_NAME_MAX . " characters.";
     }
     if (mb_strlen($email) > CONTACT_EMAIL_MAX) {
-        $errors[] = "Email cannot be longer than " . CONTACT_EMAIL_MAX . " characters.";
+        $email_error = "Email cannot be longer than " . CONTACT_EMAIL_MAX . " characters.";
     }
     if (mb_strlen($phone) > CONTACT_PHONE_MAX) {
-        $errors[] = "Phone number cannot be longer than " . CONTACT_PHONE_MAX . " characters.";
+        $phone_error = "Phone number cannot be longer than " . CONTACT_PHONE_MAX . " characters.";
     }
     if (mb_strlen($message) > CONTACT_MESSAGE_MAX) {
-        $errors[] = "Message cannot be longer than " . CONTACT_MESSAGE_MAX . " characters.";
+        $message_error = "Message cannot be longer than " . CONTACT_MESSAGE_MAX . " characters.";
     }
 
-    if (!empty($errors)) {
+    if (!empty($name_error) || !empty($email_error) || !empty($phone_error) || !empty($message_error)) {
 
-        $error_message = implode(" ", $errors);
+        $error_message = implode(" ", [$name_error, $email_error, $phone_error, $message_error]);
 
     } else {
 
         try {
 
+            $user_id = (int)$_SESSION['user_id'];
+            
             $sql = "INSERT INTO contact_messages
-                    (name, email, phone, message)
-                    VALUES (?, ?, ?, ?)";
+                    (user_id, name, email, phone, message)
+                    VALUES (?, ?, ?, ?, ?)";
 
             $stmt = $conn->prepare($sql);
 
             $stmt->bind_param(
-                "ssss",
+                "issss",
+                $user_id,
                 $name,
                 $email,
                 $phone,
@@ -160,21 +177,9 @@ require_once __DIR__ . '/includes/header.php';
 
         }
 
-        // Anything the checks above rejected is reported here. Without this the
-        // form simply did nothing on a bad entry and never said why.
-        if ($error_message !== "") {
-
-            echo '
-            <div class="alert alert-error">
-                ' . h($error_message) . '
-            </div>
-            ';
-
-        }
-
         ?>
 
-        <form class="contact-form" method="post" action="contact.php">
+        <form class="contact-form" method="post" action="contact.php" >
 
             <!-- maxlength matches the column sizes checked in PHP above, so the
                  browser stops an over-long value before it is ever sent. The PHP
@@ -182,15 +187,25 @@ require_once __DIR__ . '/includes/header.php';
 
             <div class="form-group">
                 <label for="contactName">Name</label>
-                <input type="text" id="contactName" name="name" maxlength="<?= CONTACT_NAME_MAX ?>" required
+                <input type="text" id="contactName" name="name" maxlength="<?= CONTACT_NAME_MAX ?>" 
                        value="<?= h($_POST['name'] ?? '') ?>">
+                <?php if ($name_error != ""): ?>
+                    <div class="field-error">
+                        <?= h($name_error) ?>
+                    </div>
+                <?php endif; ?>
             </div>
 
 
             <div class="form-group">
                 <label for="contactEmail">Email Address</label>
-                <input type="email" id="contactEmail" name="email" maxlength="<?= CONTACT_EMAIL_MAX ?>" required
+                <input type="email" id="contactEmail" name="email" maxlength="<?= CONTACT_EMAIL_MAX ?>" 
                        value="<?= h($_POST['email'] ?? '') ?>">
+                <?php if ($email_error != ""): ?>
+                    <div class="field-error">
+                        <?= h($email_error) ?>
+                    </div>
+                <?php endif; ?>
             </div>
 
 
@@ -205,14 +220,23 @@ require_once __DIR__ . '/includes/header.php';
                     minlength="7"
                     maxlength="<?= CONTACT_PHONE_MAX ?>"
                     oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                    required
                     value="<?= h($_POST['phone'] ?? '') ?>">
+                <?php if ($phone_error != ""): ?>
+                    <div class="field-error">
+                        <?= h($phone_error) ?>
+                    </div>
+                <?php endif; ?>
             </div>
 
 
             <div class="form-group">
                 <label for="contactMessage">Message</label>
-                <textarea id="contactMessage" name="message" rows="5" maxlength="<?= CONTACT_MESSAGE_MAX ?>" required><?= h($_POST['message'] ?? '') ?></textarea>
+                <textarea id="contactMessage" name="message" rows="5" maxlength="<?= CONTACT_MESSAGE_MAX ?>" ><?= h($_POST['message'] ?? '') ?></textarea>
+                <?php if ($message_error != ""): ?>
+                    <div class="field-error">
+                        <?= h($message_error) ?>
+                    </div>
+                <?php endif; ?>
             </div>
 
 

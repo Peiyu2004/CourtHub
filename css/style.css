@@ -430,11 +430,13 @@ a {
 .footer-brand {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 1px;
     color: var(--color-surface);
     font-family: var(--font-display);
+    font-weight: 700;
     font-size: var(--text-lg);
-    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+    margin-bottom: 5px;
 }
 
 .footer-brand img {
@@ -1873,4 +1875,59 @@ th {
     gap: 6px;
     text-align: center;
 }
+
+.field-error {
+    color: red;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.message-box {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-top: 15px;
+    border-radius: 12px;
+    background: #fff;
+}
+
+
+.status-pill {
+    padding: 6px 18px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+
+.status-new {
+    background: #fff3cd;
+    color: #856404;
+}
+
+
+.status-progress {
+    background: #cfe2ff;
+    color: #084298;
+}
+
+
+.status-completed {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.message-content-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+
+.message-text {
+    margin: 0;
+    flex: 1;
+}
+
 

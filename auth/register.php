@@ -36,7 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 3. Phone Number Validation (Optional field, but validate format if entered)
-    if ($phone !== '' && !preg_match("/^[0-9+\s\-()]{7,20}$/", $phone)) {
+    if ($phone === '') {
+        $errors[] = "Phone number is required.";
+    } else if ($phone !== '' && !preg_match("/^[0-9+\s\-()]{7,20}$/", $phone)) {
         $errors[] = "Please enter a valid phone number (e.g., 0123456789).";
     }
 
@@ -50,7 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 5. Password Confirmation
-    if ($password !== $confirm_password) {
+    if ($confirm_password === '') {
+        $errors[] = "Confirm password is required.";
+    } else if ($password !== $confirm_password) {
         $errors[] = "Passwords do not match.";
     }
 
@@ -123,6 +127,7 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endif; ?>
 
             <form method="POST" action="register.php" class="auth-form" id="registerForm" novalidate>
+                <div class="alert alert-error" id="registerClientErrors" style="display: none;"></div>
                 <div class="form-group">
                     <label for="full_name">Full Name</label>
                     <input type="text" id="full_name" name="full_name" value="<?= h($full_name) ?>" placeholder="Enter your full name" required minlength="2" maxlength="100">
@@ -135,7 +140,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                 <div class="form-group">
                     <label for="phone">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" value="<?= h($phone) ?>" placeholder="Enter your phone number (e.g. 0123456789)">
+                    <input type="tel" id="phone" name="phone" value="<?= h($phone) ?>" placeholder="Enter your phone number (e.g. 0123456789)" required>
                 </div>
 
                 <div class="form-group">

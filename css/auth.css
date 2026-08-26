@@ -2,11 +2,6 @@
    Login & Register
    ===================================================== */
 /* Layout Wrapper */
-/* Login and register centre one card in the space between the header and the
-   footer. The column has to become a flex parent for the wrapper to have a
-   height to centre inside, and the usual top/bottom spacing has to go or the
-   card sits high - .site-main has 24px above and 40px below, and the footer
-   adds another 48px. Only pages that set $centered_layout get this. */
 .site-main-centered {
     display: flex;
     flex-direction: column;
@@ -38,7 +33,7 @@
     overflow: hidden;
 }
 
-/* Left Visual Column (Using CSS Background Image) */
+/* Left Visual Column */
 .auth-visual-side {
     flex: 1;
     background-size: cover;
@@ -120,7 +115,7 @@
     box-shadow: 0 0 0 3px rgba(37, 137, 204, 0.15);
 }
 
-/* Marks the field the client-side check flagged as empty */
+/* Marks the field flagged as invalid */
 .auth-form input.input-error {
     border-color: var(--color-danger);
     background-color: var(--color-danger-soft);
@@ -131,22 +126,18 @@
     box-shadow: 0 0 0 3px var(--color-danger-soft);
 }
 
-/* =====================================================
-   Password Toggle Field Positioning
-   ===================================================== */
+/* Password Toggle Field Positioning */
 .password-input-wrapper {
     position: relative !important;
     width: 100%;
 }
 
-/* Leave room for the toggle icon so text doesn't hide beneath it */
 .password-input-wrapper input {
     width: 100%;
-    padding-right: 45px !important; /* Prevents text from hiding under icon */
+    padding-right: 45px !important;
     box-sizing: border-box;
 }
 
-/* Show / hide toggle button styling */
 .password-input-wrapper .toggle-password {
     position: absolute !important;
     right: 10px !important;
@@ -178,9 +169,7 @@
     background-color: var(--color-border);
 }
 
-/* =====================================================
-   Buttons & Links
-   ===================================================== */
+/* Buttons & Links */
 .btn-auth-submit {
     width: 100%;
     padding: 12px;
@@ -218,9 +207,7 @@
     text-decoration: underline;
 }
 
-/* =====================================================
-   Mobile Responsive Fallback
-   ===================================================== */
+/* Mobile Responsive Fallback */
 @media (max-width: 768px) {
     .auth-card-container {
         flex-direction: column;
@@ -233,9 +220,7 @@
     }
 }
 
-/* =====================================================
-   Profile Layout & Sidebar Tabs
-   ===================================================== */
+/* Profile Layout & Sidebar Tabs */
 .profile-layout {
     display: grid;
     grid-template-columns: 260px 1fr;
@@ -294,7 +279,6 @@
     text-align: left;
     cursor: pointer;
     font-weight: 550;
-    /* font-weight: 500; */
     font-size: var(--text-sm);
     color: var(--color-ink-muted);
     transition: all 0.2s ease;
@@ -334,6 +318,7 @@
         grid-template-columns: 1fr;
     }
 }
+
 .auth-visual-side.auth-visual-login {
     background-image: url('../images/login.jpg');
 }
@@ -356,4 +341,83 @@
     width: 16px;
     height: 16px;
     cursor: pointer;
+}
+
+/* =====================================================
+   Delete Account Sidebar Navigation Item
+   ===================================================== */
+.nav-tab-danger {
+    color: var(--color-danger, #d9534f);
+}
+
+.nav-tab-danger:hover {
+    background-color: #fff0f0;
+    color: #c9302c;
+}
+
+.nav-tab-danger.active {
+    background-color: var(--color-danger, #d9534f);
+    color: #ffffff;
+}
+
+.danger-zone-title {
+    color: var(--color-danger, #d9534f);
+    font-size: var(--text-2xl);
+    margin: 0 0 4px 0;
+}
+
+.btn-danger {
+    background-color: var(--color-danger, #d9534f);
+    color: #ffffff;
+    width: 100%;
+    padding: 12px;
+    display: inline-block;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    margin-top: 10px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-danger:hover {
+    background-color: darkred;
+}
+
+/* /* =====================================================
+   Alert & Message Boxes
+   ===================================================== */
+.alert {
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+    font-size: var(--text-sm);
+    line-height: 1.5;
+}
+
+.alert p {
+    margin: 0;
+}
+
+.alert p + p {
+    margin-top: 4px;
+}
+
+.alert-error {
+    background-color: var(--color-danger-soft, #f8d7da);
+    color: var(--color-danger, #721c24);
+    border: 1px solid var(--color-danger-border, #f5c6cb);
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-info {
+    background-color: #e2f0fb;
+    color: var(--color-navy-deep, #071630);
+    border: 1px solid var(--color-accent, #2589cc);
 }

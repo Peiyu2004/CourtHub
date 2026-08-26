@@ -3,7 +3,8 @@
    Client-side behaviour for the court booking pages.
 
    Loaded by:
-     booking/search.php  (hour dropdowns, court picking, running total)
+     booking/search.php   (hour dropdowns, court picking, running total)
+     booking/payment.php  (the "this booking is final" acknowledgement)
 
    The payment screens have their own file, js/payment.js.
 
@@ -17,6 +18,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     setUpTimeRange();
     setUpCourtSelection();
+    setUpBookingConfirm();
 });
 
 
@@ -128,4 +130,76 @@ function setUpCourtSelection() {
     });
 
     updateTotal();
+}
+
+
+/* ---------------------------------------------------------------------
+   3. Final-booking acknowledgement (confirm page)
+
+   The tick box saying the booking cannot be changed has to be ticked before
+   the customer is sent to a payment screen. With JavaScript off the form
+   still submits and booking/payment.php refuses it with the same sentence,
+   so this only saves the round trip - it is not the check that decides.
+
+   The message is written into the alert box that is already sitting inside
+   the form, which is styled like the one PHP prints its own errors into, so
+   a complaint from the browser and a complaint from the server read the
+   same way.
+   --------------------------------------------------------------------- */
+function setUpBookingConfirm() {
+    var form = document.querySelector('.js-confirm-form');
+
+    if (!form) {
+        return;
+    }
+
+    var acknowledge = form.querySelector('.js-acknowledge');
+    var errorBox = form.querySelector('.js-confirm-errors');
+    var row = form.querySelector('.js-acknowledge-row');
+
+    if (!acknowledge) {
+        return;
+    }
+
+    function showError(message) {
+        // No box on the page for some reason - say it the plain way rather
+        // than letting the form go through unchecked.
+        if (!errorBox) {
+            alert(message);
+            return;
+        }
+
+        errorBox.innerHTML = '';
+        var line = document.createElement('p');
+        line.textContent = message;
+        errorBox.appendChild(line);
+        errorBox.hidden = false;
+    }
+
+    function clearError() {
+        if (errorBox) {
+            errorBox.hidden = true;
+            errorBox.innerHTML = '';
+        }
+        if (row) {
+            row.classList.remove('input-error');
+        }
+    }
+
+    // Drop the message the moment the box is ticked, so a stale complaint is
+    // not left sitting above a form that is now filled in correctly.
+    acknowledge.addEventListener('change', clearError);
+
+    form.addEventListener('submit', function (event) {
+        clearError();
+
+        if (!acknowledge.checked) {
+            event.preventDefault();
+            showError('Please confirm you understand this booking cannot be changed after payment.');
+            if (row) {
+                row.classList.add('input-error');
+            }
+            acknowledge.focus();
+        }
+    });
 }

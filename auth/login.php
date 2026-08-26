@@ -89,7 +89,11 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="login.php" class="auth-form">
+            <!-- novalidate: the JS below reports empty fields in the same
+                 alert box the PHP errors use, instead of the browser bubbles -->
+            <form method="POST" action="login.php" class="auth-form" id="loginForm" novalidate>
+                <div class="alert alert-error" id="loginClientErrors" hidden></div>
+
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" name="email" value="<?= h($email) ?>" placeholder="Enter your email" required>

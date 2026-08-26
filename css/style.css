@@ -1505,6 +1505,14 @@ th {
     flex-shrink: 0;
 }
 
+/* Marked by js/booking.js when Continue is pressed with the box unticked.
+   The alert inside the form carries the sentence; this only points at the
+   control the customer still has to touch. */
+.acknowledge-row.input-error {
+    border-color: var(--color-danger-border);
+    background-color: var(--color-danger-soft);
+}
+
 /* ---------- History tabs (court bookings / equipment purchases) ---------- */
 
 .history-tabs {

@@ -192,8 +192,12 @@ require_once __DIR__ . '/../includes/header.php';
                 This is a simulation - no real bank, card network or e-wallet is contacted.
             </p>
 
-            <form method="POST" action="<?= h(app_url('/booking/payment.php')) ?>">
+            <!-- novalidate: js/booking.js reports the missing tick in the same
+                 alert box the PHP errors use, instead of a browser bubble -->
+            <form method="POST" action="<?= h(app_url('/booking/payment.php')) ?>" class="js-confirm-form" novalidate>
                 <input type="hidden" name="action" value="choose">
+
+                <div class="alert alert-error js-confirm-errors" hidden></div>
 
                 <div class="selection-grid">
                     <label class="select-card">
@@ -208,8 +212,9 @@ require_once __DIR__ . '/../includes/header.php';
                     </label>
                 </div>
 
-                <label class="acknowledge-row">
-                    <input type="checkbox" name="acknowledge" value="1" <?= $acknowledged ? 'checked' : '' ?> required>
+                <label class="acknowledge-row js-acknowledge-row">
+                    <input type="checkbox" name="acknowledge" value="1" class="js-acknowledge"
+                           <?= $acknowledged ? 'checked' : '' ?>>
                     <span>
                         I understand this booking is final and cannot be modified
                         or cancelled once payment is made.
@@ -230,4 +235,5 @@ require_once __DIR__ . '/../includes/header.php';
     <?php endif; ?>
 <?php endif; ?>
 
+<script src="<?= h(asset_url('/js/booking.js')) ?>"></script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

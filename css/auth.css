@@ -120,6 +120,17 @@
     box-shadow: 0 0 0 3px rgba(37, 137, 204, 0.15);
 }
 
+/* Marks the field the client-side check flagged as empty */
+.auth-form input.input-error {
+    border-color: var(--color-danger);
+    background-color: var(--color-danger-soft);
+}
+
+.auth-form input.input-error:focus {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 3px var(--color-danger-soft);
+}
+
 /* =====================================================
    Password Toggle Field Positioning
    ===================================================== */

@@ -90,11 +90,17 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php /* A sport with nothing bookable gets no Book Now button.
                          The link would only land the customer on a search page
                          with an empty result and no explanation. */ ?>
-                <?php if ($court_count === 0): ?>
-                    <button type="button" class="btn" disabled>Book Now</button>
-                <?php else: ?>
-                    <a href="<?= h($facility_url) ?>" class="btn">Book Now</a>
-                <?php endif; ?>
+                <div class="card-actions">
+                    <a href="<?= h(app_url('/booking/viewCourt.php?sport=' . (int)$facility['sport_type_id'])) ?>" class="btn view-btn ">
+                        View
+                    </a>
+                    <?php if ($court_count === 0): ?> 
+                        <button type="button" class="btn" disabled>Book Now</button> 
+                    <?php else: ?> 
+                        <a href="<?= h($facility_url) ?>" class="btn view-btn2">Book Now</a> 
+                    <?php endif; ?>
+
+                </div>
             </div>
         <?php endforeach; ?>
     </section>

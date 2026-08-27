@@ -511,3 +511,64 @@ function courtsWithUnfinishedBookings($conn) {
 if (isset($conn) && !isLoggedIn() && isset($_COOKIE[REMEMBER_COOKIE])) {
     loginFromRememberCookie($conn);
 }
+
+// viewCourt.php
+function courtImages($sport)
+{
+    switch($sport)
+    {
+        case "Badminton":
+
+            return [
+                app_url('/images/badminton/main.jpg'),
+                app_url('/images/badminton/court2.jpg'),
+                app_url('/images/badminton/court3.jpg')
+            ];
+
+
+        case "Pickleball":
+
+            return [
+                app_url('/images/pickleball/main.jpg'),
+                app_url('/images/pickleball/court2.jpg'),
+                app_url('/images/pickleball/court3.jpg')
+            ];
+
+
+        case "Futsal":
+
+            return [
+                app_url('/images/futsal/main.jpg'),
+                app_url('/images/futsal/court2.jpg'),
+                app_url('/images/futsal/court3.jpg')
+            ];
+
+
+        default:
+
+            return [
+                app_url('/images/default.jpg')
+            ];
+    }
+}
+
+function ratingStars($rating)
+{
+    $rating = round($rating);
+
+    $stars = '';
+
+    for($i = 1; $i <= 5; $i++)
+    {
+        if($i <= $rating)
+        {
+            $stars .= '★';
+        }
+        else
+        {
+            $stars .= '☆';
+        }
+    }
+
+    return $stars;
+}

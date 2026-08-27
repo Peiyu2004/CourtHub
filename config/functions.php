@@ -552,23 +552,3 @@ function courtImages($sport)
     }
 }
 
-function ratingStars($rating)
-{
-    $rating = round($rating);
-
-    $stars = '';
-
-    for($i = 1; $i <= 5; $i++)
-    {
-        if($i <= $rating)
-        {
-            $stars .= '★';
-        }
-        else
-        {
-            $stars .= '☆';
-        }
-    }
-
-    return $stars;
-}

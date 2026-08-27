@@ -321,10 +321,11 @@ $images = courtImages($sport['name']);
 
     <div class="info-row">
 
-        🕒 Opening Hours
+        🕒 Opening Hours & Venue Location
 
         <br><br>
         <p>Monday - Sunday: 8:00 AM - 11:00 PM</p>
+        <p>CourtHub Sport Center, 50000, Kuala Lumpur, Malaysia</p>
 
     </div>
 

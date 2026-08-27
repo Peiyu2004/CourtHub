@@ -86,6 +86,7 @@ CREATE TABLE booking_orders (
     total_amount     DECIMAL(8,2) NOT NULL,
     payment_method   ENUM('tng_ewallet', 'credit_debit_card') NOT NULL,
     payment_status   ENUM('paid', 'failed') NOT NULL DEFAULT 'paid', -- simulated, so no real 'pending' gateway state
+    booking_status ENUM('Pending', 'Completed') NOT NULL DEFAULT 'Pending',
     transaction_ref  VARCHAR(50),          -- simulated reference number, e.g. TNG-20260709-0001
     created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 

@@ -25,9 +25,13 @@ $order_counts = function_exists('equipmentOrderStatusCounts') ? equipmentOrderSt
             <span class="nav-icon">🏸</span>
             <span class="nav-text">Courts</span>
         </a>
+        <a href="<?= h(app_url('/admin/reservation.php')) ?>" class="nav-item <?= $current_page === 'reservation.php' ? 'active' : '' ?>">
+            <span class="nav-icon">🗓️</span>
+            <span class="nav-text">Reservations</span>
+        </a>
         <a href="<?= h(app_url('/admin/equipment.php')) ?>" class="nav-item <?= $current_page === 'equipment.php' ? 'active' : '' ?>">
             <span class="nav-icon">🎾</span>
-            <span class="nav-text">Equipment</span>
+            <span class="nav-text">Equipments</span>
         </a>
         <a href="<?= h(app_url('/admin/categories.php')) ?>" class="nav-item <?= $current_page === 'categories.php' ? 'active' : '' ?>">
             <span class="nav-icon">🏷️</span>

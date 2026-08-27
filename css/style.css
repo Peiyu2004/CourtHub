@@ -1886,6 +1886,8 @@ th {
     text-align: center;
 }
 
+/* ---------- My messages ---------- */
+
 .field-error {
     color: red;
     font-size: 14px;
@@ -1939,5 +1941,263 @@ th {
     margin: 0;
     flex: 1;
 }
+
+.card-actions {
+    display: flex;
+    gap: 60px;
+    justify-content: center;
+}
+
+.view-btn {
+    background-color: white;
+    border-color: var(--color-accent);
+    
+}
+
+.view-btn:hover:not(:disabled) {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    transform: translateY(-2px);
+    color: black;
+    background-color: white;
+}
+
+.view-btn2:hover:not(:disabled) {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    transform: translateY(-2px);
+    color: black; 
+}
+
+/* ---------- View Court ---------- */
+
+.venue-header{
+    background:white;
+    padding:25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+
+.venue-actions{
+    display:flex;
+    gap:12px;
+}
+
+
+.icon-btn,
+.outline-btn,
+.book-btn{
+
+    padding:12px 25px;
+    border-radius:8px;
+    border:1px solid #4361ee;
+    text-decoration:none;
+
+}
+
+
+.book-btn{
+
+    background:#4361ee;
+    color:white;
+
+}
+
+
+
+
+.gallery {
+
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:15px;
+
+}
+
+
+.main-image img,
+.small-images img {
+
+    cursor:pointer;
+
+}
+
+
+.main-image img {
+
+    width:100%;
+    height:450px;
+    object-fit:cover;
+    border-radius:15px;
+
+}
+
+
+.small-images {
+
+    display:grid;
+    gap:15px;
+
+}
+
+
+.small-images img {
+
+    width:100%;
+    height:217px;
+    object-fit:cover;
+    border-radius:15px;
+
+}
+
+
+
+/* Popup */
+
+.image-modal {
+
+    display:none;
+
+    position:fixed;
+
+    z-index:99999;   /* higher than header */
+
+    left:0;
+    top:0;
+
+    width:100%;
+    height:100%;
+
+    background:rgba(0,0,0,0.85);
+
+}
+
+
+
+.popup-content {
+
+    display:block;
+
+    margin:auto;
+
+    width: 70%;
+
+    height:80%;
+
+    margin-top:5%;
+
+    border-radius:15px;
+
+}
+
+
+
+.close-btn {
+
+    position:absolute;
+
+    right:40px;
+
+    top:20px;
+
+    color:white;
+
+    font-size:45px;
+
+    cursor:pointer;
+
+}
+
+
+.venue-tabs{
+
+    display:flex;
+    justify-content:space-around;
+    background:white;
+    padding:15px;
+
+}
+
+
+.venue-tabs div{
+
+    padding:10px 80px;
+
+}
+
+
+.venue-tabs .active{
+
+    border-bottom:3px solid blue;
+
+}
+
+
+
+
+
+.venue-content{
+
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    margin:20px;
+
+}
+
+
+
+
+
+.card{
+
+    background:white;
+    padding:25px;
+    border-radius:15px;
+
+}
+
+
+
+.category-list{
+
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+
+}
+
+
+
+.category-box{
+
+    border:1px solid #ddd;
+    padding:15px;
+    border-radius:12px;
+
+}
+
+
+
+
+
+.amenities{
+
+    display:flex;
+    gap:30px;
+
+}
+
+
+
+
+
+.info-row{
+
+    padding:18px;
+    border-bottom:1px solid #ddd;
+
+}
+
 
 

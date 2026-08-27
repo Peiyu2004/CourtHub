@@ -139,8 +139,8 @@ require_once __DIR__ . '/includes/header.php';
             <div class="contact-box">
                 <h3>📍 Address</h3>
                 <p>
-                    CourtHub Sport Center<br>
-                    Kuala Lumpur, Malaysia
+                    CourtHub Sport Center,<br>
+                    50000, Kuala Lumpur, Malaysia
                 </p>
             </div>
 

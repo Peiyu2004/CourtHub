@@ -37,8 +37,8 @@
             <div class="footer-col">
                 <h3>Visit</h3>
                 <p>
-                    Jalan Universiti, Bandar Barat<br>
-                    31900 Kampar, Perak<br>
+                    CourtHub Sport Center,<br>
+                    50000, Kuala Lumpur, Malaysia<br>
                     Open daily, 8:00 AM to 11:00 PM
                 </p>
                 <ul>

@@ -172,7 +172,7 @@ a {
 .logo {
     display: flex;
     align-items: center;
-    gap: 1px;
+    /* gap: 1px; */
     color: var(--color-surface);
     font-family: var(--font-display);
     font-weight: 700;

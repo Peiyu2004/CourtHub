@@ -96,15 +96,17 @@
 /* Overview Stat Grid (change of text size)*/
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    /* gap: 16px; */
+    gap: 10px;
     margin-bottom: 24px;
 }
 
 .stat-card {
     background: var(--color-surface);
     border-radius: var(--radius-lg);
-    padding: 18px;
+    /* padding: 18px; */
+    padding: 0.875rem 0.75rem;
     border: 1px solid var(--color-border);
     border-top: 3px solid var(--color-accent);
     box-shadow: 0 2px 6px rgba(7, 22, 48, 0.05);
@@ -155,16 +157,26 @@
     height: 140px;
 }
 
+/* Month Group Column Layout */
 .bar-column {
-    flex: 1;
+    /* flex: 1; */
     display: flex;
     flex-direction: column;
     align-items: center;
     height: 100%;
     justify-content: flex-end;
+    position: relative;
 }
 
-.bar-fill {
+/* Container for side-by-side bars */
+.bar-bars-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 100%;
+}
+
+/* .bar-fill {
     width: 100%;
     max-width: 28px;
     background-color: var(--color-navy);
@@ -174,17 +186,83 @@
 
 .bar-fill:hover {
     background-color: var(--color-accent);
+}*/
+
+/* Common Bar Styling */
+.bar-fill {
+    width: 24px;
+    border-radius: 4px 4px 0 0;
 }
 
+/* Bar Specific Colors */
+.bar-fill.court-bar {
+    background-color: #2563eb;
+}
+
+.bar-fill.equipment-bar {
+    background-color: #16a34a;
+}
+
+/* Chart Month Label */
 .bar-label {
     font-size: var(--text-xs);
     color: var(--color-ink-muted);
-    margin-top: 6px;
-}
+    /* font-size: 0.8125rem;
+    color: #64748b; */
+    margin-top: 8px;
+} 
 
 .revenue-amount {
     font-weight: 600;
     color: var(--color-ink);
+}
+
+/* Dashboard Chart Legend Styling */
+.chart-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    align-items: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    border-radius: 2px;
+}
+
+.legend-color.court {
+    background-color: #2563eb;
+}
+
+.legend-color.equipment {
+    background-color: #16a34a;
+}
+
+/* Revenue Chart Containers */
+.revenue-chart-container {
+    padding-bottom: 2rem;
+}
+
+.bar-chart#doubleBarChart {
+    display: flex;
+    align-items: flex-end;
+    gap: 2rem;
+    justify-content: flex-start;
+    height: 200px;
+}
+
+/* Breakdown Section Divider */
+.chart-table-divider {
+    margin-top: 2rem;
 }
 
 /* ==========================================================================

@@ -162,20 +162,6 @@ require_once __DIR__ . '/../includes/header.php';
         
     </div>
 
-    <div class="venue-actions">
-
-
-        <a href="<?=h(app_url('/booking/search.php?sport='.$sport_id))?>"
-        class="btn">
-
-        Book Now
-
-        </a>
-
-
-        </div>
-    </div>
-
 
 </section>
 
@@ -342,6 +328,19 @@ $images = courtImages($sport['name']);
 </div>
 
 </section>  
+
+<div class="card-actions">
+
+
+        <a href="<?=h(app_url('/booking/search.php?sport='.$sport_id))?>"
+        class="btn book-btn">
+
+        Book Now
+
+        </a>
+
+        
+    </div>
 
 
 <!-- Image Popup -->

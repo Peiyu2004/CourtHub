@@ -49,7 +49,6 @@ if (isset($extra_css)) {
                 </button>
 
                 <div class="dropdown-menu">
-                    <a href="<?= h(app_url('/booking/courtService.php')) ?>">View Facilities</a>
                     <a href="<?= h(app_url('/booking/search.php')) ?>">Book a Court</a>
                     <a href="<?= h(app_url('/shop/equipment.php')) ?>">Equipment Store</a>
                 </div>

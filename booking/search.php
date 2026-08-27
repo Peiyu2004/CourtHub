@@ -158,37 +158,6 @@ require_once __DIR__ . '/../includes/header.php';
          */
         ?>
 
-        <!-- Amenities -->
-        <div class="amenities-card">
-
-            <h2>Amenities</h2>
-
-            <div class="amenities-list">
-
-                <div class="amenity">
-                    <span>Ⓟ Parking</span>
-                </div>
-
-                <div class="amenity">
-                    <span>🚿 Shower</span>
-                </div>
-
-                <div class="amenity">
-                    <span>🛍 Pro Shop</span>
-                </div>
-
-                <div class="amenity">
-                    <span>🥤 Drinks</span>
-                </div>
-
-                <div class="amenity">
-                    <span>🕌 Surau</span>
-                </div>
-
-            </div>
-
-        </div>
-
         <?php if (empty($available_courts)): ?>
             <div class="empty-state">
                 Every <?= h($selected_sport['name']) ?> court is taken for this slot. Try another time or date.

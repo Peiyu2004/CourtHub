@@ -13,7 +13,7 @@ require_once __DIR__ . '/includes/header.php';
             <h1 class="hero-title">TRAIN.<br>PLAY.<br>GROW.</h1>
             <p class="hero-subtitle">Premium courts, top-tier equipment, and an active sports community. Elevate your game with us today.</p>
             <div class="hero-buttons">
-                <a href="<?= h(app_url('/booking/courtService.php')) ?>" class="btn-primary">BOOK A COURT NOW</a>
+                <a href="<?= h(app_url('/booking/search.php')) ?>" class="btn-primary">BOOK A COURT NOW</a>
                 <a href="<?= h(app_url('/shop/equipment.php')) ?>" class="btn-secondary">EXPLORE STORE</a>
             </div>
         </div>
@@ -30,37 +30,37 @@ require_once __DIR__ . '/includes/header.php';
         <div class="grid">
             <!-- Card 1: Badminton -->
             <div class="info-card">
-                <a class="card-image" href="<?= h(app_url('/booking/courtService.php')) ?>">
+                <a class="card-image" href="<?= h(app_url('/booking/viewCourt.php?sport=1')) ?>">
                     <img src="<?= h(app_url('/images/badmintonCourt.jpg')) ?>" alt="Badminton Hall">
                 </a>
                 <div class="card-body">
                     <h3>BADMINTON COURTS</h3>
                     <p>6 premium indoor rubber mats equipped with optimal professional lighting setups. Ideal for competitive matches.</p>
-                    <a href="<?= h(app_url('/booking/courtService.php')) ?>" class="card-link">View Details &rarr;</a>
+                    <a href="<?= h(app_url('/booking/viewCourt.php?sport=1')) ?>" class="card-link">View Details &rarr;</a>
                 </div>
             </div>
 
             <!-- Card 2: Pickleball -->
             <div class="info-card">
-                <a class="card-image" href="<?= h(app_url('/booking/courtService.php')) ?>">
+                <a class="card-image" href="<?= h(app_url('/booking/viewCourt.php?sport=2')) ?>">
                     <img src="<?= h(app_url('/images/pickleballCourt.jpg')) ?>" alt="Pickleball Arena">
                 </a>
                 <div class="card-body">
                     <h3>PICKLEBALL ZONE</h3>
                     <p>6 dedicated, state-of-the-art indoor courts curated for maximum bounce control and rapid gameplay tracking.</p>
-                    <a href="<?= h(app_url('/booking/courtService.php')) ?>" class="card-link">View Details &rarr;</a>
+                    <a href="<?= h(app_url('/booking/viewCourt.php?sport=2')) ?>" class="card-link">View Details &rarr;</a>
                 </div>
             </div>
 
             <!-- Card 3: Futsal -->
             <div class="info-card">
-                <a class="card-image" href="<?= h(app_url('/booking/courtService.php')) ?>">
+                <a class="card-image" href="<?= h(app_url('/booking/viewCourt.php?sport=3')) ?>">
                     <img src="<?= h(app_url('/images/futsalCourt.jpg')) ?>" alt="Futsal Pitch">
                 </a>
                 <div class="card-body">
                     <h3>FUTSAL PITCHES</h3>
                     <p>2 full-sized premium interlock court options designed for ideal traction control, acceleration, and player safety.</p>
-                    <a href="<?= h(app_url('/booking/courtService.php')) ?>" class="card-link">View Details &rarr;</a>
+                    <a href="<?= h(app_url('/booking/viewCourt.php?sport=3')) ?>" class="card-link">View Details &rarr;</a>
                 </div>
             </div>
         </div>

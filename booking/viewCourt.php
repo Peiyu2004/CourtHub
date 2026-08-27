@@ -168,7 +168,7 @@ require_once __DIR__ . '/../includes/header.php';
         <a href="<?=h(app_url('/booking/search.php?sport='.$sport_id))?>"
         class="btn">
 
-        📅 Book Now
+        Book Now
 
         </a>
 

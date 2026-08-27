@@ -14,7 +14,6 @@
             <div class="footer-col">
                 <h3>Play</h3>
                 <ul>
-                    <li><a href="<?= h(app_url('/booking/courtService.php')) ?>">Our Facilities</a></li>
                     <li><a href="<?= h(app_url('/booking/search.php')) ?>">Book a Court</a></li>
                     <li><a href="<?= h(app_url('/shop/equipment.php')) ?>">Equipment Store</a></li>
                 </ul>

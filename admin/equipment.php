@@ -677,7 +677,7 @@ require_once __DIR__ . '/../includes/header.php';
                                                     <?php endforeach; ?>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td class="inline-form">
                                                 <input type="number" class="qty-input js-variant-stock"
                                                        name="stock[<?= (int)$variant['variant_id'] ?>]"
                                                        min="0" step="1"

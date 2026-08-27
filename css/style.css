@@ -968,6 +968,8 @@ th {
     opacity: 1;
 }
 
+
+
 /* ---------- Search bar (admin equipment orders) ----------
    A bare input outside .form-group gets none of the form styling above, so
    the field is given its own here rather than being wrapped in a form group

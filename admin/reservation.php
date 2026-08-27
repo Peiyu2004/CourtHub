@@ -8,33 +8,26 @@ require_once __DIR__ . '/../config/functions.php';
  *
  * This page lists court reservations made by customers using booking_orders 
  * and booking_order_items based on date and time slots.
- * Admins can update the booking_status (Pending / Completed).
+ * Status auto-updates from Pending to Completed once reservation time has passed.
  *
  * Must execute before includes/header.php to support redirects.
  */
 requireAdmin();
 
-// UPDATE BOOKING STATUS
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_order_id'], $_POST['booking_status'])) {
-    $booking_order_id = (int) $_POST['booking_order_id'];
-    $status = $_POST['booking_status'];
-
-    $allowed_statuses = ['Pending', 'Completed'];
-
-    if (in_array($status, $allowed_statuses, true)) {
-        $stmt = $conn->prepare(
-            "UPDATE booking_orders
-             SET booking_status = ?
-             WHERE booking_order_id = ?"
-        );
-        $stmt->bind_param("si", $status, $booking_order_id);
-        $stmt->execute();
-        $stmt->close();
-    }
-
-    header("Location: " . app_url('/admin/reservation.php'));
-    exit;
-}
+// AUTOMATIC SYSTEM UPDATE
+// Align with SQL event logic: Auto-complete past bookings where end_time < NOW()
+$auto_update_sql = "UPDATE booking_orders bo
+                    JOIN (
+                        SELECT booking_order_id,
+                               MAX(TIMESTAMP(booking_date, end_time)) AS ends_at
+                        FROM booking_order_items
+                        GROUP BY booking_order_id
+                    ) last ON last.booking_order_id = bo.booking_order_id
+                    SET bo.booking_status = 'Completed'
+                    WHERE bo.booking_status = 'Pending'
+                      AND bo.payment_status = 'paid'
+                      AND last.ends_at < NOW()";
+$conn->query($auto_update_sql);
 
 // Get selected filter
 $filter = $_GET['filter'] ?? 'All';
@@ -58,14 +51,13 @@ $base_sql = "SELECT bo.booking_order_id, bo.total_amount, bo.payment_method, bo.
 
 if ($filter === 'Completed') {
     $sql = $base_sql . " WHERE bo.booking_status = 'Completed' ORDER BY boi.booking_date DESC, boi.start_time ASC";
-    $result = $conn->query($sql);
 } elseif ($filter === 'Pending') {
     $sql = $base_sql . " WHERE bo.booking_status = 'Pending' ORDER BY boi.booking_date DESC, boi.start_time ASC";
-    $result = $conn->query($sql);
 } else {
     $sql = $base_sql . " ORDER BY boi.booking_date DESC, boi.start_time ASC";
-    $result = $conn->query($sql);
 }
+
+$result = $conn->query($sql);
 
 $wide_layout = true;
 $page_title = 'Manage Reservations';
@@ -75,7 +67,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 <section class="page-hero">
     <h1>Court Reservations</h1>
-    <p class="muted">Manage and review timeslot bookings for court reservations.</p>
+    <p class="muted">Review timeslot bookings and system-managed reservation statuses.</p>
 </section>
 
 <div class="dashboard-layout">
@@ -88,7 +80,7 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="split-row">
                 <div>
                     <h1>Court Reservations</h1>
-                    <p class="muted">Review customer court bookings and update usage status.</p>
+                    <p class="muted">Review customer court bookings and automatically tracked usage status.</p>
                 </div>
 
                 <div class="message-filter">
@@ -150,13 +142,10 @@ require_once __DIR__ . '/../includes/header.php';
                                         </span>
                                     </td>
                                     <td>
-                                        <form method="POST" class="status-form">
-                                            <input type="hidden" name="booking_order_id" value="<?= (int)$row['booking_order_id'] ?>">
-                                            <select name="booking_status" class="status-select" onchange="this.form.submit()">
-                                                <option value="Pending" <?= ($row['booking_status'] ?? 'Pending') === 'Pending' ? 'selected' : '' ?>>Pending</option>
-                                                <option value="Completed" <?= ($row['booking_status'] ?? '') === 'Completed' ? 'selected' : '' ?>>Completed</option>
-                                            </select>
-                                        </form>
+                                        <!-- Read-only automated system status -->
+                                        <span class="badge badge-<?= $row['booking_status'] === 'Completed' ? 'success' : 'secondary' ?>">
+                                            <?= htmlspecialchars(ucfirst($row['booking_status'] ?? 'Pending')) ?>
+                                        </span>
                                     </td>
                                 </tr>
                             <?php endwhile; ?>

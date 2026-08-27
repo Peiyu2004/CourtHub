@@ -584,6 +584,83 @@ INSERT INTO equipment_reviews (equipment_id, user_id, rating, comment) VALUES
 (14, 3, 4, 'Light and breathable. Sizing runs a little large so consider one size down.');
 
 
+-- ---------------------------------------------------------------------
+-- SCHEDULED EVENT: close off reservations once they have been played
+--
+-- booking_status starts at 'Pending' and used to be moved to 'Completed'
+-- only by hand, on admin/reservation.php. That left every past reservation
+-- sitting in the Pending list forever, because nothing in PHP ever looks at
+-- the clock. This event does that job on the database side, so the list only
+-- ever holds reservations that have genuinely not been played yet.
+--
+-- Three conditions decide what gets closed:
+--
+--   booking_status = 'Pending'   The one that does the real filtering. It
+--                                only ever moves a booking forwards, so an
+--                                admin who has already marked one Completed
+--                                is left alone and no row is rewritten twice.
+--
+--   payment_status = 'paid'      Matches every row as the site stands today.
+--                                Nothing ever writes 'failed': both order
+--                                inserts hardcode 'paid' (booking_functions
+--                                .php:293, cart_functions.php:282) and no
+--                                code updates the column afterwards, because
+--                                an unpaid booking is never written at all -
+--                                it waits in the session until payment goes
+--                                through. The condition is kept because every
+--                                equivalent query in the project carries it
+--                                (getAvailableCourts(), courtBookingBlock(),
+--                                hasPurchased(), the dashboard revenue sum),
+--                                and it is the correct rule the moment a
+--                                failure state is introduced.
+--
+--   MAX(...) < NOW()             Every item of one order shares the same
+--                                date and times - createBookingOrder() sets
+--                                them once, outside the loop that inserts one
+--                                row per court - so MAX() collapses to that
+--                                single end time and is not choosing between
+--                                different values. It is written as an
+--                                aggregate so the derived table returns one
+--                                row per order however many courts the order
+--                                covers, and so the rule stays correct if a
+--                                booking is ever allowed to span more than
+--                                one slot.
+--
+-- Using a JOIN rather than a NOT EXISTS subquery also means an order carrying
+-- no items cannot be matched. The application cannot produce one - the items
+-- are inserted in the same transaction and a failure rolls the order back -
+-- so this only guards against rows edited into the table by hand.
+--
+-- TIMESTAMP(booking_date, end_time) glues the two columns into one datetime
+-- so it can be compared with NOW() directly. Note that MySQL's NOW() follows
+-- the server's own time zone, while PHP is pinned to Asia/Kuala_Lumpur in
+-- config/functions.php - on this server the two agree.
+-- ---------------------------------------------------------------------
+
+DROP EVENT IF EXISTS complete_finished_bookings;
+
+CREATE EVENT complete_finished_bookings
+ON SCHEDULE EVERY 5 MINUTE
+DO
+  UPDATE booking_orders bo
+  JOIN (
+      SELECT booking_order_id,
+             MAX(TIMESTAMP(booking_date, end_time)) AS ends_at
+      FROM booking_order_items
+      GROUP BY booking_order_id
+  ) last ON last.booking_order_id = bo.booking_order_id
+  SET bo.booking_status = 'Completed'
+  WHERE bo.booking_status = 'Pending'
+    AND bo.payment_status = 'paid'
+    AND last.ends_at < NOW();
+
+-- The scheduler is the thread that runs events. MySQL 8 starts it by default
+-- but MariaDB does not, and an event on a stopped scheduler simply never
+-- fires and reports no error. This is not persistent: if the DBMS is
+-- restarted, add event_scheduler=ON to my.ini to make it stick.
+SET GLOBAL event_scheduler = ON;
+
+
 -- =====================================================================
 -- KEY QUERIES (for reference / report explanation)
 -- =====================================================================

@@ -22,3 +22,5 @@ composer.lock
 
 #Ignore AssignmentDetails
 AssignmentDetails/
+
+testing.php

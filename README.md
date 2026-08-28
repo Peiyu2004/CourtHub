@@ -75,19 +75,20 @@ Follow these steps to set up and deploy the project locally:
 
 ### Step 2: Import the Database
 
-1. Launch your web server control panel (e.g., WAMP Control Panel) and start both **Apache** and **MySQL**.
+1. Launch your web server control panel and start (e.g., XAMPP Control Panel: start both **Apache** and **MySQL**; WampServer: ensure the taskbar icon turns green).
 2. Open your browser and go to **phpMyAdmin**: `http://localhost/phpmyadmin/`.
-3. Click on **New** in the left sidebar and create a database named `courthub_db`.
-4. Select the newly created `courthub_db` database.
-5. Click on the **Import** tab in the top menu.
-6. Click **Choose File** and select the `database.sql` file located in the project root directory (`CourtHub/database.sql`).
-7. Click **Import** (or **Go**) at the bottom of the page to execute the schema setup and load seed data.
+3. Log in to phpMyAdmin (Default Username: root, Password: leave blank).
+4. Click on **New** in the left sidebar and create a database named `courthub_db`.
+5. Select the newly created `courthub_db` database.
+6. Click on the **Import** tab in the top menu.
+7. Click **Choose File** and select the `database.sql` file located in the project root directory (`CourtHub/database.sql`).
+8. Click **Import** (or **Go**) at the bottom of the page to execute the schema setup and load seed data.
 
 ---
 
 ## 5. Steps to Run the Project
 
-1. Verify that **Apache** and **MySQL** services are running.
+1. Verify that **Apache** and **MySQL** services are running. / Ensure WampServer is actively running (the tray icon must be green).
 2. Launch any web browser (Chrome, Edge, Firefox, or Safari).
 3. Access the landing page by navigating to the following URL:
 ```text

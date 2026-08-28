@@ -104,9 +104,5 @@ For evaluation and testing purposes, use the following pre-configured user accou
 
 | Account Role | Email Address | Password | Access Privileges |
 | --- | --- | --- | --- |
-| **Administrator** | `admin@courthub.com` | `password123` | Full administrative access to `/admin` dashboard, inventory, reservation management, and users.
-
-|
-| **Customer** | `alice.tan@example.com` | `password123` | Customer court reservations, equipment purchasing, cart management, and history views.
-
- |
+| **Administrator** | `admin@courthub.com` | `password123` | Full administrative access to `/admin` dashboard, inventory, reservation management, and users.|
+| **Customer** | `alice.tan@example.com` | `password123` | Customer court reservations, equipment purchasing, cart management, and history views.|

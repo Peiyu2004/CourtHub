@@ -583,6 +583,236 @@ INSERT INTO equipment_reviews (equipment_id, user_id, rating, comment) VALUES
 (12, 2, 5, 'Proper low bounce, behaves exactly like a match ball should on a hard court.'),
 (14, 3, 4, 'Light and breathable. Sizing runs a little large so consider one size down.');
 
+-- =====================================================================
+-- DEMO CUSTOMER DATA
+-- =====================================================================
+
+-- 1. Demo customer
+INSERT INTO users
+    (full_name, email, password_hash, phone, role)
+VALUES
+    (
+        'Alice Tan',
+        'alice.tan@example.com',
+        '$2y$12$ZLQTVAKoMU2GkLmCy8E1sew3XvfoDaPg922Ri.3uj/.XqElY/V.p6',
+        '01122334455',
+        'customer'
+    );
+
+
+-- 2. Past court booking
+INSERT INTO booking_orders
+    (
+        user_id,
+        total_amount,
+        payment_method,
+        payment_status,
+        booking_status,
+        transaction_ref
+    )
+VALUES
+    (
+        6,
+        30.00,
+        'tng_ewallet',
+        'paid',
+        'Completed',
+        'TNG-DEMO-0001'
+    );
+
+INSERT INTO booking_order_items
+    (
+        booking_order_id,
+        court_id,
+        booking_date,
+        start_time,
+        end_time,
+        price
+    )
+VALUES
+    (
+        1,
+        1,
+        '2026-08-20',
+        '10:00:00',
+        '11:00:00',
+        30.00
+    );
+
+
+-- 3. Upcoming court booking
+INSERT INTO booking_orders
+    (
+        user_id,
+        total_amount,
+        payment_method,
+        payment_status,
+        booking_status,
+        transaction_ref
+    )
+VALUES
+    (
+        6,
+        30.00,
+        'credit_debit_card',
+        'paid',
+        'Pending',
+        'CARD-DEMO-0002'
+    );
+
+INSERT INTO booking_order_items
+    (
+        booking_order_id,
+        court_id,
+        booking_date,
+        start_time,
+        end_time,
+        price
+    )
+VALUES
+    (
+        2,
+        2,
+        '2026-09-05',
+        '14:00:00',
+        '15:00:00',
+        30.00
+    );
+
+
+-- 4. Equipment in cart
+INSERT INTO cart_items
+    (
+        user_id,
+        variant_id,
+        quantity
+    )
+VALUES
+    (
+        6,
+        1,
+        1
+    );
+
+
+-- 5. Pending equipment order and item
+INSERT INTO equipment_orders
+    (
+        user_id,
+        total_amount,
+        payment_method,
+        payment_status,
+        order_status,
+        transaction_ref
+    )
+VALUES
+    (
+        6,
+        450.00,
+        'tng_ewallet',
+        'paid',
+        'pending',
+        'TNG-EQUIP-DEMO-0001'
+    );
+
+INSERT INTO equipment_order_items
+(
+    equipment_order_id,
+    equipment_id,
+    variant_id,
+    quantity,
+    price_at_purchase,
+    selected_options
+)
+VALUES
+(
+    1,
+    8,
+    15,
+    1,
+    450.00,
+    '{"Grip Color":"Yellow"}'
+);
+
+
+-- 6. Completed equipment order and item
+INSERT INTO equipment_orders
+    (
+        user_id,
+        total_amount,
+        payment_method,
+        payment_status,
+        order_status,
+        transaction_ref,
+        collected_at
+    )
+VALUES
+    (
+        6,
+        69.00,
+        'credit_debit_card',
+        'paid',
+        'completed',
+        'CARD-EQUIP-DEMO-0002',
+        '2026-08-15 16:30:00'
+    );
+
+INSERT INTO equipment_order_items
+(
+    equipment_order_id,
+    equipment_id,
+    variant_id,
+    quantity,
+    price_at_purchase,
+    selected_options
+)
+VALUES
+(
+    2,
+    10,
+    11,
+    1,
+    69.00,
+    NULL
+);
+
+
+-- 7. Product review
+INSERT INTO equipment_reviews
+    (
+        equipment_id,
+        user_id,
+        rating,
+        comment
+    )
+VALUES
+    (
+        10,
+        6,
+        5,
+        'The balls have a consistent bounce and are great for outdoor games. Good quality for the price.'
+    );
+
+
+-- 8. Contact Us message
+INSERT INTO contact_messages
+    (
+        user_id,
+        name,
+        email,
+        phone,
+        message,
+        status
+    )
+VALUES
+    (
+        6,
+        'Alice Tan',
+        'alice.tan@example.com',
+        '01122334455',
+        'Hi, I would like to know whether badminton rackets can be collected together with my court booking.',
+        'New'
+    );
 
 -- ---------------------------------------------------------------------
 -- SCHEDULED EVENT: close off reservations once they have been played

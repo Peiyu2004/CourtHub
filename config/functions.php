@@ -382,9 +382,9 @@ function orderDisplayNumbers($orders) {
  */
 function renderHistoryTabs($active) {
     $tabs = [
-        'bookings'  => ['label' => 'Court Bookings',      'url' => app_url('/booking/history.php')],
-        'purchases' => ['label' => 'Equipment Purchases', 'url' => app_url('/shop/purchaseHistory.php')],
-        'messages' => ['label' => 'My Messages', 'url'   => app_url('myMessages.php')],
+        'bookings'  => ['label' => 'Court Bookings',      'url' => app_url('/history/bookingHistory.php')],
+        'purchases' => ['label' => 'Equipment Purchases', 'url' => app_url('/history/purchaseHistory.php')],
+        'messages' => ['label' => 'My Messages', 'url'   => app_url('/history/myMessages.php')],
     ];
     ?>
     <nav class="history-tabs">

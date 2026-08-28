@@ -25,7 +25,7 @@
                     <?php if (isLoggedIn()): ?>
                         <li><a href="<?= h(app_url('/auth/profile.php')) ?>">My Profile</a></li>
                         <li><a href="<?= h(app_url('/shop/cart.php')) ?>">My Cart</a></li>
-                        <li><a href="<?= h(app_url('/booking/history.php')) ?>">My History</a></li>
+                        <li><a href="<?= h(app_url('/history/bookingHistory.php')) ?>">My History</a></li>
                     <?php else: ?>
                         <li><a href="<?= h(app_url('/auth/login.php')) ?>">Login</a></li>
                         <li><a href="<?= h(app_url('/auth/register.php')) ?>">Create Account</a></li>

@@ -5,7 +5,7 @@
  * in the store, newest first, with the exact items, variant choices and price
  * that were charged at the time.
  *
- * The court half of the same feature lives in booking/history.php. Both pages
+ * The court half of the same feature lives in history/bookingHistory.php. Both pages
  * draw the same tab strip so the customer can move between the two.
  *
  * Prices come from equipment_order_items.price_at_purchase, not from the
@@ -61,7 +61,7 @@ require_once __DIR__ . '/../includes/header.php';
 <?php if (empty($orders)): ?>
     <section class="card">
         <div class="empty-state">You have not purchased any equipment yet.</div>
-        <a href="<?= h(app_url('/shop/equipment.php')) ?>" class="btn">Browse Equipment</a>
+        <a href="<?= h(app_url('/../shop/equipment.php')) ?>" class="btn">Browse Equipment</a>
     </section>
 <?php else: ?>
     <section class="stats-grid three-up">
@@ -134,7 +134,7 @@ require_once __DIR__ . '/../includes/header.php';
                                         <strong>Item no longer available</strong>
                                     <?php else: ?>
                                         <strong>
-                                            <a href="<?= h(app_url('/shop/equipmentDetails.php?id=' . (int)$item['equipment_id'])) ?>">
+                                            <a href="<?= h(app_url('/../shop/equipmentDetails.php?id=' . (int)$item['equipment_id'])) ?>">
                                                 <?= h($item['equipment_name']) ?>
                                             </a>
                                         </strong><br>

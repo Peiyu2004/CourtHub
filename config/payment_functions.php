@@ -53,7 +53,7 @@ function paymentType($type) {
             'id_column' => 'booking_order_id',
             'noun' => 'Booking',
             'number_style' => 'sequence',
-            'return_url' => '/booking/history.php',
+            'return_url' => '/history/bookingHistory.php',
             'return_param' => 'booking_success',
         ],
         PAYMENT_TYPE_EQUIPMENT => [
@@ -61,7 +61,7 @@ function paymentType($type) {
             'id_column' => 'equipment_order_id',
             'noun' => 'Order',
             'number_style' => 'id',
-            'return_url' => '/shop/purchaseHistory.php',
+            'return_url' => '/history/purchaseHistory.php',
             'return_param' => 'order_success',
         ],
     ];

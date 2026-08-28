@@ -1,7 +1,7 @@
 <?php
 
-require_once __DIR__ . '/config/db_connect.php';
-require_once __DIR__ . '/config/functions.php';
+require_once __DIR__ . '/../config/db_connect.php';
+require_once __DIR__ . '/../config/functions.php';
 
 requireLogin();
 
@@ -33,7 +33,7 @@ $stmt->close();
 $page_title = 'My Messages';
 $extra_css = ['shop'];
 
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../includes/header.php';
 
 ?>
 
@@ -133,4 +133,4 @@ require_once __DIR__ . '/includes/header.php';
 
 
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

@@ -68,7 +68,7 @@ if (isset($extra_css)) {
 
                     <div class="dropdown-menu">
                         <a href="<?= h(app_url('/auth/profile.php')) ?>">My Profile</a>
-                        <a href="<?= h(app_url('/booking/history.php')) ?>">My History</a>
+                        <a href="<?= h(app_url('/history/bookingHistory.php')) ?>">My History</a>
 
                         <?php if (isAdmin()): ?>
                             <div class="dropdown-divider"></div>

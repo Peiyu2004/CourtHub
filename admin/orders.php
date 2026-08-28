@@ -9,7 +9,7 @@
  * this list, where it stays until the customer comes in, takes the items and an
  * admin presses "Mark as Collected".
  *
- * The customer sees the same status on shop/purchaseHistory.php, against the
+ * The customer sees the same status on history/purchaseHistory.php, against the
  * same order number, so both sides of the counter are talking about one order.
  *
  * Flow:

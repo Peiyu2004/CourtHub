@@ -329,7 +329,7 @@ $images = courtImages($sport['name']);
 
 </section>  
 
-<div class="card-actions">
+<div>
 
 
         <a href="<?=h(app_url('/booking/search.php?sport='.$sport_id))?>"

@@ -193,7 +193,7 @@ require_once __DIR__ . '/includes/header.php';
             </div>
         </section>
         
-        <!-- Contact Us Section -->
+        <!-- Contact Us -->
         <section class="home-contact">
             <div class="home-contact-content">
                 <div class="home-contact-text">

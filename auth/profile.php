@@ -177,7 +177,7 @@ if (!empty($errors_password) || !empty($success_password)) {
 
             <button type="button" class="nav-tab <?= $active_tab === 'tab-security' ? 'active' : '' ?>" data-target="tab-security">
                 <span class="nav-icon">🔒</span>
-                <span class="nav-text">Security Settings</span>
+                <span class="nav-text">Security Setting</span>
             </button>
 
             <?php if ($current_user['role'] !== 'admin'): ?>
@@ -232,7 +232,7 @@ if (!empty($errors_password) || !empty($success_password)) {
             </form>
         </div>
 
-        <!-- 2. Security Settings Tab Pane -->
+        <!-- 2. Security Setting Tab Pane -->
         <div class="card tab-pane <?= $active_tab === 'tab-security' ? 'active' : '' ?>" id="tab-security">
             <h2>Change Password</h2>
             <p class="muted">Update your account password for enhanced security.</p>

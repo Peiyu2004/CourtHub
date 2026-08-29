@@ -1,8 +1,38 @@
 <?php
 require_once __DIR__ . '/config/db_connect.php';
+require_once __DIR__ . '/config/functions.php';
+require_once __DIR__ . '/config/equipment_functions.php';
 
 $page_title = 'Home';
 $extra_css = ['home'];
+
+$featured_equipment = [];
+
+$sql = "
+    SELECT
+        e.equipment_id,
+        e.name,
+        e.brand,
+        e.category,
+        e.price,
+        e.image_url,
+        st.name AS sport_name
+    FROM equipment e
+    JOIN sport_types st
+        ON e.sport_type_id = st.sport_type_id
+    WHERE e.status = 'active'
+    ORDER BY e.equipment_id DESC
+    LIMIT 3
+";
+
+$stmt = $conn->prepare($sql);
+
+if ($stmt) {
+    $stmt->execute();
+    $featured_equipment = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+}
+
 require_once __DIR__ . '/includes/header.php';
 ?>
 
@@ -25,10 +55,10 @@ require_once __DIR__ . '/includes/header.php';
     <div class="about-container">
         
         <!-- Court Section -->
-        <h2 class="section-main-title">OUR RECREATIONAL AMENITIES</h2>
+        <h2 class="section-main-title">POPULAR FACILITIES</h2>
         
         <div class="grid">
-            <!-- Card 1: Badminton -->
+            <!-- PRODUCT 1 -->
             <div class="info-card">
                 <a class="card-image" href="<?= h(app_url('/booking/viewCourt.php?sport=1')) ?>">
                     <img src="<?= h(app_url('/images/badmintonCourt.jpg')) ?>" alt="Badminton Hall">
@@ -65,6 +95,44 @@ require_once __DIR__ . '/includes/header.php';
             </div>
         </div>
 
+        <!-- Equipment Section -->
+         <h2 class="section-main-title">FEATURED SPORTS EQUIPMENT</h2>
+        <div class="grid">
+            <?php if (!empty($featured_equipment)): ?>
+                <?php foreach ($featured_equipment as $item): ?>
+                    <div class="info-card">
+
+                        <!-- Product Image -->
+                        <a class="card-image fit-contain" href="<?= h(app_url('/shop/equipmentDetails.php?id=' . (int)$item['equipment_id'])) ?>">
+                            <img src="<?= h(equipmentImage($item['image_url'])) ?>" alt="<?= h($item['name']) ?>" class="img-contain">
+                        </a>
+
+                        <!-- Product Information -->
+                        <div class="card-body">
+                            <h3><?= h($item['name']) ?></h3>
+                            <p><?= h($item['brand']) ?>
+                            <?php if (!empty($item['category'])): ?>&bull;<?= h($item['category']) ?><?php endif; ?>
+                            </p>
+                            <p><strong>RM <?= number_format((float)$item['price'], 2 ) ?></strong></p>
+                            <a href="<?= h(app_url('/shop/equipmentDetails.php?id=' . (int)$item['equipment_id'])) ?>"class="card-link">
+                                View Product &rarr;
+                            </a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="info-card">
+                    <div class="card-body">
+                        <h3>EQUIPMENT COMING SOON</h3>
+                        <p>Our sports equipment collection will be available soon.</p>
+                        <a href="<?= h(app_url('/shop/equipment.php')) ?>"class="card-link">
+                            Visit Equipment Store &rarr;
+                        </a>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+
         <!-- Equipment Store Section -->
         <div class="store-banner-wrapper">
             <div class="store-banner-container">
@@ -90,6 +158,42 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
             </div>
         </div>
+
+        <!-- Why Choose Us Section -->
+        <section class="why-choose-section">
+            <h2 class="section-main-title">WHY CHOOSE US?</h2>
+            <div class="why-choose-grid">
+                <!-- Easy Court Booking -->
+                <div class="why-card">
+                    <div class="why-icon icon-booking"></div>
+                    <h3>EASY COURT BOOKING</h3>
+                    <p>Find your preferred sports facility, select an available date and time slot, and add your booking directly to the cart.</p>
+                </div>
+
+                <!-- One Unified Cart -->
+                <div class="why-card">
+                    <div class="why-icon icon-cart"></div>
+                    <h3>ONE UNIFIED CART</h3>
+                    <p>Add court bookings and sports equipment to the same cart, making it convenient to manage everything before checkout.</p>
+                </div>
+
+                <!-- Quality Equipment -->
+                <div class="why-card">
+                    <div class="why-icon icon-quality"></div>
+                    <h3>QUALITY EQUIPMENT</h3>
+                    <p>Explore a range of sports equipment with different options and variants to suit your sporting needs.</p>
+                </div>
+
+                <!-- Account Management -->
+                <div class="why-card">
+                    <div class="why-icon icon-account"></div>
+                    <h3>EASY ACCOUNT MANAGEMENT</h3>
+                    <p>Manage your profile and conveniently view your previous court bookings and equipment orders from your account.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Contact Us Section -->
         <section class="home-contact">
             <div class="home-contact-content">
                 <div class="home-contact-text">

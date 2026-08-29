@@ -28,7 +28,7 @@
                         <li><a href="<?= h(app_url('/history/bookingHistory.php')) ?>">My History</a></li>
                     <?php else: ?>
                         <li><a href="<?= h(app_url('/auth/login.php')) ?>">Login</a></li>
-                        <li><a href="<?= h(app_url('/auth/register.php')) ?>">Create Account</a></li>
+                        <li><a href="<?= h(app_url('/auth/register.php')) ?>">Register</a></li>
                     <?php endif; ?>
                 </ul>
             </div>

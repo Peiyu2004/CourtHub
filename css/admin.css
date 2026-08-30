@@ -269,15 +269,8 @@
    Responsive Breakpoints
    ========================================================================== */
 
-/* Large Tablets & Small Laptops (1200px) */
-@media (max-width: 1200px) {
-    .stats-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
-
-/* Medium Tablets & iPads (900px) */
-@media (max-width: 900px) {
+/* Desktop (1023px) */
+@media (max-width: 1023px) {
     .sidebar-nav {
         width: 200px;
         padding: 20px 12px;
@@ -292,8 +285,8 @@
     }
 }
 
-/* Mobile & Small Tablets (768px) */
-@media (max-width: 768px) {
+/* Mobile & Small Tablets (767px) */
+@media (max-width: 767px) {
     .dashboard-layout {
         flex-direction: column;
     }
@@ -335,8 +328,8 @@
     }
 }
 
-/* Mobile Phones (480px) */
-@media (max-width: 480px) {
+/* Mobile Phones (479px) */
+@media (max-width: 479px) {
     .stats-grid {
         grid-template-columns: repeat(1, minmax(0, 1fr));
     }

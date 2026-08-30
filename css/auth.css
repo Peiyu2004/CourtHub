@@ -208,7 +208,7 @@
 }
 
 /* Mobile Responsive Fallback */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .auth-card-container {
         flex-direction: column;
     }
@@ -313,7 +313,7 @@
     display: block;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .profile-layout {
         grid-template-columns: 1fr;
     }

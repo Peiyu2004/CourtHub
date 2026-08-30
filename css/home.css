@@ -434,11 +434,11 @@ body, html {
 
 /* ---------- Responsive Breakpoints ---------- */
 
-/* Desktop & Laptop (max-width: 968px) */
-@media (max-width: 968px) {
+/* Desktop & Laptop (max-width: 1023px) */
+@media (max-width: 1023px) {
     .hero-section {
         min-height: 420px;
-        padding: 40px 16px;
+        padding: 40px 16px 40px 70px;
     }
 
     .hero-container {
@@ -453,14 +453,14 @@ body, html {
     }
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1023px) {
     .why-choose-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
-/* Tablet (max-width: 868px) */
-@media (max-width: 868px) {
+/* Tablet (max-width: 767px) */
+@media (max-width: 767px) {
     .store-banner-wrapper {
         padding: 32px 0;
         margin-top: 24px;
@@ -483,8 +483,8 @@ body, html {
     }
 }
 
-/* Mobile Screens (max-width: 576px) */
-@media (max-width: 576px) {
+/* Mobile Screens (max-width: 479px) */
+@media (max-width: 479px) {
     .hero-section {
         min-height: 360px;
         padding: 32px 16px;

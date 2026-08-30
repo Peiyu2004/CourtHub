@@ -210,7 +210,7 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="home-contact-info">
                     <div class="contact-info-item">
                         <strong>📍 Address</strong>
-                        <p>CourtHub Sport Center<br>Kuala Lumpur, Malaysia</p>
+                        <p>CourtHub Sport Center<br>50000, Kuala Lumpur, Malaysia</p>
                     </div>
                     <div class="contact-info-item">
                         <strong>📞 Phone</strong>

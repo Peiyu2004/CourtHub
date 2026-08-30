@@ -65,7 +65,7 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="auth-visual-overlay">
                 <div class="auth-brand-badge">
                     <h2>CourtHub</h2>
-                    <p>Kuala Lumpur Sports Center</p>
+                    <p>Sport Center</p>
                 </div>
             </div>
         </div>

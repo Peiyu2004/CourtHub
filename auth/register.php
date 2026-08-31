@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Please enter a valid email address.";
     }
 
-    // 3. Phone Number Validation (Optional field, but validate format if entered)
+    // 3. Phone Number Validation
     if ($phone === '') {
         $errors[] = "Phone number is required.";
     } else if ($phone !== '' && !preg_match("/^[0-9+\s\-()]{7,20}$/", $phone)) {

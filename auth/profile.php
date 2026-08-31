@@ -75,6 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $errors_password[] = "All password fields are required.";
     } elseif (strlen($new_password) < 6) {
         $errors_password[] = "New password must be at least 6 characters long.";
+    } elseif (!preg_match("/[A-Za-z]/", $new_password) || !preg_match("/[0-9]/", $new_password)) {
+        $errors_password[] = "New password must contain both letters and numbers.";
     } elseif ($new_password !== $confirm_password) {
         $errors_password[] = "New passwords do not match.";
     } else {

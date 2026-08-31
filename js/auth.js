@@ -389,15 +389,18 @@ document.addEventListener('DOMContentLoaded', () => {
             hideServerAlerts(passwordForm.parentElement);
             inputs.forEach(input => input && input.classList.remove('input-error'));
 
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
             const errors = [];
             let firstInvalid = null;
 
+            // 1. Current Password Check
             if (currentPassword && currentPassword.value === '') {
                 errors.push("Please enter your current password.");
                 currentPassword.classList.add('input-error');
                 firstInvalid = firstInvalid || currentPassword;
             }
 
+            // 2. New Password Checks
             if (newPassword && newPassword.value === '') {
                 errors.push("Please enter your new password.");
                 newPassword.classList.add('input-error');
@@ -406,8 +409,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 errors.push("New password must be at least 6 characters long.");
                 newPassword.classList.add('input-error');
                 firstInvalid = firstInvalid || newPassword;
+            } else if (newPassword && !passwordRegex.test(newPassword.value)) {
+                errors.push("Password must be at least 6 characters long and contain both letters and numbers.");
+                password.classList.add('input-error');
+                firstInvalid = firstInvalid || password;
             }
 
+            // 3. Confirm Password Checks
             if (confirmPassword && confirmPassword.value === '') {
                 errors.push("Please confirm your new password.");
                 confirmPassword.classList.add('input-error');
@@ -418,6 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 firstInvalid = firstInvalid || confirmPassword;
             }
 
+            // 4. Submit Interception
             if (errors.length > 0) {
                 e.preventDefault();
                 showAlertBox(alertBox, errors, 'error');

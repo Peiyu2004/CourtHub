@@ -5,7 +5,6 @@
 body, html {
     margin: 0;
     padding: 0;
-    overflow-x: hidden; /* Changed from clip to hidden to safely prevent horizontal page scroll */
 }
 
 /* Reset the workspace container so its contents sit flush against the header */

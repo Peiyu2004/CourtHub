@@ -37,7 +37,7 @@ require_once __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Hero Banner Section -->
-<header class="hero-section">
+<section class="hero-section">
     <div class="hero-container">
         <div class="hero-content">
             <h1 class="hero-title">TRAIN.<br>PLAY.<br>GROW.</h1>
@@ -48,7 +48,7 @@ require_once __DIR__ . '/includes/header.php';
             </div>
         </div>
     </div>
-</header>
+</section>
 
 <!-- About Section -->
 <section class="about-section">

@@ -410,9 +410,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 newPassword.classList.add('input-error');
                 firstInvalid = firstInvalid || newPassword;
             } else if (newPassword && !passwordRegex.test(newPassword.value)) {
-                errors.push("Password must be at least 6 characters long and contain both letters and numbers.");
-                password.classList.add('input-error');
-                firstInvalid = firstInvalid || password;
+                // Length is already handled by the branch above, so this one only
+                // ever fires for the letter-and-number rule. Same wording as the
+                // PHP check in auth/profile.php so both layers say the same thing.
+                errors.push("New password must contain both letters and numbers.");
+                newPassword.classList.add('input-error');
+                firstInvalid = firstInvalid || newPassword;
             }
 
             // 3. Confirm Password Checks
